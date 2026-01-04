@@ -189,7 +189,8 @@ class HomeLayout extends Page
                                     'category' => 'Category',
                                     'url' => 'URL',
                                 ])
-                                ->default('none'),
+                                ->default('none')
+                                ->live(),
                         ]),
 
                     Forms\Components\TextInput::make('cta_target_id')
