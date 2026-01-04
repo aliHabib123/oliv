@@ -1,23 +1,22 @@
 <?php
 
-use App\Models\Tenant;
+use App\Http\Middleware\ResolveTenantFromAppKey;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('v1/ping', function (Request $request) {
-    $appKey = $request->header('X-App-Key');
+Route::middleware(ResolveTenantFromAppKey::class)->group(function () {
+    Route::get('v1/ping', function (Request $request) {
+        /** @var \App\Models\Tenant|null $tenant */
+        $tenant = $request->attributes->get('tenant');
 
-    $tenant = $appKey
-        ? Tenant::where('app_key', $appKey)->first()
-        : null;
-
-    return response()->json([
-        'ok' => true,
-        'timestamp' => now()->toISOString(),
-        'tenant' => $tenant ? [
-            'id' => $tenant->id,
-            'name' => $tenant->name,
-            'status' => $tenant->status,
-        ] : null,
-    ]);
+        return response()->json([
+            'ok' => true,
+            'timestamp' => now()->toISOString(),
+            'tenant' => $tenant ? [
+                'id' => $tenant->id,
+                'name' => $tenant->name,
+                'status' => $tenant->status,
+            ] : null,
+        ]);
+    });
 });
