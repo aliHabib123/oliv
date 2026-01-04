@@ -11,6 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class TenantResource extends Resource
@@ -47,6 +48,54 @@ class TenantResource extends Resource
                     'suspended' => 'Suspended',
                 ])
                 ->required(),
+
+            Forms\Components\Repeater::make('home_layout')
+                ->label('Home layout blocks')
+                ->schema([
+                    Forms\Components\Hidden::make('type')
+                        ->default('banner'),
+
+                    Forms\Components\TextInput::make('title')
+                        ->label('Title')
+                        ->maxLength(255),
+
+                    Forms\Components\TextInput::make('subtitle')
+                        ->label('Subtitle')
+                        ->maxLength(255),
+
+                    Forms\Components\TextInput::make('image_url')
+                        ->label('Image URL')
+                        ->maxLength(2048),
+
+                    Forms\Components\TextInput::make('cta_label')
+                        ->label('CTA label')
+                        ->maxLength(255),
+
+                    Forms\Components\Select::make('cta_target_type')
+                        ->label('CTA target type')
+                        ->options([
+                            'none' => 'None',
+                            'product' => 'Product',
+                            'brand' => 'Brand',
+                            'category' => 'Category',
+                            'url' => 'URL',
+                        ])
+                        ->default('none'),
+
+                    Forms\Components\TextInput::make('cta_target_id')
+                        ->label('CTA target ID')
+                        ->maxLength(255)
+                        ->visible(fn (callable $get): bool => in_array($get('cta_target_type'), ['product', 'brand', 'category'], true)),
+
+                    Forms\Components\TextInput::make('cta_target_url')
+                        ->label('CTA target URL')
+                        ->maxLength(2048)
+                        ->visible(fn (callable $get): bool => $get('cta_target_type') === 'url'),
+                ])
+                ->orderable()
+                ->collapsible()
+                ->defaultItems(0)
+                ->columnSpanFull(),
         ])->columns(2);
     }
 
@@ -104,35 +153,91 @@ class TenantResource extends Resource
         ];
     }
 
-    protected static function canManageTenants(): bool
+    public static function canViewAny(): bool
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return false;
+        }
+
+        return $user->hasRole('super_admin');
+    }
+
+    public static function canAccess(): bool
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return false;
+        }
+
+        // Resource-level access: super_admin + owner + admin can hit Tenant pages.
+        return $user->hasAnyRole(['super_admin', 'owner', 'admin']);
+    }
+
+    public static function canCreate(): bool
     {
         $user = auth()->user();
 
         return (bool) $user?->hasRole('super_admin');
     }
 
-    public static function canViewAny(): bool
-    {
-        return self::canManageTenants();
-    }
-
-    public static function canCreate(): bool
-    {
-        return self::canManageTenants();
-    }
-
     public static function canEdit(Model $record): bool
     {
-        return self::canManageTenants();
+        $user = auth()->user();
+
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->hasRole('super_admin')) {
+            return true;
+        }
+
+        if ($user->hasAnyRole(['owner', 'admin'])) {
+            return true;
+        }
+
+        return false;
     }
 
     public static function canDelete(Model $record): bool
     {
-        return self::canManageTenants();
+        $user = auth()->user();
+
+        return (bool) $user?->hasRole('super_admin');
     }
 
     public static function shouldRegisterNavigation(): bool
     {
-        return self::canManageTenants();
+        $user = auth()->user();
+
+        if (! $user) {
+            return false;
+        }
+
+        return $user->hasRole('super_admin');
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        $user = auth()->user();
+
+        if (! $user) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        if ($user->hasRole('super_admin')) {
+            return $query;
+        }
+
+        if ($user->hasAnyRole(['owner', 'admin']) && $user->tenant_id !== null) {
+            return $query->where('id', $user->tenant_id);
+        }
+
+        return $query->whereRaw('1 = 0');
     }
 }

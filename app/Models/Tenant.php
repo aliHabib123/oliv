@@ -21,6 +21,11 @@ class Tenant extends Model
         'shopify_shop_domain',
         'shopify_storefront_token',
         'status',
+        'home_layout',
+    ];
+
+    protected $casts = [
+        'home_layout' => 'array',
     ];
 
     protected static function booted(): void
