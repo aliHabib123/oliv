@@ -1,25 +1,44 @@
 <?php
 
-namespace Database\Seeders;
+ namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
+ use App\Models\User;
+ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+ use Illuminate\Database\Seeder;
+ use Illuminate\Support\Facades\Hash;
+ use Spatie\Permission\Models\Role;
 
-class DatabaseSeeder extends Seeder
-{
-    use WithoutModelEvents;
+ class DatabaseSeeder extends Seeder
+ {
+     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
-    public function run(): void
-    {
-        // User::factory(10)->create();
+     /**
+      * Seed the application's database.
+      */
+     public function run(): void
+     {
+         $superAdminRole = Role::firstOrCreate([
+             'name' => 'super_admin',
+             'guard_name' => 'web',
+         ]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
-    }
-}
+         foreach (['owner', 'admin', 'editor'] as $roleName) {
+             Role::firstOrCreate([
+                 'name' => $roleName,
+                 'guard_name' => 'web',
+             ]);
+         }
+
+         $superAdmin = User::firstOrCreate(
+             ['email' => 'superadmin@example.com'],
+             [
+                 'name' => 'Super Admin',
+                 'password' => Hash::make('password'),
+             ],
+         );
+
+         if (! $superAdmin->hasRole($superAdminRole)) {
+             $superAdmin->assignRole($superAdminRole);
+         }
+     }
+ }
