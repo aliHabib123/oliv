@@ -6,6 +6,7 @@ use App\Models\Tenant;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms;
+use Filament\Forms\Components\Builder\Block;
 use Filament\Notifications\Notification;
 use Filament\Pages\Concerns\CanUseDatabaseTransactions;
 use Filament\Pages\Page;
@@ -149,63 +150,74 @@ class HomeLayout extends Page
     public function form(Schema $schema): Schema
     {
         return $schema->schema([
-            Forms\Components\Repeater::make('home_layout')
+            Forms\Components\Builder::make('home_layout')
                 ->label('Home layout blocks')
-                ->compact()
-                ->grid(1)
-                ->schema([
-                    Forms\Components\Hidden::make('type')
-                        ->default('banner'),
-
-                    Grid::make(2)
+                ->blocks([
+                    Block::make('banner')
+                        ->label('Banner')
                         ->schema([
-                            Forms\Components\TextInput::make('title')
-                                ->label('Title')
-                                ->maxLength(255),
+                            Grid::make(2)
+                                ->schema([
+                                    Forms\Components\TextInput::make('title')
+                                        ->label('Title')
+                                        ->maxLength(255),
 
-                            Forms\Components\TextInput::make('subtitle')
-                                ->label('Subtitle')
-                                ->maxLength(255),
+                                    Forms\Components\TextInput::make('subtitle')
+                                        ->label('Subtitle')
+                                        ->maxLength(255),
+                                ]),
+
+                            Forms\Components\FileUpload::make('image_url')
+                                ->label('Image')
+                                ->image()
+                                ->directory('home-layout')
+                                ->columnSpanFull(),
+
+                            Grid::make(2)
+                                ->schema([
+                                    Forms\Components\TextInput::make('cta_label')
+                                        ->label('CTA label')
+                                        ->maxLength(255),
+
+                                    Forms\Components\Select::make('cta_target_type')
+                                        ->label('CTA target type')
+                                        ->options([
+                                            'none' => 'None',
+                                            'product' => 'Product',
+                                            'brand' => 'Brand',
+                                            'category' => 'Category',
+                                            'url' => 'URL',
+                                        ])
+                                        ->default('none')
+                                        ->live(),
+                                ]),
+
+                            Forms\Components\TextInput::make('cta_target_id')
+                                ->label('CTA target ID')
+                                ->maxLength(255)
+                                ->visible(fn (callable $get): bool => in_array($get('cta_target_type'), ['product', 'brand', 'category'], true)),
+
+                            Forms\Components\TextInput::make('cta_target_url')
+                                ->label('CTA target URL')
+                                ->maxLength(2048)
+                                ->visible(fn (callable $get): bool => $get('cta_target_type') === 'url'),
                         ]),
 
-                    Forms\Components\FileUpload::make('image_url')
-                        ->label('Image')
-                        ->image()
-                        ->directory('home-layout')
-                        ->columnSpanFull(),
-
-                    Grid::make(2)
+                    Block::make('mini_banner')
+                        ->label('Mini banner')
                         ->schema([
-                            Forms\Components\TextInput::make('cta_label')
-                                ->label('CTA label')
-                                ->maxLength(255),
+                            Forms\Components\FileUpload::make('image_url')
+                                ->label('Image')
+                                ->image()
+                                ->directory('home-layout')
+                                ->columnSpanFull(),
 
-                            Forms\Components\Select::make('cta_target_type')
-                                ->label('CTA target type')
-                                ->options([
-                                    'none' => 'None',
-                                    'product' => 'Product',
-                                    'brand' => 'Brand',
-                                    'category' => 'Category',
-                                    'url' => 'URL',
-                                ])
-                                ->default('none')
-                                ->live(),
+                            Forms\Components\TextInput::make('url')
+                                ->label('URL')
+                                ->maxLength(2048),
                         ]),
-
-                    Forms\Components\TextInput::make('cta_target_id')
-                        ->label('CTA target ID')
-                        ->maxLength(255)
-                        ->visible(fn (callable $get): bool => in_array($get('cta_target_type'), ['product', 'brand', 'category'], true)),
-
-                    Forms\Components\TextInput::make('cta_target_url')
-                        ->label('CTA target URL')
-                        ->maxLength(2048)
-                        ->visible(fn (callable $get): bool => $get('cta_target_type') === 'url'),
                 ])
-                ->orderable()
                 ->collapsible()
-                ->defaultItems(0)
                 ->columnSpanFull(),
         ]);
     }
