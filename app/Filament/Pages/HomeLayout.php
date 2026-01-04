@@ -13,6 +13,7 @@ use Filament\Schemas\Components\Actions as SchemaActions;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\EmbeddedSchema;
 use Filament\Schemas\Components\Form;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\Auth\Authenticatable;
 use UnitEnum;
@@ -150,36 +151,46 @@ class HomeLayout extends Page
         return $schema->schema([
             Forms\Components\Repeater::make('home_layout')
                 ->label('Home layout blocks')
+                ->compact()
+                ->grid(1)
                 ->schema([
                     Forms\Components\Hidden::make('type')
                         ->default('banner'),
 
-                    Forms\Components\TextInput::make('title')
-                        ->label('Title')
-                        ->maxLength(255),
+                    Grid::make(2)
+                        ->schema([
+                            Forms\Components\TextInput::make('title')
+                                ->label('Title')
+                                ->maxLength(255),
 
-                    Forms\Components\TextInput::make('subtitle')
-                        ->label('Subtitle')
-                        ->maxLength(255),
+                            Forms\Components\TextInput::make('subtitle')
+                                ->label('Subtitle')
+                                ->maxLength(255),
+                        ]),
 
-                    Forms\Components\TextInput::make('image_url')
-                        ->label('Image URL')
-                        ->maxLength(2048),
+                    Forms\Components\FileUpload::make('image_url')
+                        ->label('Image')
+                        ->image()
+                        ->directory('home-layout')
+                        ->columnSpanFull(),
 
-                    Forms\Components\TextInput::make('cta_label')
-                        ->label('CTA label')
-                        ->maxLength(255),
+                    Grid::make(2)
+                        ->schema([
+                            Forms\Components\TextInput::make('cta_label')
+                                ->label('CTA label')
+                                ->maxLength(255),
 
-                    Forms\Components\Select::make('cta_target_type')
-                        ->label('CTA target type')
-                        ->options([
-                            'none' => 'None',
-                            'product' => 'Product',
-                            'brand' => 'Brand',
-                            'category' => 'Category',
-                            'url' => 'URL',
-                        ])
-                        ->default('none'),
+                            Forms\Components\Select::make('cta_target_type')
+                                ->label('CTA target type')
+                                ->options([
+                                    'none' => 'None',
+                                    'product' => 'Product',
+                                    'brand' => 'Brand',
+                                    'category' => 'Category',
+                                    'url' => 'URL',
+                                ])
+                                ->default('none'),
+                        ]),
 
                     Forms\Components\TextInput::make('cta_target_id')
                         ->label('CTA target ID')
