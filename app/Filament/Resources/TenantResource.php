@@ -11,6 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class TenantResource extends Resource
 {
@@ -101,5 +102,37 @@ class TenantResource extends Resource
             'create' => Pages\CreateTenant::route('/create'),
             'edit' => Pages\EditTenant::route('/{record}/edit'),
         ];
+    }
+
+    protected static function canManageTenants(): bool
+    {
+        $user = auth()->user();
+
+        return (bool) $user?->hasRole('super_admin');
+    }
+
+    public static function canViewAny(): bool
+    {
+        return self::canManageTenants();
+    }
+
+    public static function canCreate(): bool
+    {
+        return self::canManageTenants();
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return self::canManageTenants();
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return self::canManageTenants();
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return self::canManageTenants();
     }
 }

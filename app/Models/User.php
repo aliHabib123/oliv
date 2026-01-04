@@ -21,6 +21,7 @@
      * @var list<string>
      */
     protected $fillable = [
+        'tenant_id',
         'name',
         'email',
         'password',
@@ -43,7 +44,7 @@
 
      public function canAccessPanel(Panel $panel): bool
      {
-         return $this->hasRole('super_admin');
+         return $this->hasAnyRole(['super_admin', 'owner', 'admin', 'editor']);
      }
 
      /**
