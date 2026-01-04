@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Tenant extends Model
 {
@@ -21,6 +22,19 @@ class Tenant extends Model
         'shopify_storefront_token',
         'status',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Tenant $tenant): void {
+            if (empty($tenant->app_key)) {
+                do {
+                    $appKey = Str::uuid()->toString();
+                } while (static::where('app_key', $appKey)->exists());
+
+                $tenant->app_key = $appKey;
+            }
+        });
+    }
 
     public function users()
     {
