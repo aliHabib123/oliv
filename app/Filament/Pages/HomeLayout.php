@@ -636,6 +636,109 @@ class HomeLayout extends Page
                                 ->dehydratedWhenHidden()
                                 ->hidden(),
                         ]),
+
+                    Block::make('category_grid')
+                        ->label('Category grid')
+                        ->schema([
+                            Forms\Components\TextInput::make('title')
+                                ->label('Title')
+                                ->maxLength(255),
+
+                            Forms\Components\Repeater::make('categories')
+                                ->label('Categories')
+                                ->schema([
+                                    Forms\Components\FileUpload::make('image_url')
+                                        ->label('Image')
+                                        ->image()
+                                        ->directory('home-layout')
+                                        ->columnSpanFull(),
+
+                                    Forms\Components\Select::make('category_select_id')
+                                        ->label('Category')
+                                        ->searchable()
+                                        ->required()
+                                        ->afterStateHydrated(function (callable $set, callable $get, $state): void {
+                                            if (filled($state)) {
+                                                return;
+                                            }
+
+                                            $categoryId = $get('category_id');
+
+                                            if (! $categoryId) {
+                                                return;
+                                            }
+
+                                            $set('category_select_id', $categoryId);
+                                        })
+                                        ->getSearchResultsUsing(function (Forms\Components\Select $component, ?string $search) use ($tenant): array {
+                                            $search = trim((string) $search);
+
+                                            if ($search === '') {
+                                                return [];
+                                            }
+
+                                            /** @var Tenant $tenant */
+                                            /** @var ShopifyStorefrontService $shopify */
+                                            $shopify = app(ShopifyStorefrontService::class);
+
+                                            $collections = $shopify->searchCollections($tenant, $search, 10);
+
+                                            $options = [];
+
+                                            foreach ($collections as $collection) {
+                                                $id = $collection['id'] ?? null;
+
+                                                if (! $id) {
+                                                    continue;
+                                                }
+
+                                                $options[$id] = $collection['title'] ?? '';
+                                            }
+
+                                            return $options;
+                                        })
+                                        ->getOptionLabelUsing(function ($value) use ($tenant): string {
+                                            if (is_callable($value)) {
+                                                $value = $value();
+                                            }
+
+                                            $collectionId = (string) $value;
+
+                                            if (! $collectionId) {
+                                                return '';
+                                            }
+
+                                            if (str_starts_with($collectionId, 'gid://shopify/Collection/')) {
+                                                /** @var Tenant $tenant */
+                                                /** @var ShopifyStorefrontService $shopify */
+                                                $shopify = app(ShopifyStorefrontService::class);
+
+                                                $collection = $shopify->getCollectionById($tenant, $collectionId);
+
+                                                if ($collection) {
+                                                    return $collection['title'] ?? '';
+                                                }
+                                            }
+
+                                            return $collectionId;
+                                        })
+                                        ->afterStateUpdated(function ($state, callable $set): void {
+                                            $set('category_id', $state);
+                                        })
+                                        ->dehydrated(false),
+
+                                    Forms\Components\TextInput::make('category_id')
+                                        ->label('Category ID')
+                                        ->maxLength(255)
+                                        ->dehydratedWhenHidden()
+                                        ->hidden(),
+                                ])
+                                ->collapsible()
+                                ->itemLabel(fn (array $state): ?string => $state['category_id'] ?? null)
+                                ->addActionLabel('Add category')
+                                ->defaultItems(0)
+                                ->columnSpanFull(),
+                        ]),
                 ])
                 ->collapsible()
                 ->columnSpanFull(),
