@@ -295,11 +295,149 @@ class HomeLayout extends Page
                                 ->dehydrated(false)
                                 ->visible(fn (callable $get): bool => $get('cta_target_type') === 'product'),
 
+                            Forms\Components\Select::make('cta_target_category_id')
+                                ->label('Category')
+                                ->searchable()
+                                ->afterStateHydrated(function (callable $set, callable $get, $state): void {
+                                    if ($get('cta_target_type') !== 'category') {
+                                        return;
+                                    }
+
+                                    if (filled($state)) {
+                                        return;
+                                    }
+
+                                    $targetId = $get('cta_target_id');
+
+                                    if (! $targetId) {
+                                        return;
+                                    }
+
+                                    $set('cta_target_category_id', $targetId);
+                                })
+                                ->getSearchResultsUsing(function (Forms\Components\Select $component, ?string $search) use ($tenant): array {
+                                    $search = trim((string) $search);
+
+                                    if ($search === '') {
+                                        return [];
+                                    }
+
+                                    /** @var Tenant $tenant */
+                                    /** @var ShopifyStorefrontService $shopify */
+                                    $shopify = app(ShopifyStorefrontService::class);
+
+                                    $collections = $shopify->searchCollections($tenant, $search, 10);
+
+                                    $options = [];
+
+                                    foreach ($collections as $collection) {
+                                        $id = $collection['id'] ?? null;
+
+                                        if (! $id) {
+                                            continue;
+                                        }
+
+                                        $options[$id] = $collection['title'] ?? '';
+                                    }
+
+                                    return $options;
+                                })
+                                ->getOptionLabelUsing(function ($value) use ($tenant): string {
+                                    if (is_callable($value)) {
+                                        $value = $value();
+                                    }
+
+                                    $collectionId = (string) $value;
+
+                                    if (! $collectionId) {
+                                        return '';
+                                    }
+
+                                    if (str_starts_with($collectionId, 'gid://shopify/Collection/')) {
+                                        /** @var Tenant $tenant */
+                                        /** @var ShopifyStorefrontService $shopify */
+                                        $shopify = app(ShopifyStorefrontService::class);
+
+                                        $collection = $shopify->getCollectionById($tenant, $collectionId);
+
+                                        if ($collection) {
+                                            return $collection['title'] ?? '';
+                                        }
+                                    }
+
+                                    return $collectionId;
+                                })
+                                ->afterStateUpdated(function ($state, callable $set): void {
+                                    $set('cta_target_id', $state);
+                                })
+                                ->dehydrated(false)
+                                ->visible(fn (callable $get): bool => $get('cta_target_type') === 'category'),
+
+                            Forms\Components\Select::make('cta_target_brand_id')
+                                ->label('Brand')
+                                ->searchable()
+                                ->afterStateHydrated(function (callable $set, callable $get, $state): void {
+                                    if ($get('cta_target_type') !== 'brand') {
+                                        return;
+                                    }
+
+                                    if (filled($state)) {
+                                        return;
+                                    }
+
+                                    $targetId = $get('cta_target_id');
+
+                                    if (! $targetId) {
+                                        return;
+                                    }
+
+                                    $set('cta_target_brand_id', $targetId);
+                                })
+                                ->getSearchResultsUsing(function (Forms\Components\Select $component, ?string $search) use ($tenant): array {
+                                    $search = trim((string) $search);
+
+                                    if ($search === '') {
+                                        return [];
+                                    }
+
+                                    /** @var Tenant $tenant */
+                                    /** @var ShopifyStorefrontService $shopify */
+                                    $shopify = app(ShopifyStorefrontService::class);
+
+                                    $brands = $shopify->searchBrands($tenant, $search, 10);
+
+                                    $options = [];
+
+                                    foreach ($brands as $brand) {
+                                        $name = $brand['name'] ?? null;
+
+                                        if (! $name) {
+                                            continue;
+                                        }
+
+                                        $options[$name] = $name;
+                                    }
+
+                                    return $options;
+                                })
+                                ->getOptionLabelUsing(function ($value): string {
+                                    if (is_callable($value)) {
+                                        $value = $value();
+                                    }
+
+                                    return (string) $value;
+                                })
+                                ->afterStateUpdated(function ($state, callable $set): void {
+                                    $set('cta_target_id', $state);
+                                })
+                                ->dehydrated(false)
+                                ->visible(fn (callable $get): bool => $get('cta_target_type') === 'brand'),
+
                             Forms\Components\TextInput::make('cta_target_id')
                                 ->label('CTA target ID')
                                 ->maxLength(255)
                                 ->dehydratedWhenHidden()
-                                ->visible(fn (callable $get): bool => in_array($get('cta_target_type'), ['brand', 'category'], true)),
+                                ->hidden(),
 
                             Forms\Components\TextInput::make('cta_target_url')
                                 ->label('CTA target URL')

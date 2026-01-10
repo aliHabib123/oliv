@@ -255,6 +255,55 @@ class ShopifyStorefrontService
     }
 
     /**
+     * Get a single collection by its Shopify GID.
+     *
+     * Returns: [
+     *   'id' => string,
+     *   'title' => string,
+     *   'handle' => string|null,
+     *   'image_url' => string|null,
+     * ] or null if not found.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function getCollectionById(Tenant $tenant, string $collectionId): ?array
+    {
+        if (! $collectionId) {
+            return null;
+        }
+
+        $query = <<<'GRAPHQL'
+            query GetCollection($id: ID!) {
+                collection(id: $id) {
+                    id
+                    title
+                    handle
+                    image {
+                        url
+                    }
+                }
+            }
+        GRAPHQL;
+
+        $data = $this->graphql($tenant, $query, [
+            'id' => $collectionId,
+        ]);
+
+        $collection = Arr::get($data, 'collection');
+
+        if (! $collection || empty($collection['id'])) {
+            return null;
+        }
+
+        return [
+            'id' => $collection['id'],
+            'title' => $collection['title'] ?? '',
+            'handle' => $collection['handle'] ?? null,
+            'image_url' => Arr::get($collection, 'image.url'),
+        ];
+    }
+
+    /**
      * Search brands based on product.vendor.
      *
      * Each item: [
