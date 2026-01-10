@@ -59,7 +59,8 @@ class Introduction extends Page implements HasForms
 
         $this->tenant = $this->resolveTenant();
 
-        $this->data = $this->tenant->intro_config ?? [];
+        $introConfig = $this->tenant->intro_config;
+        $this->data = is_array($introConfig) ? $introConfig : [];
 
         $this->form->fill($this->data);
     }

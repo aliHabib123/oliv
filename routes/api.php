@@ -53,4 +53,23 @@ Route::middleware(ResolveTenantFromAppKey::class)->group(function () {
             'introduction' => $tenant->intro_config ?? [],
         ]);
     });
+
+    Route::get('v1/app-config', function (Request $request) {
+        /** @var \App\Models\Tenant|null $tenant */
+        $tenant = $request->attributes->get('tenant');
+
+        if (! $tenant) {
+            return response()->json([
+                'ok' => false,
+                'error' => 'Tenant not resolved.',
+            ], 404);
+        }
+
+        $config = \App\Models\AppConfiguration::where('tenant_id', $tenant->id)->first();
+
+        return response()->json([
+            'ok' => true,
+            'config' => $config?->config ?? [],
+        ]);
+    });
 });
