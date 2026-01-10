@@ -36,4 +36,21 @@ Route::middleware(ResolveTenantFromAppKey::class)->group(function () {
             'layout' => $tenant->home_layout ?? [],
         ]);
     });
+
+    Route::get('v1/introduction', function (Request $request) {
+        /** @var \App\Models\Tenant|null $tenant */
+        $tenant = $request->attributes->get('tenant');
+
+        if (! $tenant) {
+            return response()->json([
+                'ok' => false,
+                'error' => 'Tenant not resolved.',
+            ], 404);
+        }
+
+        return response()->json([
+            'ok' => true,
+            'introduction' => $tenant->intro_config ?? [],
+        ]);
+    });
 });
