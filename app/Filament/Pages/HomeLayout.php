@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\Tenant;
+use App\Services\Shopify\ShopifyStorefrontService;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms;
@@ -149,6 +150,8 @@ class HomeLayout extends Page
 
     public function form(Schema $schema): Schema
     {
+        $tenant = $this->resolveTenant();
+
         return $schema->schema([
             Forms\Components\Builder::make('home_layout')
                 ->label('Home layout blocks')
@@ -192,10 +195,111 @@ class HomeLayout extends Page
                                         ->live(),
                                 ]),
 
+                            Forms\Components\Select::make('cta_target_product_id')
+                                ->label('Product')
+                                ->searchable()
+                                ->afterStateHydrated(function (callable $set, callable $get, $state): void {
+                                    if ($get('cta_target_type') !== 'product') {
+                                        return;
+                                    }
+
+                                    // If this field already has state (e.g. after a Livewire update),
+                                    // don't overwrite it.
+                                    if (filled($state)) {
+                                        return;
+                                    }
+
+                                    $targetId = $get('cta_target_id');
+
+                                    if (! $targetId) {
+                                        return;
+                                    }
+
+                                    // Mirror the saved canonical target ID into the product select so
+                                    // the previously chosen product appears selected on load.
+                                    $set('cta_target_product_id', $targetId);
+                                })
+                                ->getSearchResultsUsing(function (Forms\Components\Select $component, ?string $search) use ($tenant): array {
+                                    $search = trim((string) $search);
+
+                                    if ($search === '') {
+                                        return [];
+                                    }
+
+                                    /** @var Tenant $tenant */
+                                    /** @var ShopifyStorefrontService $shopify */
+                                    $shopify = app(ShopifyStorefrontService::class);
+
+                                    $products = $shopify->searchProducts($tenant, $search, 10);
+
+                                    $options = [];
+
+                                    foreach ($products as $product) {
+                                        $id = $product['id'] ?? null;
+
+                                        if (! $id) {
+                                            continue;
+                                        }
+
+                                        $label = $product['title'] ?? '';
+
+                                        if (! empty($product['vendor'])) {
+                                            $label .= ' - ' . $product['vendor'];
+                                        }
+
+                                        $options[$id] = $label;
+                                    }
+
+                                    return $options;
+                                })
+                                ->getOptionLabelUsing(function ($value) use ($tenant): string {
+                                    // Filament may pass either the raw state value or a closure
+                                    // that returns the state. Support both.
+                                    if (is_callable($value)) {
+                                        $value = $value();
+                                    }
+
+                                    $productId = (string) $value;
+
+                                    if (! $productId) {
+                                        return '';
+                                    }
+
+                                    // If it looks like a Shopify GID, fetch the product details
+                                    // to show a nice label instead of the raw ID.
+                                    if (str_starts_with($productId, 'gid://shopify/Product/')) {
+                                        /** @var Tenant $tenant */
+                                        /** @var ShopifyStorefrontService $shopify */
+                                        $shopify = app(ShopifyStorefrontService::class);
+
+                                        $product = $shopify->getProductById($tenant, $productId);
+
+                                        if ($product) {
+                                            $label = $product['title'] ?? '';
+
+                                            if (! empty($product['vendor'])) {
+                                                $label .= ' - ' . $product['vendor'];
+                                            }
+
+                                            return $label;
+                                        }
+                                    }
+
+                                    return $productId;
+                                })
+                                ->afterStateUpdated(function ($state, callable $set): void {
+                                    // Keep canonical target ID in cta_target_id so the API and app only
+                                    // need to deal with a single ID field.
+                                    $set('cta_target_id', $state);
+                                })
+                                ->dehydrated(false)
+                                ->visible(fn (callable $get): bool => $get('cta_target_type') === 'product'),
+
                             Forms\Components\TextInput::make('cta_target_id')
                                 ->label('CTA target ID')
                                 ->maxLength(255)
-                                ->visible(fn (callable $get): bool => in_array($get('cta_target_type'), ['product', 'brand', 'category'], true)),
+                                ->dehydratedWhenHidden()
+                                ->visible(fn (callable $get): bool => in_array($get('cta_target_type'), ['brand', 'category'], true)),
 
                             Forms\Components\TextInput::make('cta_target_url')
                                 ->label('CTA target URL')
