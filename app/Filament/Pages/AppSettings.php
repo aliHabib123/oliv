@@ -221,6 +221,44 @@ class AppSettings extends Page implements HasForms
                                 ->placeholder('https://tiktok.com/@yourpage')
                                 ->columnSpanFull(),
                         ]),
+
+                    Tabs\Tab::make('Static Pages')
+                        ->schema([
+                            Forms\Components\TextInput::make('static_pages.privacy_policy')
+                                ->label('Privacy Policy URL')
+                                ->url()
+                                ->maxLength(255)
+                                ->placeholder('https://yoursite.com/privacy-policy')
+                                ->columnSpanFull(),
+
+                            Forms\Components\TextInput::make('static_pages.return_policy')
+                                ->label('Return Policy URL')
+                                ->url()
+                                ->maxLength(255)
+                                ->placeholder('https://yoursite.com/return-policy')
+                                ->columnSpanFull(),
+
+                            Forms\Components\TextInput::make('static_pages.shipping_policy')
+                                ->label('Shipping Policy URL')
+                                ->url()
+                                ->maxLength(255)
+                                ->placeholder('https://yoursite.com/shipping-policy')
+                                ->columnSpanFull(),
+
+                            Forms\Components\TextInput::make('static_pages.payment_policy')
+                                ->label('Payment Policy URL')
+                                ->url()
+                                ->maxLength(255)
+                                ->placeholder('https://yoursite.com/payment-policy')
+                                ->columnSpanFull(),
+
+                            Forms\Components\TextInput::make('static_pages.about_us')
+                                ->label('About Us URL')
+                                ->url()
+                                ->maxLength(255)
+                                ->placeholder('https://yoursite.com/about-us')
+                                ->columnSpanFull(),
+                        ]),
                 ])
                 ->columnSpanFull(),
         ]);
