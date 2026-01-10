@@ -739,6 +739,134 @@ class HomeLayout extends Page
                                 ->defaultItems(0)
                                 ->columnSpanFull(),
                         ]),
+
+                    Block::make('new_releases')
+                        ->label('New Releases')
+                        ->schema([
+                            Forms\Components\TextInput::make('title')
+                                ->label('Title')
+                                ->maxLength(255)
+                                ->default('New Arrivals'),
+
+                            Forms\Components\TextInput::make('limit')
+                                ->label('Number of products to show')
+                                ->numeric()
+                                ->minValue(1)
+                                ->maxValue(50)
+                                ->default(10)
+                                ->helperText('Flutter app will fetch the latest products from Shopify'),
+                        ]),
+
+                    Block::make('product_list')
+                        ->label('Product List')
+                        ->schema([
+                            Forms\Components\TextInput::make('title')
+                                ->label('Title')
+                                ->maxLength(255),
+
+                            Forms\Components\Repeater::make('products')
+                                ->label('Products')
+                                ->schema([
+                                    Forms\Components\Select::make('product_select_id')
+                                        ->label('Product')
+                                        ->searchable()
+                                        ->required()
+                                        ->afterStateHydrated(function (callable $set, callable $get, $state): void {
+                                            if (filled($state)) {
+                                                return;
+                                            }
+
+                                            $productId = $get('product_id');
+
+                                            if (! $productId) {
+                                                return;
+                                            }
+
+                                            $set('product_select_id', $productId);
+                                        })
+                                        ->getSearchResultsUsing(function (Forms\Components\Select $component, ?string $search) use ($tenant): array {
+                                            $search = trim((string) $search);
+
+                                            if ($search === '') {
+                                                return [];
+                                            }
+
+                                            /** @var Tenant $tenant */
+                                            /** @var ShopifyStorefrontService $shopify */
+                                            $shopify = app(ShopifyStorefrontService::class);
+
+                                            $products = $shopify->searchProducts($tenant, $search, 10);
+
+                                            $options = [];
+
+                                            foreach ($products as $product) {
+                                                $id = $product['id'] ?? null;
+
+                                                if (! $id) {
+                                                    continue;
+                                                }
+
+                                                $label = $product['title'] ?? '';
+
+                                                if (! empty($product['vendor'])) {
+                                                    $label .= ' - ' . $product['vendor'];
+                                                }
+
+                                                $options[$id] = $label;
+                                            }
+
+                                            return $options;
+                                        })
+                                        ->getOptionLabelUsing(function ($value) use ($tenant): string {
+                                            if (is_callable($value)) {
+                                                $value = $value();
+                                            }
+
+                                            $productId = (string) $value;
+
+                                            if (! $productId) {
+                                                return '';
+                                            }
+
+                                            if (str_starts_with($productId, 'gid://shopify/Product/')) {
+                                                /** @var Tenant $tenant */
+                                                /** @var ShopifyStorefrontService $shopify */
+                                                $shopify = app(ShopifyStorefrontService::class);
+
+                                                $product = $shopify->getProductById($tenant, $productId);
+
+                                                if ($product) {
+                                                    $label = $product['title'] ?? '';
+
+                                                    if (! empty($product['vendor'])) {
+                                                        $label .= ' - ' . $product['vendor'];
+                                                    }
+
+                                                    return $label;
+                                                }
+                                            }
+
+                                            return $productId;
+                                        })
+                                        ->afterStateUpdated(function ($state, callable $set): void {
+                                            $set('product_id', $state);
+                                        })
+                                        ->dehydrated(false)
+                                        ->columnSpanFull(),
+
+                                    Forms\Components\TextInput::make('product_id')
+                                        ->label('Product ID')
+                                        ->maxLength(255)
+                                        ->dehydratedWhenHidden()
+                                        ->hidden(),
+                                ])
+                                ->collapsible()
+                                ->itemLabel(fn (array $state): ?string => $state['product_id'] ?? null)
+                                ->addActionLabel('Add product')
+                                ->defaultItems(0)
+                                ->reorderable()
+                                ->columnSpanFull(),
+                        ]),
                 ])
                 ->collapsible()
                 ->columnSpanFull(),
