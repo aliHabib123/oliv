@@ -26,6 +26,7 @@ class Tenant extends Model
 
     protected $casts = [
         'home_layout' => 'array',
+        'intro_config' => 'array',
     ];
 
     protected static function booted(): void
