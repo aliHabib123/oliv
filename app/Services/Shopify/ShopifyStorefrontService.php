@@ -19,7 +19,7 @@ class ShopifyStorefrontService
      *
      * @return array<string, mixed>
      */
-    protected function graphql(Tenant $tenant, string $query, array $variables = []): array
+    protected function graphql(Tenant $tenant, string $query, array $variables = [], ?string $customerToken = null): array
     {
         $domain = $tenant->shopify_shop_domain;
         $token = $tenant->shopify_storefront_token;
@@ -34,11 +34,17 @@ class ShopifyStorefrontService
 
         $endpoint = sprintf('https://%s/api/%s/graphql.json', $domain, self::API_VERSION);
 
+        $headers = [
+            'X-Shopify-Storefront-Access-Token' => $token,
+            'Content-Type' => 'application/json',
+        ];
+
+        if ($customerToken) {
+            $headers['X-Shopify-Customer-Access-Token'] = $customerToken;
+        }
+
         try {
-            $response = Http::withHeaders([
-                'X-Shopify-Storefront-Access-Token' => $token,
-                'Content-Type' => 'application/json',
-            ])->post($endpoint, [
+            $response = Http::withHeaders($headers)->post($endpoint, [
                 'query' => $query,
                 'variables' => $variables,
             ]);
@@ -353,5 +359,332 @@ class ShopifyStorefrontService
             ->all();
 
         return array_map(fn (string $name): array => ['name' => $name], $vendors);
+    }
+
+    /**
+     * Create a new cart in Shopify.
+     *
+     * @return array<string, mixed>
+     */
+    public function createCart(Tenant $tenant, ?string $customerToken = null): array
+    {
+        $query = <<<'GRAPHQL'
+            mutation cartCreate {
+                cartCreate {
+                    cart {
+                        id
+                        lines(first: 100) {
+                            edges {
+                                node {
+                                    id
+                                    quantity
+                                    merchandise {
+                                        ... on ProductVariant {
+                                            id
+                                            title
+                                            priceV2 {
+                                                amount
+                                                currencyCode
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        estimatedCost {
+                            totalAmount {
+                                amount
+                                currencyCode
+                            }
+                        }
+                    }
+                }
+            }
+        GRAPHQL;
+
+        $data = $this->graphql($tenant, $query, [], $customerToken);
+
+        return Arr::get($data, 'cartCreate.cart', []);
+    }
+
+    /**
+     * Add a line item to cart.
+     *
+     * @return array<string, mixed>
+     */
+    public function addCartLine(Tenant $tenant, string $cartId, string $variantId, int $quantity, ?string $customerToken = null): array
+    {
+        $query = <<<'GRAPHQL'
+            mutation cartLinesAdd($cartId: ID!, $lines: [CartLineInput!]!) {
+                cartLinesAdd(cartId: $cartId, lines: $lines) {
+                    cart {
+                        id
+                        lines(first: 100) {
+                            edges {
+                                node {
+                                    id
+                                    quantity
+                                    merchandise {
+                                        ... on ProductVariant {
+                                            id
+                                            title
+                                            priceV2 {
+                                                amount
+                                                currencyCode
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        estimatedCost {
+                            totalAmount {
+                                amount
+                                currencyCode
+                            }
+                        }
+                    }
+                }
+            }
+        GRAPHQL;
+
+        $data = $this->graphql($tenant, $query, [
+            'cartId' => $cartId,
+            'lines' => [
+                [
+                    'merchandiseId' => $variantId,
+                    'quantity' => $quantity,
+                ],
+            ],
+        ], $customerToken);
+
+        return Arr::get($data, 'cartLinesAdd.cart', []);
+    }
+
+    /**
+     * Remove a line item from cart.
+     *
+     * @return array<string, mixed>
+     */
+    public function removeCartLine(Tenant $tenant, string $cartId, string $lineId, ?string $customerToken = null): array
+    {
+        $query = <<<'GRAPHQL'
+            mutation cartLinesRemove($cartId: ID!, $lineIds: [ID!]!) {
+                cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {
+                    cart {
+                        id
+                        lines(first: 100) {
+                            edges {
+                                node {
+                                    id
+                                    quantity
+                                    merchandise {
+                                        ... on ProductVariant {
+                                            id
+                                            title
+                                            priceV2 {
+                                                amount
+                                                currencyCode
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        estimatedCost {
+                            totalAmount {
+                                amount
+                                currencyCode
+                            }
+                        }
+                    }
+                }
+            }
+        GRAPHQL;
+
+        $data = $this->graphql($tenant, $query, [
+            'cartId' => $cartId,
+            'lineIds' => [$lineId],
+        ], $customerToken);
+
+        return Arr::get($data, 'cartLinesRemove.cart', []);
+    }
+
+    /**
+     * Update a cart line quantity.
+     *
+     * @return array<string, mixed>
+     */
+    public function updateCartLine(Tenant $tenant, string $cartId, string $lineId, int $quantity, ?string $customerToken = null): array
+    {
+        $query = <<<'GRAPHQL'
+            mutation cartLinesUpdate($cartId: ID!, $lines: [CartLineUpdateInput!]!) {
+                cartLinesUpdate(cartId: $cartId, lines: $lines) {
+                    cart {
+                        id
+                        lines(first: 100) {
+                            edges {
+                                node {
+                                    id
+                                    quantity
+                                    merchandise {
+                                        ... on ProductVariant {
+                                            id
+                                            title
+                                            priceV2 {
+                                                amount
+                                                currencyCode
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        estimatedCost {
+                            totalAmount {
+                                amount
+                                currencyCode
+                            }
+                        }
+                    }
+                }
+            }
+        GRAPHQL;
+
+        $data = $this->graphql($tenant, $query, [
+            'cartId' => $cartId,
+            'lines' => [
+                [
+                    'id' => $lineId,
+                    'quantity' => $quantity,
+                ],
+            ],
+        ], $customerToken);
+
+        return Arr::get($data, 'cartLinesUpdate.cart', []);
+    }
+
+    /**
+     * Get cart by ID.
+     *
+     * @return array<string, mixed>
+     */
+    public function getCart(Tenant $tenant, string $cartId, ?string $customerToken = null): array
+    {
+        $query = <<<'GRAPHQL'
+            query getCart($cartId: ID!) {
+                cart(id: $cartId) {
+                    id
+                    lines(first: 100) {
+                        edges {
+                            node {
+                                id
+                                quantity
+                                merchandise {
+                                    ... on ProductVariant {
+                                        id
+                                        title
+                                        priceV2 {
+                                            amount
+                                            currencyCode
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    estimatedCost {
+                        totalAmount {
+                            amount
+                            currencyCode
+                        }
+                    }
+                }
+            }
+        GRAPHQL;
+
+        $data = $this->graphql($tenant, $query, [
+            'cartId' => $cartId,
+        ], $customerToken);
+
+        return Arr::get($data, 'cart', []);
+    }
+
+    /**
+     * Create a checkout from line items.
+     *
+     * @param array<int, array{variant_id: string, quantity: int}> $lineItems
+     * @return array<string, mixed>
+     */
+    public function createCheckout(Tenant $tenant, array $lineItems, ?string $customerToken = null): array
+    {
+        $query = <<<'GRAPHQL'
+            mutation checkoutCreate($input: CheckoutCreateInput!) {
+                checkoutCreate(input: $input) {
+                    checkout {
+                        id
+                        webUrl
+                        email
+                        subtotalPriceV2 {
+                            amount
+                            currencyCode
+                        }
+                        totalPriceV2 {
+                            amount
+                            currencyCode
+                        }
+                        lineItems(first: 100) {
+                            edges {
+                                node {
+                                    id
+                                    title
+                                    quantity
+                                }
+                            }
+                        }
+                    }
+                    checkoutUserErrors {
+                        message
+                        field
+                    }
+                }
+            }
+        GRAPHQL;
+
+        $lines = array_map(fn ($item) => [
+            'variantId' => $item['variant_id'],
+            'quantity' => $item['quantity'],
+        ], $lineItems);
+
+        $data = $this->graphql($tenant, $query, [
+            'input' => [
+                'lineItems' => $lines,
+            ],
+        ], $customerToken);
+
+        return Arr::get($data, 'checkoutCreate.checkout', []);
+    }
+
+    /**
+     * Get customer info from customer access token.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function getCustomerInfo(Tenant $tenant, string $customerToken): ?array
+    {
+        $query = <<<'GRAPHQL'
+            query {
+                customer {
+                    id
+                    email
+                    firstName
+                    lastName
+                }
+            }
+        GRAPHQL;
+
+        $data = $this->graphql($tenant, $query, [], $customerToken);
+
+        return Arr::get($data, 'customer');
     }
 }
