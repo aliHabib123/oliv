@@ -138,6 +138,7 @@ class Introduction extends Page implements HasForms
             Forms\Components\FileUpload::make('banner_image')
                 ->label('Banner Image')
                 ->image()
+                ->disk('public')
                 ->directory('introduction')
                 ->required()
                 ->columnSpanFull(),
@@ -171,6 +172,7 @@ class Introduction extends Page implements HasForms
                             Forms\Components\FileUpload::make('icon')
                                 ->label('Icon')
                                 ->image()
+                                ->disk('public')
                                 ->directory('introduction/icons')
                                 ->required(),
 

@@ -173,6 +173,7 @@ class HomeLayout extends Page
                             Forms\Components\FileUpload::make('image_url')
                                 ->label('Image')
                                 ->image()
+                                ->disk('public')
                                 ->directory('home-layout')
                                 ->columnSpanFull(),
 
@@ -451,6 +452,7 @@ class HomeLayout extends Page
                             Forms\Components\FileUpload::make('image_url')
                                 ->label('Image')
                                 ->image()
+                                ->disk('public')
                                 ->directory('home-layout')
                                 ->columnSpanFull(),
 
@@ -465,6 +467,7 @@ class HomeLayout extends Page
                             Forms\Components\FileUpload::make('image_url')
                                 ->label('Image')
                                 ->image()
+                                ->disk('public')
                                 ->directory('home-layout')
                                 ->columnSpanFull(),
 
@@ -650,6 +653,7 @@ class HomeLayout extends Page
                                     Forms\Components\FileUpload::make('image_url')
                                         ->label('Image')
                                         ->image()
+                                        ->disk('public')
                                         ->directory('home-layout')
                                         ->columnSpanFull(),
 

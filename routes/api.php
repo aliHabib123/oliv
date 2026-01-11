@@ -33,7 +33,7 @@ Route::middleware(ResolveTenantFromAppKey::class)->group(function () {
 
         return response()->json([
             'ok' => true,
-            'layout' => $tenant->home_layout ?? [],
+            'layout' => new \App\Http\Resources\HomeLayoutResource($tenant->home_layout ?? []),
         ]);
     });
 
@@ -50,7 +50,7 @@ Route::middleware(ResolveTenantFromAppKey::class)->group(function () {
 
         return response()->json([
             'ok' => true,
-            'introduction' => $tenant->intro_config ?? [],
+            'introduction' => new \App\Http\Resources\IntroductionResource($tenant->intro_config ?? []),
         ]);
     });
 
@@ -69,7 +69,7 @@ Route::middleware(ResolveTenantFromAppKey::class)->group(function () {
 
         return response()->json([
             'ok' => true,
-            'config' => $config?->config ?? [],
+            'config' => new \App\Http\Resources\AppConfigResource($config?->config ?? []),
         ]);
     });
 

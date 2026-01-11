@@ -157,6 +157,7 @@ class AppSettings extends Page implements HasForms
                             Forms\Components\FileUpload::make('basic.logo')
                                 ->label('App Logo')
                                 ->image()
+                                ->disk('public')
                                 ->directory('app-settings')
                                 ->columnSpanFull(),
 
