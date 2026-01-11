@@ -666,7 +666,66 @@ class ShopifyStorefrontService
     }
 
     /**
-     * Get customer info from customer access token.
+     * Get product with variants to retrieve default variant.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function getProductWithVariants(Tenant $tenant, string $productId): ?array
+    {
+        $query = <<<'GRAPHQL'
+            query getProduct($id: ID!) {
+                product(id: $id) {
+                    id
+                    title
+                    variants(first: 10) {
+                        edges {
+                            node {
+                                id
+                                title
+                                priceV2 {
+                                    amount
+                                    currencyCode
+                                }
+                                availableForSale
+                            }
+                        }
+                    }
+                }
+            }
+        GRAPHQL;
+
+        $data = $this->graphql($tenant, $query, [
+            'id' => $productId,
+        ]);
+
+        $product = Arr::get($data, 'product');
+
+        if (!$product) {
+            return null;
+        }
+
+        $variants = [];
+        $defaultVariant = null;
+
+        foreach (Arr::get($product, 'variants.edges', []) as $edge) {
+            $variant = $edge['node'];
+            $variants[] = $variant;
+
+            if (!$defaultVariant) {
+                $defaultVariant = $variant;
+            }
+        }
+
+        return [
+            'id' => $product['id'],
+            'title' => $product['title'],
+            'default_variant' => $defaultVariant,
+            'variants' => $variants,
+        ];
+    }
+
+    /**
+     * Get customer information using customer access token.
      *
      * @return array<string, mixed>|null
      */
