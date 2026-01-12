@@ -1,0 +1,82 @@
+name: Deploy Laravel App via SSH
+
+on:
+  push:
+    branches:
+      - release
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa_github
+        chmod 600 ~/.ssh/id_rsa_github
+        ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+    - name: Deploy over SSH
+      env:
+        SERVER_KEY_PATH: ${{ secrets.SERVER_GITHUB_KEY_PATH }}
+        DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+      run: |
+        ssh -i ~/.ssh/id_rsa_github ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          cd ${DEPLOY_PATH}
+
+          # Configure Git to use the server's SSH key for GitHub operations
+          git config core.sshCommand "ssh -i ${SERVER_KEY_PATH} -o IdentitiesOnly=yes"
+
+          # Add GitHub to known hosts if not already added
+          if [ ! -f ~/.ssh/known_hosts ] || ! grep -q "github.com" ~/.ssh/known_hosts; then
+            mkdir -p ~/.ssh
+            ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+            chmod 644 ~/.ssh/known_hosts
+          fi
+
+          # Stash any local changes to prevent conflicts
+          git stash
+
+          # Fetch latest changes
+          git fetch origin release
+
+          # Reset to the latest commit on the release branch
+          git reset --hard origin/release
+
+          # Install dependencies
+          composer install --no-dev --optimize-autoloader --ignore-platform-reqs
+
+          # Run migrations
+          php artisan migrate --force
+
+          # Clear and cache configuration
+          php artisan config:clear
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:clear
+          php artisan view:cache
+
+          # Ensure storage symlink exists
+          php artisan storage:link
+
+          # Set permissions
+          chmod -R 775 storage bootstrap/cache
+
+          # Restart queue workers if using queues (optional)
+          # php artisan queue:restart
+
+          # Restart PHP-FPM or restart web server (adjust based on your setup)
+          # sudo systemctl reload php8.2-fpm
+        EOF
+
+    - name: Deployment notification
+      if: success()
+      run: echo "✅ Deployment to production successful!"
+
+    - name: Deployment failed notification
+      if: failure()
+      run: echo "❌ Deployment to production failed!"
