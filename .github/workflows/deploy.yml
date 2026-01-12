@@ -21,15 +21,12 @@ jobs:
         ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
     - name: Deploy over SSH
-      env:
-        SERVER_KEY_PATH: ${{ secrets.SERVER_GITHUB_KEY_PATH }}
-        DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
       run: |
-        ssh -i ~/.ssh/id_rsa_github ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-          cd ${DEPLOY_PATH}
+        ssh -i ~/.ssh/id_rsa_github ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << EOF
+          cd ${{ secrets.DEPLOY_PATH }}
 
           # Configure Git to use the server's SSH key for GitHub operations
-          git config core.sshCommand "ssh -i ${SERVER_KEY_PATH} -o IdentitiesOnly=yes"
+          git config core.sshCommand "ssh -i ${{ secrets.SERVER_GITHUB_KEY_PATH }} -o IdentitiesOnly=yes"
 
           # Add GitHub to known hosts if not already added
           if [ ! -f ~/.ssh/known_hosts ] || ! grep -q "github.com" ~/.ssh/known_hosts; then
