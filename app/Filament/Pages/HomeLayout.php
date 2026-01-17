@@ -657,6 +657,11 @@ class HomeLayout extends Page
                                         ->directory('home-layout')
                                         ->columnSpanFull(),
 
+                                    Forms\Components\TextInput::make('title')
+                                        ->label('Title')
+                                        ->maxLength(255)
+                                        ->columnSpanFull(),
+
                                     Forms\Components\Select::make('category_select_id')
                                         ->label('Category')
                                         ->searchable()
