@@ -440,7 +440,9 @@ X-Device-ID: required
 
 ### 8. Create Checkout
 
-Create a checkout and get the webview URL.
+Create a checkout and get the checkout URL for completing the purchase.
+
+**Important:** This endpoint uses Shopify's Cart API (Checkout API was deprecated in 2023-04+). A cart is created with your items and returns a `checkout_url` for the Shopify-hosted checkout page.
 
 **Endpoint:** `POST /v1/checkout/create`
 
@@ -456,11 +458,11 @@ X-Device-ID: required
 {
   "line_items": [
     {
-      "variant_id": "gid://shopify/ProductVariant/456",
+      "variant_id": "gid://shopify/ProductVariant/42617526059051",
       "quantity": 2
     },
     {
-      "variant_id": "gid://shopify/ProductVariant/789",
+      "variant_id": "gid://shopify/ProductVariant/42617526059052",
       "quantity": 1
     }
   ]
@@ -471,19 +473,27 @@ X-Device-ID: required
 ```json
 {
   "ok": true,
-  "checkout": {
-    "id": "gid://shopify/Checkout/xyz123",
-    "webUrl": "https://store.myshopify.com/checkout/xyz123",
-    "totalPrice": {
-      "amount": "89.97",
-      "currencyCode": "USD"
-    }
-  }
+  "checkout_id": "gid://shopify/Cart/hWN7U1cy08CUxTrBdR9TIXwK?key=abc123",
+  "checkout_url": "https://your-store.myshopify.com/cart/c/hWN7U1cy08CUxTrBdR9TIXwK",
+  "is_authenticated": false
 }
 ```
 
+**Response Fields:**
+- `checkout_id`: Cart ID that can be used for tracking
+- `checkout_url`: Direct URL to Shopify's hosted checkout page - open this in a webview or browser
+- `is_authenticated`: Whether the user was logged in with a customer token
+
 **Usage:**
-Open the `webUrl` in a webview. User can enter shipping, payment, and discount codes in Shopify's checkout page.
+1. Call this endpoint with the items you want to checkout
+2. Open the `checkout_url` in a webview or browser
+3. User completes shipping, payment, and can apply discount codes on Shopify's secure checkout page
+4. After payment, user is redirected back or sees order confirmation
+
+**Notes:**
+- The checkout URL is valid for a limited time (typically 30 days)
+- If user is authenticated (has X-Shopify-Customer-Token), their saved addresses and payment methods will be available
+- This creates a new cart each time - it doesn't reuse existing cart data
 
 ---
 
