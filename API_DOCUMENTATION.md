@@ -154,7 +154,12 @@ All cart endpoints return enhanced line item information including:
 - **quantityAvailable**: Stock quantity available
 - **selectedOptions**: Array of variant attributes (e.g., Size, Color)
 - **image**: Variant-specific image (falls back to product image if not set)
-- **product**: Parent product information including title and featured image
+- **product**: Parent product information including title, description, options, and featured image
+
+**Identifying Simple vs Variable Products:**
+- **Simple Product**: `options` array has one item with `name: "Title"` and `values: ["Default Title"]`
+- **Variable Product**: `options` array has meaningful options (e.g., Size, Color) with real values
+- Use `options` to determine whether to show variant selection UI in your app
 
 ### 4. Add to Cart
 
@@ -220,6 +225,17 @@ X-Device-ID: required (for guest tracking)
           "product": {
             "id": "gid://shopify/Product/123",
             "title": "Product Name",
+            "description": "Detailed product description with features and specifications",
+            "options": [
+              {
+                "name": "Size",
+                "values": ["S", "M", "L", "XL"]
+              },
+              {
+                "name": "Color",
+                "values": ["Red", "Blue", "Green"]
+              }
+            ],
             "featuredImage": {
               "url": "https://cdn.shopify.com/product-image.jpg",
               "altText": "Product featured image"
@@ -381,6 +397,17 @@ X-Device-ID: required
           "product": {
             "id": "gid://shopify/Product/123",
             "title": "Product Name",
+            "description": "Detailed product description with features and specifications",
+            "options": [
+              {
+                "name": "Size",
+                "values": ["S", "M", "L", "XL"]
+              },
+              {
+                "name": "Color",
+                "values": ["Red", "Blue", "Green"]
+              }
+            ],
             "featuredImage": {
               "url": "https://cdn.shopify.com/product-image.jpg",
               "altText": "Product featured image"

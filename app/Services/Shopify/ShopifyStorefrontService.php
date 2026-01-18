@@ -402,6 +402,11 @@ class ShopifyStorefrontService
                                             product {
                                                 id
                                                 title
+                                                description
+                                                options {
+                                                    name
+                                                    values
+                                                }
                                                 featuredImage {
                                                     url
                                                     altText
@@ -469,6 +474,11 @@ class ShopifyStorefrontService
                                             product {
                                                 id
                                                 title
+                                                description
+                                                options {
+                                                    name
+                                                    values
+                                                }
                                                 featuredImage {
                                                     url
                                                     altText
@@ -544,6 +554,11 @@ class ShopifyStorefrontService
                                             product {
                                                 id
                                                 title
+                                                description
+                                                options {
+                                                    name
+                                                    values
+                                                }
                                                 featuredImage {
                                                     url
                                                     altText
@@ -614,6 +629,11 @@ class ShopifyStorefrontService
                                             product {
                                                 id
                                                 title
+                                                description
+                                                options {
+                                                    name
+                                                    values
+                                                }
                                                 featuredImage {
                                                     url
                                                     altText
