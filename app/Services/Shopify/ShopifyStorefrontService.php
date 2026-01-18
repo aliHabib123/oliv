@@ -386,6 +386,27 @@ class ShopifyStorefrontService
                                                 amount
                                                 currencyCode
                                             }
+                                            compareAtPriceV2 {
+                                                amount
+                                                currencyCode
+                                            }
+                                            quantityAvailable
+                                            selectedOptions {
+                                                name
+                                                value
+                                            }
+                                            image {
+                                                url
+                                                altText
+                                            }
+                                            product {
+                                                id
+                                                title
+                                                featuredImage {
+                                                    url
+                                                    altText
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -431,6 +452,27 @@ class ShopifyStorefrontService
                                             priceV2 {
                                                 amount
                                                 currencyCode
+                                            }
+                                            compareAtPriceV2 {
+                                                amount
+                                                currencyCode
+                                            }
+                                            quantityAvailable
+                                            selectedOptions {
+                                                name
+                                                value
+                                            }
+                                            image {
+                                                url
+                                                altText
+                                            }
+                                            product {
+                                                id
+                                                title
+                                                featuredImage {
+                                                    url
+                                                    altText
+                                                }
                                             }
                                         }
                                     }
@@ -486,6 +528,27 @@ class ShopifyStorefrontService
                                                 amount
                                                 currencyCode
                                             }
+                                            compareAtPriceV2 {
+                                                amount
+                                                currencyCode
+                                            }
+                                            quantityAvailable
+                                            selectedOptions {
+                                                name
+                                                value
+                                            }
+                                            image {
+                                                url
+                                                altText
+                                            }
+                                            product {
+                                                id
+                                                title
+                                                featuredImage {
+                                                    url
+                                                    altText
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -534,6 +597,27 @@ class ShopifyStorefrontService
                                             priceV2 {
                                                 amount
                                                 currencyCode
+                                            }
+                                            compareAtPriceV2 {
+                                                amount
+                                                currencyCode
+                                            }
+                                            quantityAvailable
+                                            selectedOptions {
+                                                name
+                                                value
+                                            }
+                                            image {
+                                                url
+                                                altText
+                                            }
+                                            product {
+                                                id
+                                                title
+                                                featuredImage {
+                                                    url
+                                                    altText
+                                                }
                                             }
                                         }
                                     }
@@ -587,6 +671,27 @@ class ShopifyStorefrontService
                                         priceV2 {
                                             amount
                                             currencyCode
+                                        }
+                                        compareAtPriceV2 {
+                                            amount
+                                            currencyCode
+                                        }
+                                        quantityAvailable
+                                        selectedOptions {
+                                            name
+                                            value
+                                        }
+                                        image {
+                                            url
+                                            altText
+                                        }
+                                        product {
+                                            id
+                                            title
+                                            featuredImage {
+                                                url
+                                                altText
+                                            }
                                         }
                                     }
                                 }
