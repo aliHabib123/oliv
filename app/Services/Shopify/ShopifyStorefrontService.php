@@ -736,7 +736,8 @@ class ShopifyStorefrontService
     }
 
     /**
-     * Create a checkout from line items.
+     * Create a checkout from line items using Cart API.
+     * Note: checkoutCreate was deprecated in API 2023-04+, replaced by Cart API.
      *
      * @param array<int, array{variant_id: string, quantity: int}> $lineItems
      * @return array<string, mixed>
@@ -744,31 +745,37 @@ class ShopifyStorefrontService
     public function createCheckout(Tenant $tenant, array $lineItems, ?string $customerToken = null): array
     {
         $query = <<<'GRAPHQL'
-            mutation checkoutCreate($input: CheckoutCreateInput!) {
-                checkoutCreate(input: $input) {
-                    checkout {
+            mutation cartCreate($input: CartInput!) {
+                cartCreate(input: $input) {
+                    cart {
                         id
-                        webUrl
-                        email
-                        subtotalPriceV2 {
-                            amount
-                            currencyCode
+                        checkoutUrl
+                        estimatedCost {
+                            subtotalAmount {
+                                amount
+                                currencyCode
+                            }
+                            totalAmount {
+                                amount
+                                currencyCode
+                            }
                         }
-                        totalPriceV2 {
-                            amount
-                            currencyCode
-                        }
-                        lineItems(first: 100) {
+                        lines(first: 100) {
                             edges {
                                 node {
                                     id
-                                    title
                                     quantity
+                                    merchandise {
+                                        ... on ProductVariant {
+                                            id
+                                            title
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
-                    checkoutUserErrors {
+                    userErrors {
                         message
                         field
                     }
@@ -777,17 +784,38 @@ class ShopifyStorefrontService
         GRAPHQL;
 
         $lines = array_map(fn ($item) => [
-            'variantId' => $item['variant_id'],
+            'merchandiseId' => $item['variant_id'],
             'quantity' => $item['quantity'],
         ], $lineItems);
 
         $data = $this->graphql($tenant, $query, [
             'input' => [
-                'lineItems' => $lines,
+                'lines' => $lines,
             ],
         ], $customerToken);
 
-        return Arr::get($data, 'checkoutCreate.checkout', []);
+        // Check for user errors
+        $userErrors = Arr::get($data, 'cartCreate.userErrors', []);
+        if (!empty($userErrors)) {
+            $errorMessages = array_column($userErrors, 'message');
+            throw new \Exception('Checkout creation failed: ' . implode(', ', $errorMessages));
+        }
+
+        $cart = Arr::get($data, 'cartCreate.cart', []);
+
+        if (empty($cart) || !isset($cart['id'])) {
+            throw new \Exception('Checkout creation failed: No cart returned from Shopify');
+        }
+
+        // Transform to match expected checkout response format
+        return [
+            'id' => $cart['id'],
+            'webUrl' => $cart['checkoutUrl'],
+            'email' => null,
+            'subtotalPriceV2' => $cart['estimatedCost']['subtotalAmount'] ?? null,
+            'totalPriceV2' => $cart['estimatedCost']['totalAmount'] ?? null,
+            'lineItems' => $cart['lines'] ?? [],
+        ];
     }
 
     /**
