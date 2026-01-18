@@ -187,6 +187,11 @@ class CartService
         ]);
     }
 
+    public function findCartModel(Tenant $tenant, array $customerInfo): ?Cart
+    {
+        return $this->findCart($tenant, $customerInfo);
+    }
+
     private function findCart(Tenant $tenant, array $customerInfo): ?Cart
     {
         $query = Cart::where('tenant_id', $tenant->id);

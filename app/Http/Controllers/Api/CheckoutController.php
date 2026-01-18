@@ -32,8 +32,8 @@ class CheckoutController extends Controller
                 'x-device-id' => $request->header('X-Device-ID'),
             ]);
 
-            // Get cart if exists (to link checkout to cart)
-            $cart = $this->cartService->getCart($tenant, $customerInfo);
+            // Get local cart model (for database ID)
+            $localCart = $this->cartService->findCartModel($tenant, $customerInfo);
 
             // Create checkout via Shopify
             $checkout = $this->shopifyService->createCheckout(
@@ -45,7 +45,7 @@ class CheckoutController extends Controller
             // Log checkout creation
             CheckoutEvent::create([
                 'tenant_id' => $tenant->id,
-                'cart_id' => $cart ? $cart['id'] ?? null : null,
+                'cart_id' => $localCart?->id,
                 'shopify_customer_id' => $customerInfo['shopify_customer_id'],
                 'customer_email' => $customerInfo['customer_email'] ?? $checkout['email'] ?? null,
                 'device_id' => $customerInfo['device_id'],
