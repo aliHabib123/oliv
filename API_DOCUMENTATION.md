@@ -148,6 +148,14 @@ X-App-Key: required
 
 ## 🛒 Cart APIs
 
+All cart endpoints return enhanced line item information including:
+- **priceV2**: Current price of the variant
+- **compareAtPriceV2**: Original/sale price (if available, null otherwise)
+- **quantityAvailable**: Stock quantity available
+- **selectedOptions**: Array of variant attributes (e.g., Size, Color)
+- **image**: Variant-specific image (falls back to product image if not set)
+- **product**: Parent product information including title and featured image
+
 ### 4. Add to Cart
 
 Add a product variant to the cart.
@@ -189,6 +197,33 @@ X-Device-ID: required (for guest tracking)
           "priceV2": {
             "amount": "29.99",
             "currencyCode": "USD"
+          },
+          "compareAtPriceV2": {
+            "amount": "39.99",
+            "currencyCode": "USD"
+          },
+          "quantityAvailable": 100,
+          "selectedOptions": [
+            {
+              "name": "Size",
+              "value": "M"
+            },
+            {
+              "name": "Color",
+              "value": "Blue"
+            }
+          ],
+          "image": {
+            "url": "https://cdn.shopify.com/variant-image.jpg",
+            "altText": "Product variant image"
+          },
+          "product": {
+            "id": "gid://shopify/Product/123",
+            "title": "Product Name",
+            "featuredImage": {
+              "url": "https://cdn.shopify.com/product-image.jpg",
+              "altText": "Product featured image"
+            }
           }
         }
       }
@@ -317,8 +352,49 @@ X-Device-ID: required
   "ok": true,
   "cart": {
     "id": "gid://shopify/Cart/abc123",
-    "lines": [...],
-    "estimatedCost": { "..." }
+    "lines": [
+      {
+        "id": "gid://shopify/CartLine/xyz",
+        "quantity": 2,
+        "merchandise": {
+          "id": "gid://shopify/ProductVariant/456",
+          "title": "Product Name - Size M",
+          "priceV2": {
+            "amount": "29.99",
+            "currencyCode": "USD"
+          },
+          "compareAtPriceV2": {
+            "amount": "39.99",
+            "currencyCode": "USD"
+          },
+          "quantityAvailable": 100,
+          "selectedOptions": [
+            {
+              "name": "Size",
+              "value": "M"
+            }
+          ],
+          "image": {
+            "url": "https://cdn.shopify.com/variant-image.jpg",
+            "altText": "Product variant image"
+          },
+          "product": {
+            "id": "gid://shopify/Product/123",
+            "title": "Product Name",
+            "featuredImage": {
+              "url": "https://cdn.shopify.com/product-image.jpg",
+              "altText": "Product featured image"
+            }
+          }
+        }
+      }
+    ],
+    "estimatedCost": {
+      "totalAmount": {
+        "amount": "59.98",
+        "currencyCode": "USD"
+      }
+    }
   }
 }
 ```
