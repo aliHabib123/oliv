@@ -6,50 +6,52 @@
             </div>
         </x-filament::section>
     @else
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
             @foreach($addons as $addon)
                 @php
                     $isSubscribed = in_array($addon->id, $subscribedAddons);
                 @endphp
 
                 <x-filament::section>
-                    <div class="space-y-3">
-                        <div class="flex items-start justify-between gap-4">
-                            <div>
-                                <h3 class="text-base font-semibold">{{ $addon->name }}</h3>
-                                @if($isSubscribed)
-                                    <x-filament::badge color="success" class="mt-1">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1.5rem;">
+                        <div style="flex: 1; min-width: 0;">
+                            <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">{{ $addon->name }}</h3>
+
+                            @if($isSubscribed)
+                                <div style="margin-bottom: 0.75rem;">
+                                    <x-filament::badge color="success" icon="heroicon-m-check-circle">
                                         Active
                                     </x-filament::badge>
-                                @endif
-                            </div>
-                            <div class="text-right shrink-0">
-                                <div class="text-xl font-bold">${{ number_format($addon->price, 2) }}</div>
-                                <div class="text-xs text-gray-500">per month</div>
+                                </div>
+                            @endif
+
+                            <p style="font-size: 0.875rem; color: #6b7280; margin-bottom: 1rem; line-height: 1.5;">{{ $addon->description }}</p>
+
+                            <div style="margin-top: 0.75rem;">
+                                <div style="font-size: 1.5rem; font-weight: 700; line-height: 1;">${{ number_format($addon->price, 2) }}</div>
+                                <div style="font-size: 0.75rem; color: #9ca3af;">per month</div>
                             </div>
                         </div>
 
-                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ $addon->description }}</p>
-
-                        @if($isSubscribed)
-                            <x-filament::button
-                                wire:click="unsubscribe({{ $addon->id }})"
-                                color="danger"
-                                outlined
-                                size="sm"
-                                class="w-full"
-                            >
-                                Unsubscribe
-                            </x-filament::button>
-                        @else
-                            <x-filament::button
-                                wire:click="subscribe({{ $addon->id }})"
-                                size="sm"
-                                class="w-full"
-                            >
-                                Subscribe
-                            </x-filament::button>
-                        @endif
+                        <div style="flex-shrink: 0;">
+                            @if($isSubscribed)
+                                <x-filament::button
+                                    wire:click="unsubscribe({{ $addon->id }})"
+                                    color="danger"
+                                    outlined
+                                    size="sm"
+                                >
+                                    Unsubscribe
+                                </x-filament::button>
+                            @else
+                                <x-filament::button
+                                    wire:click="subscribe({{ $addon->id }})"
+                                    size="sm"
+                                >
+                                    Subscribe
+                                </x-filament::button>
+                            @endif
+                        </div>
                     </div>
                 </x-filament::section>
             @endforeach
