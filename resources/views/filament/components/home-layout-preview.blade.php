@@ -17,8 +17,8 @@
                                 <div style="display: flex; gap: 1rem; align-items: center;">
                                     @php
                                         $imageUrl = $block['data']['image_url'] ?? null;
-                                        if (is_array($imageUrl)) {
-                                            $imageUrl = $imageUrl[0] ?? null;
+                                        if (is_array($imageUrl) && !empty($imageUrl)) {
+                                            $imageUrl = reset($imageUrl);
                                         }
                                     @endphp
                                     @if($imageUrl)
@@ -51,8 +51,8 @@
                             <div style="background: white; border-radius: 0.5rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                                 @php
                                     $miniBannerImg = $block['data']['image_url'] ?? null;
-                                    if (is_array($miniBannerImg)) {
-                                        $miniBannerImg = $miniBannerImg[0] ?? null;
+                                    if (is_array($miniBannerImg) && !empty($miniBannerImg)) {
+                                        $miniBannerImg = reset($miniBannerImg);
                                     }
                                 @endphp
                                 @if($miniBannerImg)
@@ -74,8 +74,8 @@
                             <div style="background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                                 @php
                                     $promoImg = $block['data']['image_url'] ?? null;
-                                    if (is_array($promoImg)) {
-                                        $promoImg = $promoImg[0] ?? null;
+                                    if (is_array($promoImg) && !empty($promoImg)) {
+                                        $promoImg = reset($promoImg);
                                     }
                                 @endphp
                                 <div style="display: flex; gap: 1rem; align-items: center;">
@@ -182,8 +182,8 @@
                                             <div style="background: #f9fafb; border-radius: 0.375rem; padding: 0.75rem; text-align: center;">
                                                 @php
                                                     $catImageUrl = $category['image_url'] ?? null;
-                                                    if (is_array($catImageUrl)) {
-                                                        $catImageUrl = $catImageUrl[0] ?? null;
+                                                    if (is_array($catImageUrl) && !empty($catImageUrl)) {
+                                                        $catImageUrl = reset($catImageUrl);
                                                     }
                                                 @endphp
                                                 @if($catImageUrl)
