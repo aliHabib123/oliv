@@ -16,6 +16,7 @@ use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\EmbeddedSchema;
 use Filament\Schemas\Components\Form;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\Auth\Authenticatable;
 use UnitEnum;
@@ -886,7 +887,18 @@ class HomeLayout extends Page
     {
         return $schema
             ->components([
-                $this->getFormContentComponent(),
+                Grid::make(2)
+                    ->schema([
+                        // Left column: Form builder
+                        $this->getFormContentComponent(),
+
+                        // Right column: Live preview
+                        View::make('filament.components.home-layout-preview')
+                            ->viewData([
+                                'layoutData' => $this->data['home_layout'] ?? [],
+                            ]),
+                    ])
+                    ->columns(2),
             ]);
     }
 
