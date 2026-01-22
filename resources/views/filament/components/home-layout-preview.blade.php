@@ -73,39 +73,37 @@
                             @endif
 
                         @elseif($block['type'] === 'promo_card')
-                            {{-- Promo Card Preview --}}
-                            <div style="background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                                @php
-                                    $promoImg = $block['data']['image_url'] ?? null;
-                                    if (is_array($promoImg) && !empty($promoImg)) {
-                                        $promoImg = reset($promoImg);
-                                    }
-                                @endphp
-                                <div style="display: flex; gap: 1rem; align-items: center;">
-                                    @if($promoImg)
-                                        <img src="{{ Storage::url($promoImg) }}"
-                                             alt="Promo"
-                                             style="width: 100px; height: 100px; object-fit: cover; border-radius: 0.5rem;">
-                                    @else
-                                        <div style="width: 100px; height: 100px; background: #e5e7eb; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center;">
-                                            <x-heroicon-o-photo style="width: 2.5rem; height: 2.5rem; color: #9ca3af;" />
+                            {{-- Promo Card Preview - Banner Style --}}
+                            @php
+                                $promoImg = $block['data']['image_url'] ?? null;
+                                if (is_array($promoImg) && !empty($promoImg)) {
+                                    $promoImg = reset($promoImg);
+                                }
+                            @endphp
+                            <div style="background: #F0F0F0; border-radius: 0.5rem; overflow: hidden;">
+                                @if($promoImg)
+                                    <img src="{{ Storage::url($promoImg) }}"
+                                         alt="Promo"
+                                         style="width: 100%; height: auto; display: block;">
+                                @else
+                                    <div style="width: 100%; min-height: 200px; background: #F0F0F0; display: flex; align-items: center; justify-content: center;">
+                                        <x-heroicon-o-photo style="width: 3rem; height: 3rem; color: #9ca3af;" />
+                                    </div>
+                                @endif
+                                <div style="padding: 1.5rem; text-align: center;">
+                                    <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: #000;">
+                                        {{ $block['data']['title'] ?? 'Promo Title' }}
+                                    </h3>
+                                    @if(!empty($block['data']['text']))
+                                        <p style="color: #6b7280; font-size: 0.875rem; line-height: 1.5; margin-bottom: 1rem;">
+                                            {{ $block['data']['text'] }}
+                                        </p>
+                                    @endif
+                                    @if(!empty($block['data']['cta_label']))
+                                        <div style="text-decoration: underline; font-weight: 600; font-size: 0.875rem; color: #000; cursor: pointer;">
+                                            {{ $block['data']['cta_label'] }}
                                         </div>
                                     @endif
-                                    <div style="flex: 1;">
-                                        <h3 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 0.5rem;">
-                                            {{ $block['data']['title'] ?? 'Promo Title' }}
-                                        </h3>
-                                        @if(!empty($block['data']['text']))
-                                            <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 0.5rem;">
-                                                {{ $block['data']['text'] }}
-                                            </p>
-                                        @endif
-                                        @if(!empty($block['data']['cta_label']))
-                                            <button style="background: #f59e0b; color: white; padding: 0.375rem 0.875rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 600; border: none; cursor: pointer;">
-                                                {{ $block['data']['cta_label'] }}
-                                            </button>
-                                        @endif
-                                    </div>
                                 </div>
                             </div>
 
