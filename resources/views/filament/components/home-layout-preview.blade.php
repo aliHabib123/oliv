@@ -65,27 +65,22 @@
                             </div>
 
                         @elseif($block['type'] === 'mini_banner')
-                            {{-- Mini Banner Preview --}}
-                            <div style="background: white; border-radius: 0.5rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                                @php
-                                    $miniBannerImg = $block['data']['image_url'] ?? null;
-                                    if (is_array($miniBannerImg) && !empty($miniBannerImg)) {
-                                        $miniBannerImg = reset($miniBannerImg);
-                                    }
-                                @endphp
-                                @if($miniBannerImg)
-                                    <img src="{{ Storage::url($miniBannerImg) }}"
-                                         alt="Mini Banner"
-                                         style="width: 100%; height: 120px; object-fit: cover; border-radius: 0.375rem;">
-                                @else
-                                    <div style="width: 100%; height: 120px; background: #e5e7eb; border-radius: 0.375rem; display: flex; align-items: center; justify-content: center;">
-                                        <x-heroicon-o-photo style="width: 3rem; height: 3rem; color: #9ca3af;" />
-                                    </div>
-                                @endif
-                                @if(!empty($block['data']['url']))
-                                    <p style="font-size: 0.75rem; color: #6b7280; margin-top: 0.5rem;">Link: {{ $block['data']['url'] }}</p>
-                                @endif
-                            </div>
+                            {{-- Mini Banner Preview - Full Width Mobile Design --}}
+                            @php
+                                $miniBannerImg = $block['data']['image_url'] ?? null;
+                                if (is_array($miniBannerImg) && !empty($miniBannerImg)) {
+                                    $miniBannerImg = reset($miniBannerImg);
+                                }
+                            @endphp
+                            @if($miniBannerImg)
+                                <img src="{{ Storage::url($miniBannerImg) }}"
+                                     alt="Mini Banner"
+                                     style="width: 100%; height: auto; display: block; border-radius: 0.5rem;">
+                            @else
+                                <div style="width: 100%; min-height: 150px; background: #e5e7eb; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center;">
+                                    <x-heroicon-o-photo style="width: 3rem; height: 3rem; color: #9ca3af;" />
+                                </div>
+                            @endif
 
                         @elseif($block['type'] === 'promo_card')
                             {{-- Promo Card Preview --}}
