@@ -30,38 +30,28 @@
                 <div style="display: flex; flex-direction: column; gap: 1rem;">
                     @foreach($layoutData as $block)
                         @if($block['type'] === 'banner')
-                            {{-- Banner Preview --}}
-                            <div style="background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                                <div style="display: flex; gap: 1rem; align-items: center;">
-                                    @php
-                                        $imageUrl = $block['data']['image_url'] ?? null;
-                                        if (is_array($imageUrl) && !empty($imageUrl)) {
-                                            $imageUrl = reset($imageUrl);
-                                        }
-                                    @endphp
-                                    @if($imageUrl)
-                                        <img src="{{ Storage::url($imageUrl) }}"
-                                             alt="Banner"
-                                             style="width: 120px; height: 120px; object-fit: cover; border-radius: 0.5rem;">
-                                    @else
-                                        <div style="width: 120px; height: 120px; background: #e5e7eb; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center;">
-                                            <x-heroicon-o-photo style="width: 3rem; height: 3rem; color: #9ca3af;" />
-                                        </div>
-                                    @endif
-                                    <div style="flex: 1;">
-                                        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">
-                                            {{ $block['data']['title'] ?? 'Banner Title' }}
-                                        </h3>
-                                        <p style="color: #6b7280; margin-bottom: 0.75rem;">
-                                            {{ $block['data']['subtitle'] ?? 'Banner subtitle' }}
-                                        </p>
-                                        @if(!empty($block['data']['cta_label']))
-                                            <button style="background: #f59e0b; color: white; padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 600; border: none; cursor: pointer;">
-                                                {{ $block['data']['cta_label'] }}
-                                            </button>
-                                        @endif
+                            {{-- Banner Preview - Full Width with Title Badge --}}
+                            @php
+                                $imageUrl = $block['data']['image_url'] ?? null;
+                                if (is_array($imageUrl) && !empty($imageUrl)) {
+                                    $imageUrl = reset($imageUrl);
+                                }
+                            @endphp
+                            <div style="position: relative; width: 100%; border-radius: 0.5rem; overflow: hidden;">
+                                @if($imageUrl)
+                                    <img src="{{ Storage::url($imageUrl) }}"
+                                         alt="Banner"
+                                         style="width: 100%; height: auto; display: block;">
+                                @else
+                                    <div style="width: 100%; min-height: 200px; background: #e5e7eb; display: flex; align-items: center; justify-content: center;">
+                                        <x-heroicon-o-photo style="width: 3rem; height: 3rem; color: #9ca3af;" />
                                     </div>
-                                </div>
+                                @endif
+                                @if(!empty($block['data']['title']))
+                                    <div style="position: absolute; top: 1rem; right: 1rem; background: white; padding: 0.5rem 1rem; border-radius: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                        <span style="font-size: 0.875rem; font-weight: 600; color: #ef4444;">{{ $block['data']['title'] }}</span>
+                                    </div>
+                                @endif
                             </div>
 
                         @elseif($block['type'] === 'mini_banner')
