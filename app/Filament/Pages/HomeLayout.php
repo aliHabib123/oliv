@@ -898,7 +898,6 @@ class HomeLayout extends Page
 
                         // Right column: Live preview
                         LivewireComponent::make(\App\Livewire\HomeLayoutPreview::class)
-                            ->lazy()
                             ->key('home-layout-preview')
                             ->data([
                                 'layoutData' => $this->data['home_layout'] ?? [],
