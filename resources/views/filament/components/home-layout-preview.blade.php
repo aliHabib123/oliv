@@ -17,6 +17,8 @@
                 </span>
             </div>
             <style>
+                @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+
                 @keyframes spin {
                     from { transform: rotate(0deg); }
                     to { transform: rotate(360deg); }
@@ -49,7 +51,7 @@
                                 @endif
                                 @if(!empty($block['data']['title']))
                                     <div style="position: absolute; top: 1rem; right: 1rem; background: white; padding: 0.5rem 1rem; border-radius: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                                        <span style="font-size: 0.875rem; font-weight: 600; color: #ef4444;">{{ $block['data']['title'] }}</span>
+                                        <span style="font-family: 'Montserrat', sans-serif; font-size: 0.875rem; font-weight: 600; color: #ef4444;">{{ $block['data']['title'] }}</span>
                                     </div>
                                 @endif
                             </div>
@@ -91,16 +93,16 @@
                                     </div>
                                 @endif
                                 <div style="padding: 1.5rem; text-align: center;">
-                                    <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: #000;">
+                                    <h3 style="font-family: 'Montserrat', sans-serif; font-size: 20px; font-weight: 500; margin-bottom: 1rem; color: #000;">
                                         {{ $block['data']['title'] ?? 'Promo Title' }}
                                     </h3>
                                     @if(!empty($block['data']['text']))
-                                        <p style="color: #6b7280; font-size: 0.875rem; line-height: 1.5; margin-bottom: 1rem;">
+                                        <p style="font-family: 'Montserrat', sans-serif; color: #6b7280; font-size: 12px; font-weight: 300; line-height: 1.5; margin-bottom: 1rem;">
                                             {{ $block['data']['text'] }}
                                         </p>
                                     @endif
                                     @if(!empty($block['data']['cta_label']))
-                                        <div style="text-decoration: underline; font-weight: 600; font-size: 0.875rem; color: #000; cursor: pointer;">
+                                        <div style="font-family: 'Montserrat', sans-serif; text-decoration: underline; font-weight: 500; font-size: 12px; color: #000; cursor: pointer;">
                                             {{ $block['data']['cta_label'] }}
                                         </div>
                                     @endif
@@ -110,7 +112,7 @@
                         @elseif($block['type'] === 'products_grid')
                             {{-- Products Grid Preview --}}
                             <div style="background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                                <h3 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;">
+                                <h3 style="font-family: 'Montserrat', sans-serif; font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;">
                                     {{ $block['data']['title'] ?? 'Products Grid' }}
                                 </h3>
                                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.75rem;">
@@ -136,13 +138,13 @@
                                                 @else
                                                     <div style="width: 100%; height: 80px; background: #e5e7eb; border-radius: 0.375rem; margin-bottom: 0.5rem;"></div>
                                                 @endif
-                                                <p style="font-size: 0.75rem; font-weight: 600; color: #374151;">
+                                                <p style="font-family: 'Montserrat', sans-serif; font-size: 0.75rem; font-weight: 600; color: #374151;">
                                                     {{ $product['title'] ?? 'Product' }}
                                                 </p>
                                             </div>
                                         @endforeach
                                     @else
-                                        <p style="color: #9ca3af; font-size: 0.875rem;">No products added</p>
+                                        <p style="font-family: 'Montserrat', sans-serif; color: #9ca3af; font-size: 0.875rem;">No products added</p>
                                     @endif
                                 </div>
                             </div>
@@ -150,7 +152,7 @@
                         @elseif($block['type'] === 'product_list')
                             {{-- Product List Preview --}}
                             <div style="background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                                <h3 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;">
+                                <h3 style="font-family: 'Montserrat', sans-serif; font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;">
                                     {{ $block['data']['title'] ?? 'Product List' }}
                                 </h3>
                                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.75rem;">
@@ -176,13 +178,13 @@
                                                 @else
                                                     <div style="width: 100%; height: 80px; background: #e5e7eb; border-radius: 0.375rem; margin-bottom: 0.5rem;"></div>
                                                 @endif
-                                                <p style="font-size: 0.75rem; font-weight: 600; color: #374151;">
+                                                <p style="font-family: 'Montserrat', sans-serif; font-size: 0.75rem; font-weight: 600; color: #374151;">
                                                     {{ $product['title'] ?? 'Product' }}
                                                 </p>
                                             </div>
                                         @endforeach
                                     @else
-                                        <p style="color: #9ca3af; font-size: 0.875rem;">No products added</p>
+                                        <p style="font-family: 'Montserrat', sans-serif; color: #9ca3af; font-size: 0.875rem;">No products added</p>
                                     @endif
                                 </div>
                             </div>
@@ -190,11 +192,11 @@
                         @elseif($block['type'] === 'new_releases')
                             {{-- New Releases Preview --}}
                             <div style="background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                                <h3 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;">
+                                <h3 style="font-family: 'Montserrat', sans-serif; font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;">
                                     {{ $block['data']['title'] ?? 'New Releases' }}
                                 </h3>
                                 @if(!empty($block['data']['count']))
-                                    <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 0.75rem;">
+                                    <p style="font-family: 'Montserrat', sans-serif; color: #6b7280; font-size: 0.875rem; margin-bottom: 0.75rem;">
                                         Showing {{ $block['data']['count'] }} latest products
                                     </p>
                                 @endif
@@ -202,11 +204,11 @@
                                     @for($i = 0; $i < min($block['data']['count'] ?? 4, 4); $i++)
                                         <div style="background: #f9fafb; border-radius: 0.375rem; padding: 0.75rem; text-align: center;">
                                             <div style="width: 100%; height: 80px; background: #e5e7eb; border-radius: 0.375rem; margin-bottom: 0.5rem;"></div>
-                                            <p style="font-size: 0.75rem; font-weight: 600; color: #374151;">New Product</p>
+                                            <p style="font-family: 'Montserrat', sans-serif; font-size: 0.75rem; font-weight: 600; color: #374151;">New Product</p>
                                         </div>
                                     @endfor
                                 </div>
-                                <p style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.75rem; font-style: italic;">
+                                <p style="font-family: 'Montserrat', sans-serif; font-size: 0.75rem; color: #9ca3af; margin-top: 0.75rem; font-style: italic;">
                                     App will fetch latest products from Shopify
                                 </p>
                             </div>
@@ -214,7 +216,7 @@
                         @elseif($block['type'] === 'category_grid')
                             {{-- Category Grid Preview --}}
                             <div style="background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                                <h3 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;">
+                                <h3 style="font-family: 'Montserrat', sans-serif; font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;">
                                     {{ $block['data']['title'] ?? 'Categories' }}
                                 </h3>
                                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.75rem;">
@@ -234,13 +236,13 @@
                                                 @else
                                                     <div style="width: 100%; height: 80px; background: #e5e7eb; border-radius: 0.375rem; margin-bottom: 0.5rem;"></div>
                                                 @endif
-                                                <p style="font-size: 0.75rem; font-weight: 600; color: #374151;">
+                                                <p style="font-family: 'Montserrat', sans-serif; font-size: 0.75rem; font-weight: 600; color: #374151;">
                                                     {{ $category['title'] ?? 'Category' }}
                                                 </p>
                                             </div>
                                         @endforeach
                                     @else
-                                        <p style="color: #9ca3af; font-size: 0.875rem;">No categories added</p>
+                                        <p style="font-family: 'Montserrat', sans-serif; color: #9ca3af; font-size: 0.875rem;">No categories added</p>
                                     @endif
                                 </div>
                             </div>
@@ -251,14 +253,14 @@
             @else
                 <div style="text-align: center; padding: 3rem 1rem; color: #9ca3af;">
                     <x-heroicon-o-cube-transparent style="width: 4rem; height: 4rem; margin: 0 auto 0.75rem; color: #d1d5db;" />
-                    <p style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">No content yet</p>
-                    <p style="font-size: 0.875rem;">Start building your home layout by adding blocks</p>
+                    <p style="font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">No content yet</p>
+                    <p style="font-family: 'Montserrat', sans-serif; font-size: 0.875rem;">Start building your home layout by adding blocks</p>
                 </div>
             @endif
         </div>
 
         <div style="margin-top: 1rem; padding: 0.75rem; background: #eff6ff; border-radius: 0.375rem; border-left: 4px solid #3b82f6;">
-            <p style="font-size: 0.75rem; color: #1e40af;">
+            <p style="font-family: 'Montserrat', sans-serif; font-size: 0.75rem; color: #1e40af;">
                 <strong>Tip:</strong> Changes are reflected in real-time. The preview updates automatically as you edit.
             </p>
         </div>
