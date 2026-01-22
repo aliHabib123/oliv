@@ -114,10 +114,30 @@
                                 </h3>
                                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.75rem;">
                                     @if(!empty($block['data']['products']))
-                                        @foreach(array_slice($block['data']['products'], 0, 4) as $product)
+                                        @php
+                                            $shopify = app(\App\Services\Shopify\ShopifyStorefrontService::class);
+                                        @endphp
+                                        @foreach(array_slice($block['data']['products'], 0, 4) as $productData)
+                                            @php
+                                                $productId = $productData['product_id'] ?? null;
+                                                $product = null;
+                                                if ($productId && str_starts_with($productId, 'gid://shopify/Product/')) {
+                                                    try {
+                                                        $product = $shopify->getProductById($tenant, $productId);
+                                                    } catch (\Exception $e) {}
+                                                }
+                                            @endphp
                                             <div style="background: #f9fafb; border-radius: 0.375rem; padding: 0.75rem; text-align: center;">
-                                                <div style="width: 100%; height: 80px; background: #e5e7eb; border-radius: 0.375rem; margin-bottom: 0.5rem;"></div>
-                                                <p style="font-size: 0.75rem; font-weight: 600; color: #374151;">Product</p>
+                                                @if($product && !empty($product['images'][0]['url'] ?? null))
+                                                    <img src="{{ $product['images'][0]['url'] }}"
+                                                         alt="{{ $product['title'] ?? 'Product' }}"
+                                                         style="width: 100%; height: 80px; object-fit: cover; border-radius: 0.375rem; margin-bottom: 0.5rem;">
+                                                @else
+                                                    <div style="width: 100%; height: 80px; background: #e5e7eb; border-radius: 0.375rem; margin-bottom: 0.5rem;"></div>
+                                                @endif
+                                                <p style="font-size: 0.75rem; font-weight: 600; color: #374151;">
+                                                    {{ $product['title'] ?? 'Product' }}
+                                                </p>
                                             </div>
                                         @endforeach
                                     @else
@@ -134,10 +154,30 @@
                                 </h3>
                                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.75rem;">
                                     @if(!empty($block['data']['products']))
-                                        @foreach(array_slice($block['data']['products'], 0, 4) as $product)
+                                        @php
+                                            $shopify = app(\App\Services\Shopify\ShopifyStorefrontService::class);
+                                        @endphp
+                                        @foreach(array_slice($block['data']['products'], 0, 4) as $productData)
+                                            @php
+                                                $productId = $productData['product_id'] ?? null;
+                                                $product = null;
+                                                if ($productId && str_starts_with($productId, 'gid://shopify/Product/')) {
+                                                    try {
+                                                        $product = $shopify->getProductById($tenant, $productId);
+                                                    } catch (\Exception $e) {}
+                                                }
+                                            @endphp
                                             <div style="background: #f9fafb; border-radius: 0.375rem; padding: 0.75rem; text-align: center;">
-                                                <div style="width: 100%; height: 80px; background: #e5e7eb; border-radius: 0.375rem; margin-bottom: 0.5rem;"></div>
-                                                <p style="font-size: 0.75rem; font-weight: 600; color: #374151;">Product</p>
+                                                @if($product && !empty($product['images'][0]['url'] ?? null))
+                                                    <img src="{{ $product['images'][0]['url'] }}"
+                                                         alt="{{ $product['title'] ?? 'Product' }}"
+                                                         style="width: 100%; height: 80px; object-fit: cover; border-radius: 0.375rem; margin-bottom: 0.5rem;">
+                                                @else
+                                                    <div style="width: 100%; height: 80px; background: #e5e7eb; border-radius: 0.375rem; margin-bottom: 0.5rem;"></div>
+                                                @endif
+                                                <p style="font-size: 0.75rem; font-weight: 600; color: #374151;">
+                                                    {{ $product['title'] ?? 'Product' }}
+                                                </p>
                                             </div>
                                         @endforeach
                                     @else

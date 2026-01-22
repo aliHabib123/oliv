@@ -896,6 +896,7 @@ class HomeLayout extends Page
                         View::make('filament.components.home-layout-preview')
                             ->viewData([
                                 'layoutData' => $this->data['home_layout'] ?? [],
+                                'tenant' => $this->tenant,
                             ]),
                     ])
                     ->columns(2),
