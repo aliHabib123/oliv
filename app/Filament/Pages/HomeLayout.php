@@ -159,6 +159,7 @@ class HomeLayout extends Page
                 ->live(onBlur: false)
                 ->afterStateUpdated(function () {
                     $this->dispatch('preview-updated', data: $this->data['home_layout'] ?? []);
+                    $this->dispatch('preview-updating');
                 })
                 ->blocks([
                     Block::make('banner')

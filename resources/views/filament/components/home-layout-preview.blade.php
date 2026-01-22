@@ -1,13 +1,31 @@
-<div>
+<div x-data="{ isUpdating: false }"
+     @preview-updating.window="isUpdating = true; setTimeout(() => isUpdating = false, 100)">
     <x-filament::section>
         <x-slot name="heading">
             <div style="display: flex; align-items: center; gap: 0.5rem;">
                 <x-heroicon-o-eye style="width: 1.25rem; height: 1.25rem;" />
                 <span>Live Preview</span>
+                <span x-show="!isUpdating" style="background: #10b981; color: white; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 600;">
+                    ⚡ LIVE: {{ count($layoutData ?? []) }} blocks | {{ now()->format('H:i:s') }}
+                </span>
+                <span x-show="isUpdating" x-cloak style="background: #3b82f6; color: white; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 0.25rem;">
+                    <svg style="width: 0.875rem; height: 0.875rem; animation: spin 1s linear infinite;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle style="opacity: 0.25;" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path style="opacity: 0.75;" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Updating...
+                </span>
             </div>
+            <style>
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+                [x-cloak] { display: none !important; }
+            </style>
         </x-slot>
 
-        <div style="background: #f9fafb; border-radius: 0.5rem; padding: 1rem; min-height: 400px;">
+        <div style="background: #f9fafb; border-radius: 0.5rem; padding: 1rem; min-height: 400px; position: relative; transition: opacity 0.2s;" :style="isUpdating ? 'opacity: 0.6' : ''">
             @if(!empty($layoutData))
                 <div style="display: flex; flex-direction: column; gap: 1rem;">
                     @foreach($layoutData as $block)
