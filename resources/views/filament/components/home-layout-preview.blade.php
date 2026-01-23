@@ -292,23 +292,23 @@
                             </div>
 
                         @elseif($block['type'] === 'category_grid')
-                            {{-- Category Grid Preview - Image Cards with Overlaid Text --}}
-                            <div>
+                            {{-- Category Grid Preview - Horizontal Scroll with 3+ Categories --}}
+                            <div style="margin-top: 2rem;">
                                 @if(!empty($block['data']['title']))
                                     <h3 style="font-family: 'Montserrat', sans-serif; font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem; color: #000;">
                                         {{ $block['data']['title'] }}
                                     </h3>
                                 @endif
-                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem;">
+                                <div style="display: flex; gap: 1rem; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 0.5rem; margin-left: -1rem; padding-left: 1rem; margin-right: -1rem; padding-right: 1rem;">
                                     @if(!empty($block['data']['categories']))
-                                        @foreach(array_slice($block['data']['categories'], 0, 4) as $category)
+                                        @foreach(array_slice($block['data']['categories'], 0, 8) as $category)
                                             @php
                                                 $catImageUrl = $category['image_url'] ?? null;
                                                 if (is_array($catImageUrl) && !empty($catImageUrl)) {
                                                     $catImageUrl = reset($catImageUrl);
                                                 }
                                             @endphp
-                                            <div style="position: relative; border-radius: 1rem; overflow: hidden; aspect-ratio: 3/4;">
+                                            <div style="position: relative; border-radius: 1rem; overflow: hidden; aspect-ratio: 3/4; flex: 0 0 30%; scroll-snap-align: start;">
                                                 @if($catImageUrl)
                                                     <img src="{{ Storage::url($catImageUrl) }}"
                                                          alt="{{ $category['title'] ?? 'Category' }}"
