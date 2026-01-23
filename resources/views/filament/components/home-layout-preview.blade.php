@@ -150,12 +150,14 @@
                             </div>
 
                         @elseif($block['type'] === 'product_list')
-                            {{-- Product List Preview --}}
-                            <div style="background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                                <h3 style="font-family: 'Montserrat', sans-serif; font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;">
-                                    {{ $block['data']['title'] ?? 'Product List' }}
-                                </h3>
-                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.75rem;">
+                            {{-- Product List Preview - Horizontal Carousel --}}
+                            <div>
+                                @if(!empty($block['data']['title']))
+                                    <h3 style="font-family: 'Montserrat', sans-serif; font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: #000; text-transform: uppercase;">
+                                        {{ $block['data']['title'] }}
+                                    </h3>
+                                @endif
+                                <div style="display: flex; gap: 1rem; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 0.5rem;">
                                     @if(!empty($block['data']['products']))
                                         @php
                                             $shopify = app(\App\Services\Shopify\ShopifyStorefrontService::class);
@@ -170,17 +172,37 @@
                                                     } catch (\Exception $e) {}
                                                 }
                                             @endphp
-                                            <div style="background: #f9fafb; border-radius: 0.375rem; padding: 0.75rem; text-align: center;">
-                                                @if($product && !empty($product['images'][0]['url'] ?? null))
-                                                    <img src="{{ $product['images'][0]['url'] }}"
-                                                         alt="{{ $product['title'] ?? 'Product' }}"
-                                                         style="width: 100%; height: 80px; object-fit: cover; border-radius: 0.375rem; margin-bottom: 0.5rem;">
-                                                @else
-                                                    <div style="width: 100%; height: 80px; background: #e5e7eb; border-radius: 0.375rem; margin-bottom: 0.5rem;"></div>
-                                                @endif
-                                                <p style="font-family: 'Montserrat', sans-serif; font-size: 0.75rem; font-weight: 600; color: #374151;">
+                                            <div style="background: white; border-radius: 0.5rem; overflow: hidden; padding: 0.75rem; flex: 0 0 52%; scroll-snap-align: start;">
+                                                <div style="position: relative; margin-bottom: 0.75rem;">
+                                                    @if($product && !empty($product['images'][0]['url'] ?? null))
+                                                        <img src="{{ $product['images'][0]['url'] }}"
+                                                             alt="{{ $product['title'] ?? 'Product' }}"
+                                                             style="width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 0.375rem; display: block;">
+                                                    @else
+                                                        <div style="width: 100%; aspect-ratio: 3/4; background: #e5e7eb; border-radius: 0.375rem;"></div>
+                                                    @endif
+                                                    <div style="position: absolute; top: 0.5rem; right: 2rem;">
+                                                        <svg style="width: 2rem; height: 2rem; color: #b45309; fill: none; stroke: currentColor; stroke-width: 1;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                                {{-- <p style="font-family: 'Montserrat', sans-serif; font-size: 0.75rem; font-weight: 600; color: #ef4444; margin-bottom: 0.25rem; text-align: center;">
+                                                    BIG SALE
+                                                </p> --}}
+                                                <h4 style="font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 500; color: #000; margin-bottom: 0.5rem; text-align: center;">
                                                     {{ $product['title'] ?? 'Product' }}
-                                                </p>
+                                                </h4>
+                                                @if($product && !empty($product['description']))
+                                                    <p style="font-family: 'Montserrat', sans-serif; font-size: 0.75rem; color: #6b7280; margin-bottom: 0.5rem; text-align: center; line-height: 1.5;">
+                                                        {{ \Illuminate\Support\Str::limit(strip_tags($product['description']), 60) }}
+                                                    </p>
+                                                @endif
+                                                @if($product && !empty($product['priceRange']['minVariantPrice']['amount']))
+                                                    <p style="font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 600; color: #b45309; text-align: center;">
+                                                        {{ number_format($product['priceRange']['minVariantPrice']['amount'], 0) }} {{ $product['priceRange']['minVariantPrice']['currencyCode'] }}
+                                                    </p>
+                                                @endif
                                             </div>
                                         @endforeach
                                     @else

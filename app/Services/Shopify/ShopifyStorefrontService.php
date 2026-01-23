@@ -234,8 +234,28 @@ class ShopifyStorefrontService
                     title
                     handle
                     vendor
+                    description
+                    descriptionHtml
                     featuredImage {
                         url
+                    }
+                    images(first: 10) {
+                        edges {
+                            node {
+                                url
+                                altText
+                            }
+                        }
+                    }
+                    priceRange {
+                        minVariantPrice {
+                            amount
+                            currencyCode
+                        }
+                        maxVariantPrice {
+                            amount
+                            currencyCode
+                        }
                     }
                 }
             }
@@ -251,12 +271,24 @@ class ShopifyStorefrontService
             return null;
         }
 
+        $images = [];
+        foreach (Arr::get($product, 'images.edges', []) as $edge) {
+            $images[] = [
+                'url' => $edge['node']['url'] ?? null,
+                'altText' => $edge['node']['altText'] ?? null,
+            ];
+        }
+
         return [
             'id' => $product['id'],
             'title' => $product['title'] ?? '',
             'handle' => $product['handle'] ?? null,
             'vendor' => $product['vendor'] ?? null,
+            'description' => $product['description'] ?? null,
+            'descriptionHtml' => $product['descriptionHtml'] ?? null,
             'image_url' => Arr::get($product, 'featuredImage.url'),
+            'images' => $images,
+            'priceRange' => $product['priceRange'] ?? null,
         ];
     }
 
