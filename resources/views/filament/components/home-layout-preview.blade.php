@@ -214,31 +214,35 @@
                             </div>
 
                         @elseif($block['type'] === 'category_grid')
-                            {{-- Category Grid Preview --}}
-                            <div style="background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                                <h3 style="font-family: 'Montserrat', sans-serif; font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;">
-                                    {{ $block['data']['title'] ?? 'Categories' }}
-                                </h3>
-                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.75rem;">
+                            {{-- Category Grid Preview - Image Cards with Overlaid Text --}}
+                            <div>
+                                @if(!empty($block['data']['title']))
+                                    <h3 style="font-family: 'Montserrat', sans-serif; font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem; color: #000;">
+                                        {{ $block['data']['title'] }}
+                                    </h3>
+                                @endif
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem;">
                                     @if(!empty($block['data']['categories']))
                                         @foreach(array_slice($block['data']['categories'], 0, 4) as $category)
-                                            <div style="background: #f9fafb; border-radius: 0.375rem; padding: 0.75rem; text-align: center;">
-                                                @php
-                                                    $catImageUrl = $category['image_url'] ?? null;
-                                                    if (is_array($catImageUrl) && !empty($catImageUrl)) {
-                                                        $catImageUrl = reset($catImageUrl);
-                                                    }
-                                                @endphp
+                                            @php
+                                                $catImageUrl = $category['image_url'] ?? null;
+                                                if (is_array($catImageUrl) && !empty($catImageUrl)) {
+                                                    $catImageUrl = reset($catImageUrl);
+                                                }
+                                            @endphp
+                                            <div style="position: relative; border-radius: 1rem; overflow: hidden; aspect-ratio: 3/4;">
                                                 @if($catImageUrl)
                                                     <img src="{{ Storage::url($catImageUrl) }}"
-                                                         alt="Category"
-                                                         style="width: 100%; height: 80px; object-fit: cover; border-radius: 0.375rem; margin-bottom: 0.5rem;">
+                                                         alt="{{ $category['title'] ?? 'Category' }}"
+                                                         style="width: 100%; height: 100%; object-fit: cover; display: block;">
                                                 @else
-                                                    <div style="width: 100%; height: 80px; background: #e5e7eb; border-radius: 0.375rem; margin-bottom: 0.5rem;"></div>
+                                                    <div style="width: 100%; height: 100%; background: #e5e7eb;"></div>
                                                 @endif
-                                                <p style="font-family: 'Montserrat', sans-serif; font-size: 0.75rem; font-weight: 600; color: #374151;">
-                                                    {{ $category['title'] ?? 'Category' }}
-                                                </p>
+                                                <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2);">
+                                                    <p style="font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 700; color: white; text-transform: uppercase; text-align: center; padding: 0 1rem;">
+                                                        {{ $category['title'] ?? 'Category' }}
+                                                    </p>
+                                                </div>
                                             </div>
                                         @endforeach
                                     @else
