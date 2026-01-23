@@ -24,20 +24,35 @@
                     to { transform: rotate(360deg); }
                 }
                 [x-cloak] { display: none !important; }
+
+                /* Custom scrollbar for phone preview */
+                .phone-scroll::-webkit-scrollbar {
+                    width: 4px;
+                }
+                .phone-scroll::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                .phone-scroll::-webkit-scrollbar-thumb {
+                    background: rgba(0, 0, 0, 0.2);
+                    border-radius: 2px;
+                }
+                .phone-scroll::-webkit-scrollbar-thumb:hover {
+                    background: rgba(0, 0, 0, 0.3);
+                }
             </style>
         </x-slot>
 
-        <div style="display: flex; justify-content: center; align-items: center; padding: 2rem; background: #f3f4f6; border-radius: 0.5rem; min-height: 600px;">
+        <div style="display: flex; justify-content: center; align-items: center; padding: 2rem; background: #f3f4f6; border-radius: 0.5rem; height: 850px; overflow: hidden;">
             {{-- iPhone Mockup Container --}}
-            <div style="position: relative; width: 375px; height: 812px;">
+            <div style="position: relative; width: 375px; height: 812px; flex-shrink: 0;">
                 {{-- iPhone Frame Image --}}
                 <img src="{{ asset('img/apple-iphone-13-pro-max-2021-medium.png') }}"
                      alt="iPhone Frame"
                      style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none;">
 
                 {{-- Screen Content Area --}}
-                <div style="position: absolute; top: 15px; left: 14px; right: 14px; bottom: 15px; background: white; border-radius: 40px; overflow: hidden; z-index: 1;">
-                    <div style="height: 100%; overflow-y: auto; overflow-x: hidden; background: #f9fafb; transition: opacity 0.2s;" :style="isUpdating ? 'opacity: 0.6' : ''">
+                <div style="position: absolute; top: 15px; left: 14px; right: 14px; bottom: 15px; background: white; border-radius: 40px; overflow-y: scroll; z-index: 1;">
+                    <div class="phone-scroll" style="height: 100%; max-height: 100%; overflow-y: scroll; overflow-x: hidden; background: #f9fafb; transition: opacity 0.2s; -webkit-overflow-scrolling: touch;" :style="isUpdating ? 'opacity: 0.6' : ''">
                         @if(!empty($layoutData))
                             <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1rem;">
                                 @foreach($layoutData as $block)
