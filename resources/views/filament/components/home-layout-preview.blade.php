@@ -238,8 +238,8 @@
                                                 @else
                                                     <div style="width: 100%; height: 100%; background: #e5e7eb;"></div>
                                                 @endif
-                                                <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2);">
-                                                    <p style="font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 700; color: white; text-transform: uppercase; text-align: center; padding: 0 1rem;">
+                                                <div style="position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: center; background: rgba(0,0,0,0.2);">
+                                                    <p style="font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 500; color: white; text-transform: uppercase; text-align: center; padding: 1rem; text-decoration: underline;">
                                                         {{ $category['title'] ?? 'Category' }}
                                                     </p>
                                                 </div>
