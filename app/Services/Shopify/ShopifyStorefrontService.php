@@ -293,6 +293,86 @@ class ShopifyStorefrontService
     }
 
     /**
+     * Get latest products from Shopify.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getLatestProducts(Tenant $tenant, int $limit = 10): array
+    {
+        $query = <<<'GRAPHQL'
+            query GetLatestProducts($first: Int!) {
+                products(first: $first, sortKey: CREATED_AT, reverse: true) {
+                    edges {
+                        node {
+                            id
+                            title
+                            handle
+                            vendor
+                            description
+                            descriptionHtml
+                            featuredImage {
+                                url
+                            }
+                            images(first: 10) {
+                                edges {
+                                    node {
+                                        url
+                                        altText
+                                    }
+                                }
+                            }
+                            priceRange {
+                                minVariantPrice {
+                                    amount
+                                    currencyCode
+                                }
+                                maxVariantPrice {
+                                    amount
+                                    currencyCode
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        GRAPHQL;
+
+        $data = $this->graphql($tenant, $query, [
+            'first' => $limit,
+        ]);
+
+        $edges = Arr::get($data, 'products.edges', []);
+
+        return collect($edges)
+            ->map(function (array $edge): array {
+                $node = $edge['node'] ?? [];
+
+                $images = [];
+                foreach (Arr::get($node, 'images.edges', []) as $imgEdge) {
+                    $images[] = [
+                        'url' => $imgEdge['node']['url'] ?? null,
+                        'altText' => $imgEdge['node']['altText'] ?? null,
+                    ];
+                }
+
+                return [
+                    'id' => $node['id'] ?? null,
+                    'title' => $node['title'] ?? '',
+                    'handle' => $node['handle'] ?? null,
+                    'vendor' => $node['vendor'] ?? null,
+                    'description' => $node['description'] ?? null,
+                    'descriptionHtml' => $node['descriptionHtml'] ?? null,
+                    'image_url' => Arr::get($node, 'featuredImage.url'),
+                    'images' => $images,
+                    'priceRange' => $node['priceRange'] ?? null,
+                ];
+            })
+            ->filter(fn (array $product): bool => !empty($product['id']))
+            ->values()
+            ->all();
+    }
+
+    /**
      * Get a single collection by its Shopify GID.
      *
      * Returns: [
