@@ -157,7 +157,7 @@
                                         {{ $block['data']['title'] }}
                                     </h3>
                                 @endif
-                                <div style="display: flex; gap: 1rem; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 0.5rem;">
+                                <div style="display: flex; gap: 1rem; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 0.5rem; margin-left: -1rem; padding-left: 1rem; margin-right: -1rem; padding-right: 1rem;">
                                     @if(!empty($block['data']['products']))
                                         @php
                                             $shopify = app(\App\Services\Shopify\ShopifyStorefrontService::class);
@@ -219,7 +219,7 @@
                                         {{ $block['data']['title'] }}
                                     </h3>
                                 @endif
-                                <div style="display: flex; gap: 1rem; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 0.5rem;">
+                                <div style="display: flex; gap: 1rem; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 0.5rem; margin-left: -1rem; padding-left: 1rem; margin-right: -1rem; padding-right: 1rem;">
                                     @php
                                         $shopify = app(\App\Services\Shopify\ShopifyStorefrontService::class);
                                         $latestProducts = [];
