@@ -27,10 +27,20 @@
             </style>
         </x-slot>
 
-        <div style="background: #f9fafb; border-radius: 0.5rem; padding: 1rem; min-height: 400px; position: relative; transition: opacity 0.2s;" :style="isUpdating ? 'opacity: 0.6' : ''">
-            @if(!empty($layoutData))
-                <div style="display: flex; flex-direction: column; gap: 1rem;">
-                    @foreach($layoutData as $block)
+        <div style="display: flex; justify-content: center; align-items: center; padding: 2rem; background: #f3f4f6; border-radius: 0.5rem; min-height: 600px;">
+            {{-- iPhone Mockup Container --}}
+            <div style="position: relative; width: 375px; height: 812px;">
+                {{-- iPhone Frame Image --}}
+                <img src="{{ asset('img/apple-iphone-13-pro-max-2021-medium.png') }}"
+                     alt="iPhone Frame"
+                     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none;">
+
+                {{-- Screen Content Area --}}
+                <div style="position: absolute; top: 15px; left: 14px; right: 14px; bottom: 15px; background: white; border-radius: 40px; overflow: hidden; z-index: 1;">
+                    <div style="height: 100%; overflow-y: auto; overflow-x: hidden; background: #f9fafb; transition: opacity 0.2s;" :style="isUpdating ? 'opacity: 0.6' : ''">
+                        @if(!empty($layoutData))
+                            <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1rem;">
+                                @foreach($layoutData as $block)
                         @if($block['type'] === 'banner')
                             {{-- Banner Preview - Full Width with Title Badge --}}
                             @php
@@ -306,14 +316,17 @@
 
                         @endif
                     @endforeach
+                            </div>
+                        @else
+                            <div style="text-align: center; padding: 3rem 1rem; color: #9ca3af;">
+                                <x-heroicon-o-cube-transparent style="width: 4rem; height: 4rem; margin: 0 auto 0.75rem; color: #d1d5db;" />
+                                <p style="font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">No content yet</p>
+                                <p style="font-family: 'Montserrat', sans-serif; font-size: 0.875rem;">Start building your home layout by adding blocks</p>
+                            </div>
+                        @endif
+                    </div>
                 </div>
-            @else
-                <div style="text-align: center; padding: 3rem 1rem; color: #9ca3af;">
-                    <x-heroicon-o-cube-transparent style="width: 4rem; height: 4rem; margin: 0 auto 0.75rem; color: #d1d5db;" />
-                    <p style="font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">No content yet</p>
-                    <p style="font-family: 'Montserrat', sans-serif; font-size: 0.875rem;">Start building your home layout by adding blocks</p>
-                </div>
-            @endif
+            </div>
         </div>
 
         <div style="margin-top: 1rem; padding: 0.75rem; background: #eff6ff; border-radius: 0.375rem; border-left: 4px solid #3b82f6;">
