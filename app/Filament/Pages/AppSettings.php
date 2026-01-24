@@ -277,6 +277,32 @@ class AppSettings extends Page implements HasForms
                                 ->directory('app-settings/payment-options')
                                 ->helperText('Upload an image showing accepted payment methods')
                                 ->columnSpanFull(),
+
+                            Forms\Components\Checkbox::make('ecommerce.tabby_enabled')
+                                ->label('Enable Tabby')
+                                ->helperText('Buy now, pay later with Tabby')
+                                ->reactive()
+                                ->columnSpanFull(),
+
+                            Forms\Components\TextInput::make('ecommerce.tabby_text')
+                                ->label('Tabby Display Text')
+                                ->maxLength(255)
+                                ->placeholder('e.g., Split in 4. No interest, no fees')
+                                ->visible(fn (callable $get) => $get('ecommerce.tabby_enabled'))
+                                ->columnSpanFull(),
+
+                            Forms\Components\Checkbox::make('ecommerce.tamara_enabled')
+                                ->label('Enable Tamara')
+                                ->helperText('Buy now, pay later with Tamara')
+                                ->reactive()
+                                ->columnSpanFull(),
+
+                            Forms\Components\TextInput::make('ecommerce.tamara_text')
+                                ->label('Tamara Display Text')
+                                ->maxLength(255)
+                                ->placeholder('e.g., Pay in 3 easy installments')
+                                ->visible(fn (callable $get) => $get('ecommerce.tamara_enabled'))
+                                ->columnSpanFull(),
                         ]),
 
                     Tabs\Tab::make('Add-ons')
