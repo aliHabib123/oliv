@@ -540,6 +540,105 @@ X-App-Key: required
 
 ---
 
+## 🔔 Push Notification APIs
+
+### 10. Register Device Token
+
+Register a device token for push notifications. Supports OneSignal and Firebase.
+
+**Endpoint:** `POST /v1/device-tokens/register`
+
+**Headers:**
+```
+X-App-Key: required
+```
+
+**Request Body:**
+```json
+{
+  "push_token": "abc123def456...",
+  "user_id": 1,
+  "provider": "onesignal",
+  "platform": "ios",
+  "device_type": "iPhone 13 Pro",
+  "app_version": "1.0.0",
+  "metadata": {
+    "device_name": "John's iPhone",
+    "os_version": "17.2"
+  }
+}
+```
+
+**Parameters:**
+- `push_token` (required): Device token from OneSignal or Firebase
+- `user_id` (optional): User ID if logged in
+- `provider` (optional): `onesignal` or `firebase` (defaults to `onesignal`)
+- `platform` (optional): `ios` or `android`
+- `device_type` (optional): Device model name
+- `app_version` (optional): App version number
+- `metadata` (optional): Additional device information
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Device token registered successfully",
+  "data": {
+    "id": 123,
+    "push_token": "abc123def456...",
+    "provider": "onesignal",
+    "registered_at": "2026-01-24T12:23:45.000000Z"
+  }
+}
+```
+
+**Error Response:**
+```json
+{
+  "success": false,
+  "message": "Validation failed",
+  "errors": {
+    "push_token": ["The push token field is required."]
+  }
+}
+```
+
+---
+
+### 11. Unregister Device Token
+
+Remove a device token when user logs out or uninstalls app.
+
+**Endpoint:** `POST /v1/device-tokens/unregister`
+
+**Headers:**
+```
+X-App-Key: required
+```
+
+**Request Body:**
+```json
+{
+  "push_token": "abc123def456..."
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Device token unregistered successfully"
+}
+```
+
+**Notes:**
+- Tokens are automatically updated if the same token is registered again
+- Token registration should happen on app launch and after user login
+- Unregister token on logout or app uninstall
+- Supports multiple devices per user
+
+---
+
 ## 🔄 User Flow Examples
 
 ### Guest User Flow
