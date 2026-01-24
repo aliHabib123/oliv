@@ -18,6 +18,9 @@ Route::middleware(ResolveTenantFromAppKey::class)->group(function () {
     Route::post('v1/device-tokens/register', [App\Http\Controllers\Api\DeviceTokenController::class, 'register']);
     Route::post('v1/device-tokens/unregister', [App\Http\Controllers\Api\DeviceTokenController::class, 'unregister']);
 
+    // Addon endpoints
+    Route::get('v1/addons', [App\Http\Controllers\Api\AddonController::class, 'index']);
+
     // Cart endpoints
     Route::post('v1/cart/add', [App\Http\Controllers\Api\CartController::class, 'add']);
     Route::post('v1/cart/remove', [App\Http\Controllers\Api\CartController::class, 'remove']);

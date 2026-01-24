@@ -18,6 +18,12 @@ class AddonsTable
                     ->searchable()
                     ->sortable(),
 
+                Tables\Columns\TextColumn::make('key')
+                    ->searchable()
+                    ->sortable()
+                    ->copyable()
+                    ->label('Key'),
+
                 Tables\Columns\TextColumn::make('price')
                     ->money('USD')
                     ->sortable(),
