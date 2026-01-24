@@ -14,6 +14,10 @@ Route::middleware(ResolveTenantFromAppKey::class)->group(function () {
     // Product helper endpoints
     Route::get('v1/products/{productId}/default-variant', [App\Http\Controllers\Api\ProductController::class, 'getDefaultVariant']);
 
+    // Device token endpoints
+    Route::post('v1/device-tokens/register', [App\Http\Controllers\Api\DeviceTokenController::class, 'register']);
+    Route::post('v1/device-tokens/unregister', [App\Http\Controllers\Api\DeviceTokenController::class, 'unregister']);
+
     // Cart endpoints
     Route::post('v1/cart/add', [App\Http\Controllers\Api\CartController::class, 'add']);
     Route::post('v1/cart/remove', [App\Http\Controllers\Api\CartController::class, 'remove']);

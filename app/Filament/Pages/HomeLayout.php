@@ -16,6 +16,7 @@ use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\EmbeddedSchema;
 use Filament\Schemas\Components\Form;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Livewire as LivewireComponent;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\Auth\Authenticatable;
 use UnitEnum;
@@ -155,6 +156,11 @@ class HomeLayout extends Page
         return $schema->schema([
             Forms\Components\Builder::make('home_layout')
                 ->label('Home layout blocks')
+                ->live(onBlur: false)
+                ->afterStateUpdated(function () {
+                    $this->dispatch('preview-updated', data: $this->data['home_layout'] ?? []);
+                    $this->dispatch('preview-updating');
+                })
                 ->blocks([
                     Block::make('banner')
                         ->label('Banner')
@@ -886,7 +892,20 @@ class HomeLayout extends Page
     {
         return $schema
             ->components([
-                $this->getFormContentComponent(),
+                Grid::make(2)
+                    ->schema([
+                        // Left column: Form builder
+                        $this->getFormContentComponent(),
+
+                        // Right column: Live preview
+                        LivewireComponent::make(\App\Livewire\HomeLayoutPreview::class)
+                            ->key('home-layout-preview')
+                            ->data([
+                                'layoutData' => $this->data['home_layout'] ?? [],
+                                'tenant' => $this->tenant,
+                            ]),
+                    ])
+                    ->columns(2),
             ]);
     }
 

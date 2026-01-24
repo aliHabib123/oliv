@@ -260,6 +260,61 @@ class AppSettings extends Page implements HasForms
                                 ->placeholder('https://yoursite.com/about-us')
                                 ->columnSpanFull(),
                         ]),
+
+                    Tabs\Tab::make('E-commerce')
+                        ->schema([
+                            Forms\Components\TextInput::make('ecommerce.shipping_promise')
+                                ->label('Shipping Promise')
+                                ->maxLength(255)
+                                ->placeholder('e.g., Free shipping on orders over $50')
+                                ->helperText('Display text shown to customers about shipping')
+                                ->columnSpanFull(),
+
+                            Forms\Components\FileUpload::make('ecommerce.payment_options_image')
+                                ->label('Payment Options Image')
+                                ->image()
+                                ->disk('public')
+                                ->directory('app-settings/payment-options')
+                                ->helperText('Upload an image showing accepted payment methods')
+                                ->columnSpanFull(),
+
+                            Forms\Components\Checkbox::make('ecommerce.tabby_enabled')
+                                ->label('Enable Tabby')
+                                ->helperText('Buy now, pay later with Tabby')
+                                ->reactive()
+                                ->columnSpanFull(),
+
+                            Forms\Components\TextInput::make('ecommerce.tabby_text')
+                                ->label('Tabby Display Text')
+                                ->maxLength(255)
+                                ->placeholder('e.g., Split in 4. No interest, no fees')
+                                ->visible(fn (callable $get) => $get('ecommerce.tabby_enabled'))
+                                ->columnSpanFull(),
+
+                            Forms\Components\Checkbox::make('ecommerce.tamara_enabled')
+                                ->label('Enable Tamara')
+                                ->helperText('Buy now, pay later with Tamara')
+                                ->reactive()
+                                ->columnSpanFull(),
+
+                            Forms\Components\TextInput::make('ecommerce.tamara_text')
+                                ->label('Tamara Display Text')
+                                ->maxLength(255)
+                                ->placeholder('e.g., Pay in 3 easy installments')
+                                ->visible(fn (callable $get) => $get('ecommerce.tamara_enabled'))
+                                ->columnSpanFull(),
+                        ]),
+
+                    Tabs\Tab::make('Add-ons')
+                        ->schema([
+                            Forms\Components\TextInput::make('addons.whatsapp_chat_number')
+                                ->label('WhatsApp Chat Number')
+                                ->tel()
+                                ->maxLength(255)
+                                ->placeholder('+1234567890')
+                                ->helperText('WhatsApp number for customer support chat')
+                                ->columnSpanFull(),
+                        ]),
                 ])
                 ->columnSpanFull(),
         ]);

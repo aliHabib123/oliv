@@ -234,8 +234,28 @@ class ShopifyStorefrontService
                     title
                     handle
                     vendor
+                    description
+                    descriptionHtml
                     featuredImage {
                         url
+                    }
+                    images(first: 10) {
+                        edges {
+                            node {
+                                url
+                                altText
+                            }
+                        }
+                    }
+                    priceRange {
+                        minVariantPrice {
+                            amount
+                            currencyCode
+                        }
+                        maxVariantPrice {
+                            amount
+                            currencyCode
+                        }
                     }
                 }
             }
@@ -251,13 +271,105 @@ class ShopifyStorefrontService
             return null;
         }
 
+        $images = [];
+        foreach (Arr::get($product, 'images.edges', []) as $edge) {
+            $images[] = [
+                'url' => $edge['node']['url'] ?? null,
+                'altText' => $edge['node']['altText'] ?? null,
+            ];
+        }
+
         return [
             'id' => $product['id'],
             'title' => $product['title'] ?? '',
             'handle' => $product['handle'] ?? null,
             'vendor' => $product['vendor'] ?? null,
+            'description' => $product['description'] ?? null,
+            'descriptionHtml' => $product['descriptionHtml'] ?? null,
             'image_url' => Arr::get($product, 'featuredImage.url'),
+            'images' => $images,
+            'priceRange' => $product['priceRange'] ?? null,
         ];
+    }
+
+    /**
+     * Get latest products from Shopify.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getLatestProducts(Tenant $tenant, int $limit = 10): array
+    {
+        $query = <<<'GRAPHQL'
+            query GetLatestProducts($first: Int!) {
+                products(first: $first, sortKey: CREATED_AT, reverse: true) {
+                    edges {
+                        node {
+                            id
+                            title
+                            handle
+                            vendor
+                            description
+                            descriptionHtml
+                            featuredImage {
+                                url
+                            }
+                            images(first: 10) {
+                                edges {
+                                    node {
+                                        url
+                                        altText
+                                    }
+                                }
+                            }
+                            priceRange {
+                                minVariantPrice {
+                                    amount
+                                    currencyCode
+                                }
+                                maxVariantPrice {
+                                    amount
+                                    currencyCode
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        GRAPHQL;
+
+        $data = $this->graphql($tenant, $query, [
+            'first' => $limit,
+        ]);
+
+        $edges = Arr::get($data, 'products.edges', []);
+
+        return collect($edges)
+            ->map(function (array $edge): array {
+                $node = $edge['node'] ?? [];
+
+                $images = [];
+                foreach (Arr::get($node, 'images.edges', []) as $imgEdge) {
+                    $images[] = [
+                        'url' => $imgEdge['node']['url'] ?? null,
+                        'altText' => $imgEdge['node']['altText'] ?? null,
+                    ];
+                }
+
+                return [
+                    'id' => $node['id'] ?? null,
+                    'title' => $node['title'] ?? '',
+                    'handle' => $node['handle'] ?? null,
+                    'vendor' => $node['vendor'] ?? null,
+                    'description' => $node['description'] ?? null,
+                    'descriptionHtml' => $node['descriptionHtml'] ?? null,
+                    'image_url' => Arr::get($node, 'featuredImage.url'),
+                    'images' => $images,
+                    'priceRange' => $node['priceRange'] ?? null,
+                ];
+            })
+            ->filter(fn (array $product): bool => !empty($product['id']))
+            ->values()
+            ->all();
     }
 
     /**
