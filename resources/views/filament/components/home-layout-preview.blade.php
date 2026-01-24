@@ -51,7 +51,7 @@
                      style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none;">
 
                 {{-- Screen Content Area --}}
-                <div style="position: absolute; top: 15px; left: 14px; right: 14px; bottom: 15px; background: white; border-radius: 40px; overflow-y: scroll; z-index: 1;">
+                <div style="position: absolute; top: 15px; left: 16px; right: 16px; bottom: 15px; background: white; border-radius: 40px; overflow-y: scroll; z-index: 1;">
                     <div class="phone-scroll" style="height: 100%; max-height: 100%; overflow-y: scroll; overflow-x: hidden; background: #f9fafb; transition: opacity 0.2s; -webkit-overflow-scrolling: touch;" :style="isUpdating ? 'opacity: 0.6' : ''">
                         @if(!empty($layoutData))
                             <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1rem;">
@@ -299,7 +299,7 @@
                                         {{ $block['data']['title'] }}
                                     </h3>
                                 @endif
-                                <div style="display: flex; gap: 1rem; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 0.5rem; margin-left: -1rem; padding-left: 1rem; margin-right: -1rem; padding-right: 1rem;">
+                                <div style="display: flex; gap: 0.5rem; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 0.5rem; margin-left: -1rem; padding-left: 1rem; margin-right: -1rem; padding-right: 1rem;">
                                     @if(!empty($block['data']['categories']))
                                         @foreach(array_slice($block['data']['categories'], 0, 8) as $category)
                                             @php
@@ -308,7 +308,7 @@
                                                     $catImageUrl = reset($catImageUrl);
                                                 }
                                             @endphp
-                                            <div style="position: relative; border-radius: 1rem; overflow: hidden; aspect-ratio: 3/4; flex: 0 0 30%; scroll-snap-align: start;">
+                                            <div style="position: relative; border-radius: 1rem; overflow: hidden; aspect-ratio: 2/3; flex: 0 0 30%; scroll-snap-align: start;">
                                                 @if($catImageUrl)
                                                     <img src="{{ Storage::url($catImageUrl) }}"
                                                          alt="{{ $category['title'] ?? 'Category' }}"
