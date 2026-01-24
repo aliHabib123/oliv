@@ -260,6 +260,35 @@ class AppSettings extends Page implements HasForms
                                 ->placeholder('https://yoursite.com/about-us')
                                 ->columnSpanFull(),
                         ]),
+
+                    Tabs\Tab::make('E-commerce')
+                        ->schema([
+                            Forms\Components\TextInput::make('ecommerce.shipping_promise')
+                                ->label('Shipping Promise')
+                                ->maxLength(255)
+                                ->placeholder('e.g., Free shipping on orders over $50')
+                                ->helperText('Display text shown to customers about shipping')
+                                ->columnSpanFull(),
+
+                            Forms\Components\FileUpload::make('ecommerce.payment_options_image')
+                                ->label('Payment Options Image')
+                                ->image()
+                                ->disk('public')
+                                ->directory('app-settings/payment-options')
+                                ->helperText('Upload an image showing accepted payment methods')
+                                ->columnSpanFull(),
+                        ]),
+
+                    Tabs\Tab::make('Add-ons')
+                        ->schema([
+                            Forms\Components\TextInput::make('addons.whatsapp_chat_number')
+                                ->label('WhatsApp Chat Number')
+                                ->tel()
+                                ->maxLength(255)
+                                ->placeholder('+1234567890')
+                                ->helperText('WhatsApp number for customer support chat')
+                                ->columnSpanFull(),
+                        ]),
                 ])
                 ->columnSpanFull(),
         ]);

@@ -45,4 +45,14 @@ class AppConfiguration extends Model
     {
         return $this->config['policies'] ?? [];
     }
+
+    public function getEcommerceSettings(): array
+    {
+        return $this->config['ecommerce'] ?? [];
+    }
+
+    public function getAddonsSettings(): array
+    {
+        return $this->config['addons'] ?? [];
+    }
 }
