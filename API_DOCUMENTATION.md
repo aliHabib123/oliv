@@ -75,7 +75,56 @@ X-App-Key: required
 
 ---
 
-### 2. Get Introduction Page
+### 2. Get Tenant Addons
+
+Get list of active addons subscribed by the tenant with their keys for feature checking.
+
+**Endpoint:** `GET /v1/addons`
+
+**Headers:**
+```
+X-App-Key: required
+```
+
+**Response:**
+```json
+{
+  "ok": true,
+  "addons": [
+    {
+      "id": 1,
+      "name": "WhatsApp Integration",
+      "key": "whatsapp_integration",
+      "description": "Enable WhatsApp chat support",
+      "price": "29.99",
+      "subscribed_at": "2024-01-15T10:30:00Z",
+      "expires_at": "2025-01-15T10:30:00Z"
+    },
+    {
+      "id": 2,
+      "name": "Advanced Analytics",
+      "key": "advanced_analytics",
+      "description": "Get detailed insights and reports",
+      "price": "49.99",
+      "subscribed_at": "2024-01-20T14:00:00Z",
+      "expires_at": null
+    }
+  ]
+}
+```
+
+**Usage:**
+Use the `key` field to check for specific features in your app:
+```javascript
+const hasWhatsApp = addons.some(addon => addon.key === 'whatsapp_integration');
+if (hasWhatsApp) {
+  // Show WhatsApp chat button
+}
+```
+
+---
+
+### 3. Get Introduction Page
 
 Get introduction/onboarding page content with banner, title, and features.
 

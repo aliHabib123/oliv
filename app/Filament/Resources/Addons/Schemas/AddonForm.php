@@ -15,6 +15,14 @@ class AddonForm
                     ->required()
                     ->maxLength(255),
 
+                Forms\Components\TextInput::make('key')
+                    ->required()
+                    ->unique(ignoreRecord: true)
+                    ->maxLength(255)
+                    ->helperText('Unique identifier for programmatic access (e.g., whatsapp_support)')
+                    ->regex('/^[a-z0-9_-]+$/')
+                    ->placeholder('e.g., whatsapp_support'),
+
                 Forms\Components\Textarea::make('description')
                     ->rows(3)
                     ->columnSpanFull(),
