@@ -22,7 +22,7 @@ X-Device-ID: {unique-device-id}
 
 ### 1. Get App Configuration
 
-Get all app settings including logo, colors, social media, policies.
+Get all app settings including logo, colors, social media, policies, e-commerce settings, and add-ons.
 
 **Endpoint:** `GET /v1/app-config`
 
@@ -57,6 +57,17 @@ X-App-Key: required
       "shipping_policy_url": "https://...",
       "payment_policy_url": "https://...",
       "about_us_url": "https://..."
+    },
+    "ecommerce": {
+      "shipping_promise": "Free shipping on orders over $50",
+      "payment_options_image": "https://storage.../payment-methods.jpg",
+      "tabby_enabled": true,
+      "tabby_text": "Split in 4. No interest, no fees",
+      "tamara_enabled": true,
+      "tamara_text": "Pay in 3 easy installments"
+    },
+    "addons": {
+      "whatsapp_chat_number": "+1234567890"
     }
   }
 }
