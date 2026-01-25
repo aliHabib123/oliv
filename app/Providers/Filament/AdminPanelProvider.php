@@ -149,11 +149,17 @@ class AdminPanelProvider extends PanelProvider
                         border-top: 1px solid rgba(211, 210, 188, 0.1) !important;
                         padding: 1rem !important;
                     }
+
+                    /* Add padding to main content area for footer space */
+                    .fi-main,
+                    .fi-body {
+                        padding-bottom: 5rem !important;
+                    }
                 </style>')
             )
             ->renderHook(
                 PanelsRenderHook::BODY_END,
-                fn (): string => Blade::render('<div style="position: fixed; bottom: 0; left: 0; right: 0; width: 100%; background: white; border-top: 1px solid #e5e7eb; z-index: 40;">
+                fn (): string => Blade::render('<div style="width: 100%; background: white; border-top: 1px solid #e5e7eb;">
                     <div style="text-align: center; padding: 1rem 0; font-size: 0.875rem; color: #6b7280;">
                         © {{ date("Y") }} Powered by <a href="https://oliv.tech" target="_blank" style="color: #252621; text-decoration: none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">Oliv.tech</a>
                     </div>

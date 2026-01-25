@@ -168,6 +168,18 @@ class AppSettings extends Page implements HasForms
                             Forms\Components\ColorPicker::make('basic.secondary_color')
                                 ->label('Secondary Color')
                                 ->placeholder('#ffffff'),
+
+                            Forms\Components\Checkbox::make('basic.show_brands')
+                                ->label('Show Brands')
+                                ->helperText('Display brands section in the app')
+                                ->default(true)
+                                ->columnSpanFull(),
+
+                            Forms\Components\Checkbox::make('basic.show_level_0_tabs')
+                                ->label('Show Level 0 Tabs')
+                                ->helperText('Display level 0 category tabs in the app')
+                                ->default(true)
+                                ->columnSpanFull(),
                         ]),
 
                     Tabs\Tab::make('Contact Info')
