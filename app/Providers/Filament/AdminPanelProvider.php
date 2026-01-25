@@ -153,7 +153,6 @@ class AdminPanelProvider extends PanelProvider
                     /* Add padding to main content area for footer space */
                     .fi-main,
                     .fi-body {
-                        padding-bottom: 5rem !important;
                     }
                 </style>')
             )
