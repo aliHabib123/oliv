@@ -85,46 +85,31 @@ class AdminPanelProvider extends PanelProvider
 
                     .fi-sidebar-item.fi-active {
                         background: rgba(185, 139, 105, 0.2) !important;
-                        border-left: 3px solid #B98B69 !important;
+                        // border-left: 3px solid #B98B69 !important;
                     }
 
                     /* Default text - white */
-                    .fi-sidebar-item-label,
-                    .fi-sidebar span,
-                    .fi-sidebar a {
-                        color: #ffffff !important;
+                    .fi-sidebar-item .fi-sidebar-item-label,
+                    .fi-sidebar-item .fi-sidebar span,
+                    .fi-sidebar-item .fi-sidebar a,
+                    .fi-sidebar-item .fi-sidebar svg {
+                        color: #ffffff ;
                     }
 
-                    /* Default icons - white */
-                    .fi-sidebar svg {
-                        color: #ffffff !important;
-                    }
 
                     /* Hover text - secondary color */
-                    .fi-sidebar-item:hover .fi-sidebar-item-btn .fi-sidebar-item-label,
                     .fi-sidebar-item:hover .fi-sidebar-item-label,
-                    .fi-sidebar-item:hover span,
-                    .fi-sidebar-item:hover a {
-                        color: #D3D2BC !important;
-                    }
-
-                    /* Hover icons - secondary color */
+                    .fi-sidebar-item:hover .fi-sidebar span,
                     .fi-sidebar-item:hover svg {
-                        color: #D3D2BC !important;
+                       color: var(--primary-600);
                     }
 
                     /* Active text - secondary color */
-                    .fi-sidebar-item.fi-active > .fi-sidebar-item-btn > .fi-sidebar-item-label,
                     .fi-sidebar-item.fi-active .fi-sidebar-item-label,
-                    .fi-sidebar-item.fi-active span,
-                    .fi-sidebar-item.fi-active a {
-                        color: #D3D2BC !important;
-                        font-weight: 600 !important;
-                    }
-
-                    /* Active icons - secondary color */
-                    .fi-sidebar-item.fi-active svg {
-                        color: #D3D2BC !important;
+                    .fi-sidebar-item.fi-active .fi-sidebar span,
+                    .fi-sidebar-item.fi-active .fi-sidebar a,
+                    .fi-sidebar-item.fi-active .fi-sidebar svg {
+                        color: var(--primary-600);
                     }
 
                     /* Sidebar groups */
