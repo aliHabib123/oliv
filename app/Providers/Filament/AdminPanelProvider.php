@@ -45,8 +45,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
-                AccountWidget::class,
-                FilamentInfoWidget::class,
+                // AccountWidget::class,
+                // FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -92,7 +92,7 @@ class AdminPanelProvider extends PanelProvider
                     .fi-sidebar-item .fi-sidebar-item-label,
                     .fi-sidebar-item .fi-sidebar span,
                     .fi-sidebar-item .fi-sidebar a,
-                    .fi-sidebar-item .fi-sidebar svg {
+                    .fi-sidebar-item svg {
                         color: #ffffff ;
                     }
 
@@ -135,18 +135,30 @@ class AdminPanelProvider extends PanelProvider
                         padding: 1rem !important;
                     }
 
-                    /* Add padding to main content area for footer space */
-                    .fi-main,
-                    .fi-body {
+                    /* Sidebar footer copyright */
+                    .sidebar-copyright {
+                        text-align: center;
+                        padding: 1rem 0;
+                        font-size: 0.75rem;
+                        color: rgba(255, 255, 255, 0.7);
+                        border-top: 1px solid rgba(211, 210, 188, 0.1);
+                        margin-top: auto;
+                    }
+
+                    .sidebar-copyright a {
+                        color: #D3D2BC;
+                        text-decoration: none;
+                    }
+
+                    .sidebar-copyright a:hover {
+                        text-decoration: underline;
                     }
                 </style>')
             )
             ->renderHook(
-                PanelsRenderHook::BODY_END,
-                fn (): string => Blade::render('<div style="width: 100%; background: white; border-top: 1px solid #e5e7eb;">
-                    <div style="text-align: center; padding: 1rem 0; font-size: 0.875rem; color: #6b7280;">
-                        © {{ date("Y") }} Powered by <a href="https://oliv.tech" target="_blank" style="color: #252621; text-decoration: none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">Oliv.tech</a>
-                    </div>
+                PanelsRenderHook::SIDEBAR_FOOTER,
+                fn (): string => Blade::render('<div class="sidebar-copyright">
+                    &copy; {{ date("Y") }} Powered by <a href="https://oliv.tech" target="_blank">Oliv.tech</a>
                 </div>')
             );
     }
