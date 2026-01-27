@@ -180,6 +180,12 @@ class AppSettings extends Page implements HasForms
                                 ->helperText('Display level 0 category tabs in the app')
                                 ->default(true)
                                 ->columnSpanFull(),
+
+                            Forms\Components\Checkbox::make('basic.show_category_selection_screen')
+                                ->label('Show Category Selection Screen')
+                                ->helperText('Display category selection screen in the app')
+                                ->default(true)
+                                ->columnSpanFull(),
                         ]),
 
                     Tabs\Tab::make('Contact Info')
