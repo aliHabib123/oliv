@@ -202,6 +202,11 @@ class AppSettings extends Page implements HasForms
                                 ->default(true)
                                 ->columnSpanFull(),
 
+                            Forms\Components\Placeholder::make('level_0_categories_heading')
+                                ->label('')
+                                ->content(new \Illuminate\Support\HtmlString('<h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">Level 0 Categories</h3><p style="font-size: 0.875rem; color: #6b7280; margin-bottom: 1rem;">Configure how level 0 categories are displayed and synced</p>'))
+                                ->columnSpanFull(),
+
                             Forms\Components\Checkbox::make('basic.show_level_0_tabs')
                                 ->label('Show Level 0 Tabs')
                                 ->helperText('Display level 0 category tabs in the app')
