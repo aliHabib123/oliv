@@ -40,6 +40,8 @@ class HomeLayout extends Page
 
     protected ?Tenant $tenant = null;
 
+    public ?int $selectedLayoutId = null;
+
     public static function canAccess(): bool
     {
         /** @var Authenticatable|null $user */
@@ -108,8 +110,30 @@ class HomeLayout extends Page
     {
         $tenant = $this->resolveTenant();
 
+        // Try to load from home_layouts table first
+        $homeLayout = null;
+
+        if ($this->selectedLayoutId) {
+            $homeLayout = \App\Models\HomeLayout::where('tenant_id', $tenant->id)
+                ->where('id', $this->selectedLayoutId)
+                ->first();
+        }
+
+        // If no specific layout selected, load default or first available
+        if (!$homeLayout) {
+            $homeLayout = \App\Models\HomeLayout::where('tenant_id', $tenant->id)
+                ->where('is_default', true)
+                ->first();
+        }
+
+        // Set the selected layout ID
+        if ($homeLayout) {
+            $this->selectedLayoutId = $homeLayout->id;
+        }
+
         $data = [
-            'home_layout' => $tenant->home_layout ?? [],
+            'is_default' => $homeLayout?->is_default ?? false,
+            'home_layout' => $homeLayout?->layout_data ?? $tenant->home_layout ?? [],
         ];
 
         $this->form->fill($data);
@@ -124,9 +148,23 @@ class HomeLayout extends Page
 
             $data = $this->form->getState();
 
-            $tenant->update([
-                'home_layout' => $data['home_layout'] ?? [],
-            ]);
+            // Save to home_layouts table if we have a selected layout
+            if ($this->selectedLayoutId) {
+                $homeLayout = \App\Models\HomeLayout::where('tenant_id', $tenant->id)
+                    ->where('id', $this->selectedLayoutId)
+                    ->first();
+
+                if ($homeLayout) {
+                    $homeLayout->update([
+                        'layout_data' => $data['home_layout'] ?? [],
+                    ]);
+                }
+            } else {
+                // Fallback to old tenant.home_layout for backward compatibility
+                $tenant->update([
+                    'home_layout' => $data['home_layout'] ?? [],
+                ]);
+            }
 
             $this->commitDatabaseTransaction();
         } catch (\Throwable $exception) {
@@ -141,6 +179,58 @@ class HomeLayout extends Page
             ->send();
     }
 
+    protected function getHeaderActions(): array
+    {
+        $layoutOptions = $this->getLayoutOptions();
+
+        return [
+            Action::make('selectLayout')
+                ->label(fn() => $this->getSelectedLayoutLabel())
+                ->form([
+                    Forms\Components\Select::make('layout_id')
+                        ->label('Select Layout')
+                        ->options($layoutOptions)
+                        ->default($this->selectedLayoutId)
+                        ->required()
+                        ->helperText('Choose which layout to edit'),
+                ])
+                ->action(function (array $data) {
+                    $this->selectedLayoutId = $data['layout_id'];
+                    $this->fillForm();
+
+                    Notification::make()
+                        ->title('Layout Switched')
+                        ->success()
+                        ->send();
+                })
+                ->icon('heroicon-o-squares-2x2')
+                ->color('primary'),
+        ];
+    }
+
+    protected function getSelectedLayoutLabel(): string
+    {
+        if (!$this->selectedLayoutId) {
+            return 'Select Layout';
+        }
+
+        $layout = \App\Models\HomeLayout::find($this->selectedLayoutId);
+
+        if (!$layout) {
+            return 'Select Layout';
+        }
+
+        $label = $layout->name;
+
+        if ($layout->is_default) {
+            $label .= ' (Default)';
+        } else if ($layout->category_title) {
+            $label = $layout->category_title;
+        }
+
+        return $label;
+    }
+
     public function defaultForm(Schema $schema): Schema
     {
         return $schema
@@ -153,7 +243,16 @@ class HomeLayout extends Page
     {
         $tenant = $this->resolveTenant();
 
+        // Get available layouts
+        $layoutOptions = $this->getLayoutOptions();
+
         return $schema->schema([
+            Forms\Components\Checkbox::make('is_default')
+                ->label('Default Layout')
+                ->disabled()
+                ->helperText('Default layout is used as fallback when no category-specific layout is found')
+                ->columnSpanFull(),
+
             Forms\Components\Builder::make('home_layout')
                 ->label('Home layout blocks')
                 ->live(onBlur: false)
@@ -886,6 +985,32 @@ class HomeLayout extends Page
                 ->collapsible()
                 ->columnSpanFull(),
         ]);
+    }
+
+    protected function getLayoutOptions(): array
+    {
+        $tenant = $this->resolveTenant();
+
+        $layouts = \App\Models\HomeLayout::where('tenant_id', $tenant->id)
+            ->orderBy('is_default', 'desc')
+            ->orderBy('category_title')
+            ->get();
+
+        $options = [];
+
+        foreach ($layouts as $layout) {
+            $label = $layout->name;
+
+            if ($layout->is_default) {
+                $label .= ' (Default)';
+            } else if ($layout->category_title) {
+                $label .= ' - ' . $layout->category_title;
+            }
+
+            $options[$layout->id] = $label;
+        }
+
+        return $options;
     }
 
     public function content(Schema $schema): Schema

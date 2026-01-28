@@ -1011,4 +1011,101 @@ class ShopifyStorefrontService
 
         return Arr::get($data, 'customer');
     }
+
+    /**
+     * Get menu by handle from Shopify.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function getMenuByHandle(Tenant $tenant, string $handle): ?array
+    {
+        $query = <<<'GRAPHQL'
+            query GetMenu($handle: String!) {
+                menu(handle: $handle) {
+                    id
+                    handle
+                    title
+                    items {
+                        id
+                        title
+                        url
+                        type
+                        resourceId
+                        items {
+                            id
+                        }
+                    }
+                }
+            }
+        GRAPHQL;
+
+        $data = $this->graphql($tenant, $query, ['handle' => $handle]);
+
+        return Arr::get($data, 'menu');
+    }
+
+    /**
+     * Get level 0 categories from flutter-menu.
+     * Returns only top-level menu items (no nested children).
+     *
+     * Each item: [
+     *   'gid' => string,        // Shopify collection GID
+     *   'handle' => string|null, // Collection handle
+     *   'title' => string,      // Display name
+     * ]
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getFlutterMenuLevel0Categories(Tenant $tenant): array
+    {
+        $menu = $this->getMenuByHandle($tenant, 'flutter-menu');
+
+        if (!$menu || empty($menu['items'])) {
+            return [];
+        }
+
+        // Filter only level 0 items (items without nested children or that are collections)
+        $level0Items = collect($menu['items'])
+            ->filter(function ($item) {
+                // Must have a resourceId (Shopify GID)
+                if (empty($item['resourceId'])) {
+                    return false;
+                }
+
+                // Only include collection types
+                if (isset($item['type']) && $item['type'] !== 'COLLECTION') {
+                    return false;
+                }
+
+                return true;
+            })
+            ->map(function ($item) {
+                return [
+                    'gid' => $item['resourceId'],
+                    'handle' => $this->extractHandleFromUrl($item['url'] ?? ''),
+                    'title' => $item['title'] ?? '',
+                ];
+            })
+            ->filter(fn($item) => !empty($item['gid']) && !empty($item['handle']))
+            ->values()
+            ->all();
+
+        return $level0Items;
+    }
+
+    /**
+     * Extract collection handle from Shopify URL.
+     *
+     * @param string $url
+     * @return string|null
+     */
+    private function extractHandleFromUrl(string $url): ?string
+    {
+        // Extract handle from URL like /collections/women -> women
+        if (preg_match('/\/collections\/([^\/\?]+)/', $url, $matches)) {
+            return $matches[1];
+        }
+
+        return null;
+    }
 }

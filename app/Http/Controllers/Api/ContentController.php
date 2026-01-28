@@ -38,9 +38,42 @@ class ContentController extends Controller
             ], 404);
         }
 
+        $categoryHandle = $request->query('category');
+        $layoutData = null;
+
+        // Try to get layout from home_layouts table
+        if ($categoryHandle) {
+            // Look for category-specific layout
+            $homeLayout = \App\Models\HomeLayout::where('tenant_id', $tenant->id)
+                ->where('category_handle', $categoryHandle)
+                ->where('status', 'active')
+                ->first();
+
+            if ($homeLayout) {
+                $layoutData = $homeLayout->layout_data;
+            }
+        }
+
+        // Fallback to default layout if no category-specific layout found
+        if (!$layoutData) {
+            $defaultLayout = \App\Models\HomeLayout::where('tenant_id', $tenant->id)
+                ->where('is_default', true)
+                ->where('status', 'active')
+                ->first();
+
+            if ($defaultLayout) {
+                $layoutData = $defaultLayout->layout_data;
+            }
+        }
+
+        // Final fallback to tenant.home_layout for backward compatibility
+        if (!$layoutData) {
+            $layoutData = $tenant->home_layout ?? [];
+        }
+
         return response()->json([
             'ok' => true,
-            'layout' => new HomeLayoutResource($tenant->home_layout ?? []),
+            'layout' => new HomeLayoutResource($layoutData),
         ]);
     }
 

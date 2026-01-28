@@ -4,6 +4,8 @@ namespace App\Filament\Pages;
 
 use App\Models\AppConfiguration;
 use App\Models\Tenant;
+use App\Services\CategorySyncService;
+use App\Services\Shopify\ShopifyStorefrontService;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms;
@@ -118,15 +120,40 @@ class AppSettings extends Page implements HasForms
                 ['config' => []]
             );
 
+            $oldSyncEnabled = $config->config['basic']['sync_level_0_categories'] ?? false;
+            $newSyncEnabled = $data['basic']['sync_level_0_categories'] ?? false;
+
             $config->config = $data;
             $config->save();
 
             $this->commitDatabaseTransaction();
 
-            Notification::make()
-                ->title('App settings saved')
-                ->success()
-                ->send();
+            // Trigger category sync if checkbox was just enabled
+            if (!$oldSyncEnabled && $newSyncEnabled) {
+                $shopifyService = new \App\Services\Shopify\ShopifyStorefrontService();
+                $syncService = new \App\Services\CategorySyncService($shopifyService);
+
+                $result = $syncService->syncCategories($this->tenant);
+
+                if ($result['success']) {
+                    Notification::make()
+                        ->title('App settings saved')
+                        ->body($result['message'])
+                        ->success()
+                        ->send();
+                } else {
+                    Notification::make()
+                        ->title('App settings saved')
+                        ->body('Settings saved, but category sync failed: ' . $result['message'])
+                        ->warning()
+                        ->send();
+                }
+            } else {
+                Notification::make()
+                    ->title('App settings saved')
+                    ->success()
+                    ->send();
+            }
         } catch (\Throwable $e) {
             $this->rollBackDatabaseTransaction();
 
@@ -185,6 +212,28 @@ class AppSettings extends Page implements HasForms
                                 ->label('Show Category Selection Screen')
                                 ->helperText('Display category selection screen in the app')
                                 ->default(true)
+                                ->columnSpanFull(),
+
+                            Forms\Components\Checkbox::make('basic.sync_level_0_categories')
+                                ->label('Sync Level 0 Categories')
+                                ->helperText('Automatically sync level 0 categories from Shopify flutter-menu for multi-layout support')
+                                ->default(false)
+                                ->live()
+                                ->columnSpanFull(),
+
+                            Forms\Components\Placeholder::make('resync_action')
+                                ->label('')
+                                ->content(fn (callable $get) => new \Illuminate\Support\HtmlString(
+                                    '<x-filament::button
+                                        wire:click="resyncCategories"
+                                        color="info"
+                                        icon="heroicon-o-arrow-path"
+                                        ' . ($get('basic.sync_level_0_categories') ? '' : 'disabled') . '
+                                    >
+                                        Resync Categories
+                                    </x-filament::button>'
+                                ))
+                                ->visible(fn () => true)
                                 ->columnSpanFull(),
                         ]),
 
@@ -373,5 +422,29 @@ class AppSettings extends Page implements HasForms
             ->label('Save')
             ->submit('save')
             ->keyBindings(['mod+s']);
+    }
+
+    public function resyncCategories(): void
+    {
+        $tenant = $this->resolveTenant();
+
+        $shopifyService = new ShopifyStorefrontService();
+        $syncService = new CategorySyncService($shopifyService);
+
+        $result = $syncService->syncCategories($tenant);
+
+        if ($result['success']) {
+            Notification::make()
+                ->title('Categories Synced')
+                ->body($result['message'])
+                ->success()
+                ->send();
+        } else {
+            Notification::make()
+                ->title('Sync Failed')
+                ->body($result['message'])
+                ->danger()
+                ->send();
+        }
     }
 }
