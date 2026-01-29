@@ -1063,14 +1063,14 @@ class HomeLayout extends Page
                         // Left column: Form builder
                         $this->getFormContentComponent(),
 
-                        // Right column: Live preview with top margin to align with first block
+                        // Right column: Live preview with sticky positioning to stay on screen during scroll
                         LivewireComponent::make(\App\Livewire\HomeLayoutPreview::class)
                             ->key('home-layout-preview')
                             ->data([
                                 'layoutData' => $this->data['home_layout'] ?? [],
                                 'tenant' => $this->tenant,
                             ])
-                            ->extraAttributes(['style' => 'margin-top: 2.2rem;']),
+                            ->extraAttributes(['style' => 'position: sticky; top: 4.5rem; margin-top: 2.2rem;']),
                     ])
                     ->columns(2),
             ]);
