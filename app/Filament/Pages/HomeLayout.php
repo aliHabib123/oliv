@@ -1063,13 +1063,14 @@ class HomeLayout extends Page
                         // Left column: Form builder
                         $this->getFormContentComponent(),
 
-                        // Right column: Live preview
+                        // Right column: Live preview with top margin to align with first block
                         LivewireComponent::make(\App\Livewire\HomeLayoutPreview::class)
                             ->key('home-layout-preview')
                             ->data([
                                 'layoutData' => $this->data['home_layout'] ?? [],
                                 'tenant' => $this->tenant,
-                            ]),
+                            ])
+                            ->extraAttributes(['style' => 'margin-top: 2.2rem;']),
                     ])
                     ->columns(2),
             ]);
