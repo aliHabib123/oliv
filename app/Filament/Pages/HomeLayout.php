@@ -179,34 +179,6 @@ class HomeLayout extends Page
             ->send();
     }
 
-    protected function getHeaderActions(): array
-    {
-        $layoutOptions = $this->getLayoutOptions();
-
-        return [
-            Action::make('selectLayout')
-                ->label(fn() => $this->getSelectedLayoutLabel())
-                ->form([
-                    Forms\Components\Select::make('layout_id')
-                        ->label('Select Layout')
-                        ->options($layoutOptions)
-                        ->default($this->selectedLayoutId)
-                        ->required()
-                        ->helperText('Choose which layout to edit'),
-                ])
-                ->action(function (array $data) {
-                    $this->selectedLayoutId = $data['layout_id'];
-                    $this->fillForm();
-
-                    Notification::make()
-                        ->title('Layout Switched')
-                        ->success()
-                        ->send();
-                })
-                ->icon('heroicon-o-squares-2x2')
-                ->color('primary'),
-        ];
-    }
 
     protected function getSelectedLayoutLabel(): string
     {
@@ -247,14 +219,9 @@ class HomeLayout extends Page
         $layoutOptions = $this->getLayoutOptions();
 
         return $schema->schema([
-            Forms\Components\Checkbox::make('is_default')
-                ->label('Default Layout')
-                ->disabled()
-                ->helperText('Default layout is used as fallback when no category-specific layout is found')
-                ->columnSpanFull(),
-
             Forms\Components\Builder::make('home_layout')
                 ->label('Home layout blocks')
+                ->hiddenLabel()
                 ->live(onBlur: false)
                 ->afterStateUpdated(function () {
                     $this->dispatch('preview-updated', data: $this->data['home_layout'] ?? []);
@@ -1015,8 +982,70 @@ class HomeLayout extends Page
 
     public function content(Schema $schema): Schema
     {
+        $layoutOptions = $this->getLayoutOptions();
+
         return $schema
             ->components([
+                // Full-width row for layout selector in white panel
+                Forms\Components\Placeholder::make('layout_selector_panel')
+                    ->hiddenLabel()
+                    ->content(fn() => new \Illuminate\Support\HtmlString(
+                        '<div style="background: white; border: 1px solid rgb(229, 231, 235); border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);">
+                            <div style="display: flex; align-items: flex-start; gap: 2rem;">
+                                <div style="flex: 0 0 400px;">
+                                    <label style="display: block; font-size: 0.875rem; font-weight: 500; color: rgb(55, 65, 81); margin-bottom: 0.5rem;">Select Layout</label>
+                                    <div style="display: flex; gap: 0.5rem; align-items: start;">
+                                        <select
+                                            wire:model="selectedLayoutId"
+                                            style="flex: 1; border: 1px solid rgb(209, 213, 219); border-radius: 0.5rem; padding: 0.5rem 0.75rem; font-size: 0.875rem; background: white; color: rgb(17, 24, 39);"
+                                        >
+                                            ' . collect($layoutOptions)->map(function($label, $id) {
+                                                $selected = $this->selectedLayoutId == $id ? 'selected' : '';
+                                                return '<option value="' . $id . '" ' . $selected . '>' . htmlspecialchars($label) . '</option>';
+                                            })->join('') . '
+                                        </select>
+                                        <button
+                                            type="button"
+                                            wire:click="handleLayoutChange"
+                                            wire:loading.attr="disabled"
+                                            style="background-color: #252621; color: white; border: 1px solid #252621; border-radius: 0.5rem; padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 500; white-space: nowrap; cursor: pointer; transition: background-color 0.2s; display: flex; align-items: center; gap: 0.5rem;"
+                                            onmouseover="this.style.backgroundColor=\'#3a3a35\'"
+                                            onmouseout="this.style.backgroundColor=\'#252621\'"
+                                        >
+                                            <svg wire:loading wire:target="handleLayoutChange" style="animation: spin 1s linear infinite; width: 1rem; height: 1rem;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle style="opacity: 0.25;" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path style="opacity: 0.75;" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            <span wire:loading.remove wire:target="handleLayoutChange">Switch</span>
+                                            <span wire:loading wire:target="handleLayoutChange">Switching...</span>
+                                        </button>
+                                        <style>
+                                            @keyframes spin {
+                                                from { transform: rotate(0deg); }
+                                                to { transform: rotate(360deg); }
+                                            }
+                                        </style>
+                                    </div>
+                                    <p style="font-size: 0.75rem; color: rgb(107, 114, 128); margin-top: 0.25rem;">Choose which layout to edit</p>
+                                </div>
+
+                                <div style="flex: 1; display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgb(249, 250, 251); border-radius: 0.5rem;margin-top:1rem;">
+                                    <input
+                                        type="checkbox"
+                                        ' . (($this->data['is_default'] ?? false) ? 'checked' : '') . '
+                                        disabled
+                                        style="width: 1rem; height: 1rem; border: 1px solid rgb(209, 213, 219); border-radius: 0.25rem; flex-shrink: 0;"
+                                    >
+                                    <div>
+                                        <span style="font-weight: 500; color: rgb(55, 65, 81); font-size: 0.875rem;">Default Layout</span>
+                                        <p style="font-size: 0.75rem; color: rgb(107, 114, 128); margin: 0;">Default layout is used as fallback when no category-specific layout is found</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>'
+                    )),
+
+                // Two-column layout: builder on left, preview on right
                 Grid::make(2)
                     ->schema([
                         // Left column: Form builder
@@ -1061,5 +1090,16 @@ class HomeLayout extends Page
             ->label('Save')
             ->submit('save')
             ->keyBindings(['mod+s']);
+    }
+
+    public function handleLayoutChange(): void
+    {
+        $this->fillForm();
+
+        Notification::make()
+            ->title('Layout Switched')
+            ->body('Successfully switched to the selected layout')
+            ->success()
+            ->send();
     }
 }

@@ -51,6 +51,7 @@ class TenantResource extends Resource
 
             Forms\Components\Repeater::make('home_layout')
                 ->label('Home layout blocks')
+                ->hiddenLabel()
                 ->schema([
                     Forms\Components\Hidden::make('type')
                         ->default('banner'),

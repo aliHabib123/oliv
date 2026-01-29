@@ -23,16 +23,6 @@ class CategorySyncService
      */
     public function syncCategories(Tenant $tenant): array
     {
-        // Check if sync is enabled
-        $config = AppConfiguration::where('tenant_id', $tenant->id)->first();
-        if (!$config || !($config->config['basic']['sync_level_0_categories'] ?? false)) {
-            return [
-                'success' => false,
-                'message' => 'Category sync is not enabled for this tenant',
-                'categories_synced' => 0,
-            ];
-        }
-
         try {
             // Fetch categories from flutter-menu
             $categories = $this->shopifyService->getFlutterMenuLevel0Categories($tenant);
