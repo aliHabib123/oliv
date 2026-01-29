@@ -227,6 +227,18 @@ class HomeLayout extends Page
                     $this->dispatch('preview-updated', data: $this->data['home_layout'] ?? []);
                     $this->dispatch('preview-updating');
                 })
+                ->collapseAllAction(
+                    fn (Action $action) => $action
+                        ->label('')
+                        ->icon('heroicon-o-chevron-up')
+                        ->tooltip('Collapse all blocks')
+                )
+                ->expandAllAction(
+                    fn (Action $action) => $action
+                        ->label('')
+                        ->icon('heroicon-o-chevron-down')
+                        ->tooltip('Expand all blocks')
+                )
                 ->blocks([
                     Block::make('banner')
                         ->label('Banner')
