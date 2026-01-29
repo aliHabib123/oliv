@@ -246,12 +246,13 @@ class HomeLayout extends Page
                             Grid::make(2)
                                 ->schema([
                                     Forms\Components\TextInput::make('title')
-                                        ->label('Title')
+                                        ->label('Badge Text')
                                         ->maxLength(255),
 
                                     Forms\Components\TextInput::make('subtitle')
                                         ->label('Subtitle')
-                                        ->maxLength(255),
+                                        ->maxLength(255)
+                                        ->hidden(),
                                 ]),
 
                             Forms\Components\FileUpload::make('image_url')
@@ -265,7 +266,8 @@ class HomeLayout extends Page
                                 ->schema([
                                     Forms\Components\TextInput::make('cta_label')
                                         ->label('CTA label')
-                                        ->maxLength(255),
+                                        ->maxLength(255)
+                                        ->hidden(),
 
                                     Forms\Components\Select::make('cta_target_type')
                                         ->label('CTA target type')
