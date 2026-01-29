@@ -26,9 +26,9 @@
     </style>
 
     <x-filament::section>
-        <div style="display: flex; justify-content: center; align-items: center; padding: 2rem; background: #f3f4f6; border-radius: 0.5rem; height: 850px; overflow: hidden;">
+        <div style="display: flex; justify-content: center; align-items: center; padding: 2rem; background: #f3f4f6; border-radius: 0.5rem; height: 770px; overflow: hidden;">
             {{-- iPhone Mockup Container --}}
-            <div style="position: relative; width: 375px; height: 812px; flex-shrink: 0;">
+            <div style="position: relative; width: 375px; height: 730px; flex-shrink: 0;">
                 {{-- iPhone Frame Image --}}
                 <img src="{{ asset('img/apple-iphone-13-pro-max-2021-medium.png') }}"
                      alt="iPhone Frame"
