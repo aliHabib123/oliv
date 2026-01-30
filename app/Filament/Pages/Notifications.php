@@ -15,13 +15,15 @@ class Notifications extends Page implements HasForms
 {
     use InteractsWithForms;
 
+    protected static ?string $navigationLabel = 'In-App';
+
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-bell';
 
     protected string $view = 'filament.pages.notifications';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Marketing';
+    protected static string | \UnitEnum | null $navigationGroup = 'Messaging';
 
-    protected static int | null $navigationSort = 2;
+    protected static int | null $navigationSort = 1;
 
     public ?string $message_type = 'center';
     public ?string $message_heading = 'Heading';

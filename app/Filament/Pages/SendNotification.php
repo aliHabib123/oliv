@@ -27,13 +27,13 @@ class SendNotification extends Page implements HasForms
 
     protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-bell';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Marketing';
+    protected static string | UnitEnum | null $navigationGroup = 'Messaging';
 
-    protected static ?string $navigationLabel = 'Send Notification';
+    protected static ?string $navigationLabel = 'Push';
 
     protected static ?string $title = 'Send Push Notification';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
 
     public ?array $data = [];
 
