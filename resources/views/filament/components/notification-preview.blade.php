@@ -3,6 +3,17 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
 
+        .notification-scroll {
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: #f9fafb;
+            transition: opacity 0.2s;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
+            display: grid;
+        }
+
         .notification-scroll::-webkit-scrollbar {
             width: 4px;
         }
@@ -28,16 +39,15 @@
                      style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none;">
 
                 {{-- Screen Content Area --}}
-                <div style="position: absolute; top: 15px; left: 16px; right: 16px; bottom: 15px; background: white; border-radius: 40px; overflow-y: scroll; z-index: 1;">
-                    <div class="notification-scroll" style="height: 100%; max-height: 100%; overflow-y: scroll; overflow-x: hidden; background: #f9fafb; transition: opacity 0.2s; -webkit-overflow-scrolling: touch; position: relative;" :style="isUpdating ? 'opacity: 0.6' : ''">
+                <div style="position: absolute; top: 15px; left: 16px; right: 16px; bottom: 15px; background: white; border-radius: 40px; overflow: hidden; z-index: 1;">
+                    <div class="notification-scroll" :style="isUpdating ? 'opacity: 0.6' : ''">
                         @php
                             $messageType = $notificationData['message_type'] ?? 'center';
                             $heading = $notificationData['message_heading'] ?? 'Heading';
                             $bodyText = $notificationData['body_text'] ?? '';
                             $buttonText = $notificationData['button_text'] ?? 'Click Me';
-                            $imageUrlRaw = $notificationData['image_url'] ?? null;
-                            $imageUrl = is_array($imageUrlRaw) ? ($imageUrlRaw[0] ?? null) : $imageUrlRaw;
-                            $bgColor = $notificationData['background_color'] ?? '#FFFFFF';
+                            $imageUrl = $notificationData['image_url'] ?? null;
+                            $bgColor = $notificationData['background_color'] ?? '#F8F8F8';
                             $headingColor = $notificationData['heading_color'] ?? '#222222';
                             $bodyColor = $notificationData['body_color'] ?? '#999999';
                             $buttonBg = $notificationData['button_background'] ?? '#1f8feb';
@@ -59,19 +69,19 @@
                                     $notificationStyle = 'width: 100%; border-radius: 0.5rem;';
                                     break;
                                 case 'full':
-                                    $containerStyle = 'padding: 0;';
-                                    $notificationStyle = 'width: 100%; height: 100%; border-radius: 0; max-width: 100%;';
+                                    $containerStyle = 'padding: 0; justify-content: flex-start;';
+                                    $notificationStyle = 'width: 100%; min-height: 100%; border-radius: 0; display: flex; flex-direction: column;';
                                     break;
                                 case 'center':
                                 default:
                                     $containerStyle = 'justify-content: center; align-items: center; padding: 1rem;';
-                                    $notificationStyle = 'max-width: 90%; border-radius: 0.75rem;';
+                                    $notificationStyle = 'width: calc(100% - 2rem); border-radius: 0.75rem;';
                                     break;
                             }
                         @endphp
 
                         {{-- Notification Container --}}
-                        <div style="display: flex; flex-direction: column; min-height: 100%; {{ $containerStyle }}">
+                        <div style="display: flex; flex-direction: column; height: 100%; {{ $containerStyle }}">
                             {{-- Notification Card --}}
                             <div style="background: {{ $bgColor }}; padding: 1.5rem; {{ $notificationStyle }} box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                                 {{-- Close Button --}}
@@ -94,7 +104,7 @@
                                     {{-- Image --}}
                                     @if($imageUrl)
                                         <div style="margin-bottom: 1rem; display: flex; justify-content: center;">
-                                            <img src="{{ Storage::disk('public')->url($imageUrl) }}"
+                                            <img src="{{ $imageUrl }}"
                                                  alt="Notification Image"
                                                  style="max-width: 100%; height: auto; border-radius: 0.5rem;">
                                         </div>

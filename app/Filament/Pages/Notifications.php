@@ -27,7 +27,7 @@ class Notifications extends Page implements HasForms
     public ?string $body_text = '';
     public ?string $button_text = 'Click Me';
     public array|string|null $image_url = null;
-    public ?string $background_color = '#FFFFFF';
+    public ?string $background_color = '#F8F8F8';
     public ?string $heading_color = '#222222';
     public ?string $body_color = '#999999';
     public ?string $button_background = '#1f8feb';
@@ -36,6 +36,45 @@ class Notifications extends Page implements HasForms
     public function mount(): void
     {
         $this->form->fill();
+    }
+
+    protected function getImageUrl()
+    {
+        if (!$this->image_url) {
+            return null;
+        }
+
+        // Handle TemporaryUploadedFile object
+        if (is_object($this->image_url) && method_exists($this->image_url, 'temporaryUrl')) {
+            return $this->image_url->temporaryUrl();
+        }
+
+        // Handle array of files
+        if (is_array($this->image_url)) {
+            if (empty($this->image_url)) {
+                return null;
+            }
+
+            // Get first value from array (might have UUID keys, not numeric)
+            $firstFile = reset($this->image_url);
+
+            // Check if it's a TemporaryUploadedFile object
+            if (is_object($firstFile) && method_exists($firstFile, 'temporaryUrl')) {
+                return $firstFile->temporaryUrl();
+            }
+
+            // Check if it's a string path (permanent storage)
+            if (is_string($firstFile)) {
+                return asset('storage/' . $firstFile);
+            }
+        }
+
+        // Handle string path (permanent storage)
+        if (is_string($this->image_url)) {
+            return asset('storage/' . $this->image_url);
+        }
+
+        return null;
     }
 
     protected function getFormSchema(): array
@@ -58,7 +97,7 @@ class Notifications extends Page implements HasForms
                                         'message_heading' => $this->message_heading,
                                         'body_text' => $this->body_text,
                                         'button_text' => $this->button_text,
-                                        'image_url' => $this->image_url,
+                                        'image_url' => $this->getImageUrl(),
                                         'background_color' => $this->background_color,
                                         'heading_color' => $this->heading_color,
                                         'body_color' => $this->body_color,
@@ -77,7 +116,7 @@ class Notifications extends Page implements HasForms
                                         'message_heading' => $this->message_heading,
                                         'body_text' => $this->body_text,
                                         'button_text' => $this->button_text,
-                                        'image_url' => $this->image_url,
+                                        'image_url' => $this->getImageUrl(),
                                         'background_color' => $this->background_color,
                                         'heading_color' => $this->heading_color,
                                         'body_color' => $this->body_color,
@@ -91,13 +130,14 @@ class Notifications extends Page implements HasForms
                                 ->label('Body Text')
                                 ->rows(3)
                                 ->live(onBlur: true)
+                                ->visible(fn () => in_array($this->message_type, ['center', 'full']))
                                 ->afterStateUpdated(function () {
                                     $this->dispatch('updatePreview', data: [
                                         'message_type' => $this->message_type,
                                         'message_heading' => $this->message_heading,
                                         'body_text' => $this->body_text,
                                         'button_text' => $this->button_text,
-                                        'image_url' => $this->image_url,
+                                        'image_url' => $this->getImageUrl(),
                                         'background_color' => $this->background_color,
                                         'heading_color' => $this->heading_color,
                                         'body_color' => $this->body_color,
@@ -113,13 +153,28 @@ class Notifications extends Page implements HasForms
                                 ->disk('public')
                                 ->directory('notifications')
                                 ->live()
-                                ->afterStateUpdated(function () {
+                                ->visible(fn () => in_array($this->message_type, ['center', 'full']))
+                                ->afterStateUpdated(function ($state, $component) {
+                                    // Extract livewire temporary file URL from state
+                                    $imageUrl = null;
+
+                                    // State is a TemporaryUploadedFile object
+                                    if (is_object($state) && method_exists($state, 'temporaryUrl')) {
+                                        $imageUrl = $state->temporaryUrl();
+                                    } elseif (is_array($state) && !empty($state)) {
+                                        // Handle array of files (multi-upload)
+                                        $firstFile = $state[0] ?? null;
+                                        if (is_object($firstFile) && method_exists($firstFile, 'temporaryUrl')) {
+                                            $imageUrl = $firstFile->temporaryUrl();
+                                        }
+                                    }
+
                                     $this->dispatch('updatePreview', data: [
                                         'message_type' => $this->message_type,
                                         'message_heading' => $this->message_heading,
                                         'body_text' => $this->body_text,
                                         'button_text' => $this->button_text,
-                                        'image_url' => $this->image_url,
+                                        'image_url' => $imageUrl,
                                         'background_color' => $this->background_color,
                                         'heading_color' => $this->heading_color,
                                         'body_color' => $this->body_color,
@@ -133,13 +188,14 @@ class Notifications extends Page implements HasForms
                                 ->label('Button Text')
                                 ->maxLength(255)
                                 ->live(onBlur: true)
+                                ->visible(fn () => in_array($this->message_type, ['center', 'full']))
                                 ->afterStateUpdated(function () {
                                     $this->dispatch('updatePreview', data: [
                                         'message_type' => $this->message_type,
                                         'message_heading' => $this->message_heading,
                                         'body_text' => $this->body_text,
                                         'button_text' => $this->button_text,
-                                        'image_url' => $this->image_url,
+                                        'image_url' => $this->getImageUrl(),
                                         'background_color' => $this->background_color,
                                         'heading_color' => $this->heading_color,
                                         'body_color' => $this->body_color,
@@ -153,7 +209,7 @@ class Notifications extends Page implements HasForms
                                 ->schema([
                                     Forms\Components\ColorPicker::make('background_color')
                                         ->label('Background Color')
-                                        ->default('#FFFFFF')
+                                        ->default('#F8F8F8')
                                         ->live(onBlur: true)
                                         ->afterStateUpdated(function () {
                                             $this->dispatch('updatePreview', data: [
@@ -161,7 +217,7 @@ class Notifications extends Page implements HasForms
                                                 'message_heading' => $this->message_heading,
                                                 'body_text' => $this->body_text,
                                                 'button_text' => $this->button_text,
-                                                'image_url' => $this->image_url,
+                                                'image_url' => $this->getImageUrl(),
                                                 'background_color' => $this->background_color,
                                                 'heading_color' => $this->heading_color,
                                                 'body_color' => $this->body_color,
@@ -180,7 +236,7 @@ class Notifications extends Page implements HasForms
                                                 'message_heading' => $this->message_heading,
                                                 'body_text' => $this->body_text,
                                                 'button_text' => $this->button_text,
-                                                'image_url' => $this->image_url,
+                                                'image_url' => $this->getImageUrl(),
                                                 'background_color' => $this->background_color,
                                                 'heading_color' => $this->heading_color,
                                                 'body_color' => $this->body_color,
@@ -193,13 +249,14 @@ class Notifications extends Page implements HasForms
                                         ->label('Body Color')
                                         ->default('#999999')
                                         ->live(onBlur: true)
+                                        ->visible(fn () => in_array($this->message_type, ['center', 'full']))
                                         ->afterStateUpdated(function () {
                                             $this->dispatch('updatePreview', data: [
                                                 'message_type' => $this->message_type,
                                                 'message_heading' => $this->message_heading,
                                                 'body_text' => $this->body_text,
                                                 'button_text' => $this->button_text,
-                                                'image_url' => $this->image_url,
+                                                'image_url' => $this->getImageUrl(),
                                                 'background_color' => $this->background_color,
                                                 'heading_color' => $this->heading_color,
                                                 'body_color' => $this->body_color,
@@ -212,13 +269,14 @@ class Notifications extends Page implements HasForms
                                         ->label('Button Background')
                                         ->default('#1f8feb')
                                         ->live(onBlur: true)
+                                        ->visible(fn () => in_array($this->message_type, ['center', 'full']))
                                         ->afterStateUpdated(function () {
                                             $this->dispatch('updatePreview', data: [
                                                 'message_type' => $this->message_type,
                                                 'message_heading' => $this->message_heading,
                                                 'body_text' => $this->body_text,
                                                 'button_text' => $this->button_text,
-                                                'image_url' => $this->image_url,
+                                                'image_url' => $this->getImageUrl(),
                                                 'background_color' => $this->background_color,
                                                 'heading_color' => $this->heading_color,
                                                 'body_color' => $this->body_color,
@@ -231,13 +289,14 @@ class Notifications extends Page implements HasForms
                                         ->label('Button Text Color')
                                         ->default('#ffffff')
                                         ->live(onBlur: true)
+                                        ->visible(fn () => in_array($this->message_type, ['center', 'full']))
                                         ->afterStateUpdated(function () {
                                             $this->dispatch('updatePreview', data: [
                                                 'message_type' => $this->message_type,
                                                 'message_heading' => $this->message_heading,
                                                 'body_text' => $this->body_text,
                                                 'button_text' => $this->button_text,
-                                                'image_url' => $this->image_url,
+                                                'image_url' => $this->getImageUrl(),
                                                 'background_color' => $this->background_color,
                                                 'heading_color' => $this->heading_color,
                                                 'body_color' => $this->body_color,
@@ -257,7 +316,7 @@ class Notifications extends Page implements HasForms
                                 'message_heading' => $this->message_heading,
                                 'body_text' => $this->body_text,
                                 'button_text' => $this->button_text,
-                                'image_url' => $this->image_url,
+                                'image_url' => $this->getImageUrl(),
                                 'background_color' => $this->background_color,
                                 'heading_color' => $this->heading_color,
                                 'body_color' => $this->body_color,

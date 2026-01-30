@@ -2,12 +2,10 @@
 
 namespace App\Livewire;
 
-use Livewire\Attributes\Reactive;
 use Livewire\Component;
 
 class NotificationPreview extends Component
 {
-    #[Reactive]
     public array $notificationData = [];
 
     protected $listeners = ['updatePreview'];
