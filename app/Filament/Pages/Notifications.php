@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Grid;
@@ -324,10 +325,21 @@ class Notifications extends Page implements HasForms
                                 'button_text_color' => $this->button_text_color,
                             ],
                         ])
-                        ->extraAttributes(['style' => 'position: sticky; top: 4.5rem; margin-top: 2.2rem;'])
+                        ->extraAttributes(['style' => 'position: sticky; top: 4.5rem;'])
                         ->columnSpan(1),
                 ])
                 ->columns(2),
+        ];
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            Forms\Components\Actions\Action::make('send')
+                ->label('Send Notification')
+                ->action('submit')
+                ->color('primary')
+                ->size('lg'),
         ];
     }
 
