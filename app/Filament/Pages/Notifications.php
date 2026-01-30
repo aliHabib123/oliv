@@ -15,7 +15,7 @@ class Notifications extends Page implements HasForms
 {
     use InteractsWithForms;
 
-    protected static ?string $navigationLabel = 'In-App';
+    protected static ?string $navigationLabel = 'In-App Notifications';
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-bell';
 
