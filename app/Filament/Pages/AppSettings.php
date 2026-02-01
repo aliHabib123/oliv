@@ -137,10 +137,13 @@ class AppSettings extends Page implements HasForms
 
                 if ($result['success']) {
                     Notification::make()
-                        ->title('App settings saved')
-                        ->body($result['message'])
+                        ->title('Categories synced successfully')
+                        ->body($result['message'] . ' Please assign layouts to categories.')
                         ->success()
                         ->send();
+
+                    // Redirect to assignments page
+                    $this->redirect(route('filament.admin.pages.home-layout-assignments'));
                 } else {
                     Notification::make()
                         ->title('App settings saved')
@@ -463,9 +466,12 @@ class AppSettings extends Page implements HasForms
             if ($result['success']) {
                 Notification::make()
                     ->title('Categories Synced')
-                    ->body($result['message'])
+                    ->body($result['message'] . ' Please assign layouts to categories.')
                     ->success()
                     ->send();
+
+                // Redirect to assignments page
+                $this->redirect(route('filament.admin.pages.home-layout-assignments'));
             } else {
                 Notification::make()
                     ->title('Sync Failed')

@@ -16,10 +16,11 @@ class CategorySyncService
     ) {}
 
     /**
-     * Sync categories from flutter-menu and create HomeLayout rows for each.
+     * Sync categories from flutter-menu. Does not auto-create layouts.
+     * User should assign layouts via the Home Layout Assignments page.
      *
      * @param Tenant $tenant
-     * @return array{success: bool, message: string, categories_synced: int}
+     * @return array{success: bool, message: string, categories: array}
      */
     public function syncCategories(Tenant $tenant): array
     {
@@ -31,42 +32,18 @@ class CategorySyncService
                 return [
                     'success' => false,
                     'message' => 'No level 0 categories found in flutter-menu',
-                    'categories_synced' => 0,
+                    'categories' => [],
                 ];
             }
 
-            // Load template layout
-            $templatePath = storage_path('app/templates/tenant_1_home_layout.json');
-            $templateLayout = [];
-
-            if (file_exists($templatePath)) {
-                $templateLayout = json_decode(file_get_contents($templatePath), true);
-            }
-
-            $syncedCount = 0;
-
+            // Update existing layout metadata for synced categories
             foreach ($categories as $category) {
-                // Check if layout already exists for this category
                 $existingLayout = HomeLayout::where('tenant_id', $tenant->id)
                     ->where('category_handle', $category['handle'])
                     ->first();
 
-                if (!$existingLayout) {
-                    // Create new layout for this category using template
-                    HomeLayout::create([
-                        'tenant_id' => $tenant->id,
-                        'category_handle' => $category['handle'],
-                        'category_gid' => $category['gid'],
-                        'category_title' => $category['title'],
-                        'is_default' => false,
-                        'layout_data' => $templateLayout ?: [],
-                        'name' => $category['title'] . ' Layout',
-                        'status' => 'active',
-                    ]);
-
-                    $syncedCount++;
-                } else {
-                    // Update existing layout metadata (but keep layout_data)
+                if ($existingLayout) {
+                    // Update metadata only (keep layout_data intact)
                     $existingLayout->update([
                         'category_gid' => $category['gid'],
                         'category_title' => $category['title'],
@@ -80,6 +57,14 @@ class CategorySyncService
                 ->first();
 
             if (!$defaultLayout) {
+                // Load template for default layout
+                $templatePath = storage_path('app/templates/tenant_1_home_layout.json');
+                $templateLayout = [];
+
+                if (file_exists($templatePath)) {
+                    $templateLayout = json_decode(file_get_contents($templatePath), true);
+                }
+
                 // Use tenant's existing home_layout or template
                 $defaultLayoutData = $tenant->home_layout ?: $templateLayout ?: [];
 
@@ -98,13 +83,12 @@ class CategorySyncService
             Log::info('Categories synced successfully', [
                 'tenant_id' => $tenant->id,
                 'categories_found' => count($categories),
-                'new_layouts_created' => $syncedCount,
             ]);
 
             return [
                 'success' => true,
-                'message' => "Successfully synced {$syncedCount} categories from flutter-menu",
-                'categories_synced' => $syncedCount,
+                'message' => "Successfully synced " . count($categories) . " categories from flutter-menu",
+                'categories' => $categories,
             ];
 
         } catch (\Throwable $e) {
@@ -117,7 +101,7 @@ class CategorySyncService
             return [
                 'success' => false,
                 'message' => 'Failed to sync categories: ' . $e->getMessage(),
-                'categories_synced' => 0,
+                'categories' => [],
             ];
         }
     }
