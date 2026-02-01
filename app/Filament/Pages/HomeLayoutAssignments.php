@@ -147,6 +147,7 @@ class HomeLayoutAssignments extends Page implements HasForms
                 'layout_name' => $layout?->name,
                 'is_active' => $layout?->status === 'active',
                 'has_assignment' => $layout !== null,
+                'layout_data' => $layout?->layout_data ?? null,
             ];
         }
     }
