@@ -9,6 +9,7 @@ use App\Http\Resources\IntroductionResource;
 use App\Models\AppConfiguration;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class ContentController extends Controller
 {
@@ -58,38 +59,39 @@ class ContentController extends Controller
             ], 404);
         }
 
-        $categoryHandle = $request->query('category');
-        $layoutData = null;
+        $categoryHandle = $request->query('id');
 
-        // Try to get layout from home_layouts table
-        if ($categoryHandle) {
-            // Look for category-specific layout
-            $homeLayout = \App\Models\HomeLayout::where('tenant_id', $tenant->id)
-                ->where('category_handle', $categoryHandle)
-                ->where('status', 'active')
-                ->first();
+        // Cache key based on tenant and category
+        $cacheKey = "home_layout:{$tenant->id}:" . ($categoryHandle ?? 'default');
 
-            if ($homeLayout) {
-                $layoutData = $homeLayout->layout_data;
+        // Try to get from cache (5 minutes TTL)
+        $layoutData = \Cache::remember($cacheKey, 300, function () use ($tenant, $categoryHandle) {
+            // Try to get layout from home_layouts table
+            if ($categoryHandle) {
+                // Look for category-specific layout
+                $homeLayout = \App\Models\HomeLayout::where('tenant_id', $tenant->id)
+                    ->where('category_handle', $categoryHandle)
+                    ->where('status', 'active')
+                    ->first();
+
+                if ($homeLayout) {
+                    return $homeLayout->layout_data;
+                }
             }
-        }
 
-        // Fallback to default layout if no category-specific layout found
-        if (!$layoutData) {
+            // Fallback to default layout if no category-specific layout found
             $defaultLayout = \App\Models\HomeLayout::where('tenant_id', $tenant->id)
                 ->where('is_default', true)
                 ->where('status', 'active')
                 ->first();
 
             if ($defaultLayout) {
-                $layoutData = $defaultLayout->layout_data;
+                return $defaultLayout->layout_data;
             }
-        }
 
-        // Final fallback to tenant.home_layout for backward compatibility
-        if (!$layoutData) {
-            $layoutData = $tenant->home_layout ?? [];
-        }
+            // Final fallback to tenant.home_layout for backward compatibility
+            return $tenant->home_layout ?? [];
+        });
 
         return response()->json([
             'ok' => true,
