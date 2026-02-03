@@ -231,6 +231,25 @@ class AppSettings extends Page implements HasForms
                                 ))
                                 ->columnSpanFull(),
 
+                            Forms\Components\Checkbox::make('basic.use_multiple_home_layouts')
+                                ->label(function ($get) {
+                                    $label = 'Use Multiple Home Layouts';
+                                    if ($get('basic.use_multiple_home_layouts')) {
+                                        $configureLink = '<a href="' . route('filament.admin.pages.home-layout-assignments') . '"
+                                            style="color: #3b82f6; text-decoration: none; font-weight: 500; margin-left: 1rem; font-size: 0.875rem;"
+                                            onmouseover="this.style.textDecoration=\'underline\'"
+                                            onmouseout="this.style.textDecoration=\'none\'">
+                                            Configure →
+                                        </a>';
+                                        return new \Illuminate\Support\HtmlString($label . $configureLink);
+                                    }
+                                    return $label;
+                                })
+                                ->helperText('Enable category-specific home layouts for different collections')
+                                ->default(false)
+                                ->live()
+                                ->columnSpanFull(),
+
                             Forms\Components\Checkbox::make('basic.show_level_0_tabs')
                                 ->label('Show Main Category Tabs')
                                 ->helperText('Display main category tabs in the app')

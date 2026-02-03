@@ -1,5 +1,80 @@
 <x-filament-panels::page>
-    @if(empty($this->categories))
+    @if(!$this->flutterMenuExists)
+        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem;">
+            <div style="display: flex; align-items: start; gap: 1rem;">
+                <div style="flex-shrink: 0;">
+                    <svg style="width: 2rem; height: 2rem; color: #dc2626;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <div style="flex: 1;">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; color: #991b1b; margin: 0 0 0.5rem 0;">Flutter Menu Not Configured</h3>
+                    <p style="color: #7f1d1d; margin-bottom: 1rem; line-height: 1.5;">
+                        The <strong>"flutter-menu"</strong> navigation menu is not configured in your Shopify store.
+                        This menu is required for category-based home layouts.
+                    </p>
+                    <div style="background: white; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem;">
+                        <h4 style="font-size: 0.875rem; font-weight: 600; color: #111827; margin: 0 0 0.5rem 0;">Setup Instructions:</h4>
+                        <ol style="color: #374151; font-size: 0.875rem; line-height: 1.6; margin: 0; padding-left: 1.25rem;">
+                            <li style="margin-bottom: 0.5rem;">Go to your <strong>Shopify Admin</strong></li>
+                            <li style="margin-bottom: 0.5rem;">Navigate to <strong>Online Store → Navigation</strong></li>
+                            <li style="margin-bottom: 0.5rem;">Click <strong>"Add menu"</strong></li>
+                            <li style="margin-bottom: 0.5rem;">Set the title to <strong>"flutter-menu"</strong> (exact name required)</li>
+                            <li style="margin-bottom: 0.5rem;">Add your main category collections as menu items</li>
+                            <li>Click <strong>"Save menu"</strong></li>
+                        </ol>
+                    </div>
+                    <p style="color: #7f1d1d; font-size: 0.875rem; margin: 0;">
+                        After creating the menu, return here and sync your categories from App Settings.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div style="background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 2rem; text-align: center;">
+            <a href="{{ route('filament.admin.pages.app-settings') }}"
+               style="display: inline-block; padding: 0.625rem 1.25rem; background: #3b82f6; color: white; font-weight: 500; border-radius: 0.5rem; text-decoration: none;">
+                Go to App Settings to Sync
+            </a>
+        </div>
+    @elseif(!$this->flutterMenuHasItems)
+        <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem;">
+            <div style="display: flex; align-items: start; gap: 1rem;">
+                <div style="flex-shrink: 0;">
+                    <svg style="width: 2rem; height: 2rem; color: #f59e0b;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <div style="flex: 1;">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; color: #92400e; margin: 0 0 0.5rem 0;">Flutter Menu is Empty</h3>
+                    <p style="color: #78350f; margin-bottom: 1rem; line-height: 1.5;">
+                        The <strong>"flutter-menu"</strong> exists but has no menu items.
+                        You need to add your main category collections to this menu.
+                    </p>
+                    <div style="background: white; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem;">
+                        <h4 style="font-size: 0.875rem; font-weight: 600; color: #111827; margin: 0 0 0.5rem 0;">To Add Categories:</h4>
+                        <ol style="color: #374151; font-size: 0.875rem; line-height: 1.6; margin: 0; padding-left: 1.25rem;">
+                            <li style="margin-bottom: 0.5rem;">Go to <strong>Shopify Admin → Online Store → Navigation</strong></li>
+                            <li style="margin-bottom: 0.5rem;">Find and click on <strong>"flutter-menu"</strong></li>
+                            <li style="margin-bottom: 0.5rem;">Click <strong>"Add menu item"</strong></li>
+                            <li style="margin-bottom: 0.5rem;">Select your category collections (e.g., Men, Women, Kids)</li>
+                            <li>Click <strong>"Save menu"</strong></li>
+                        </ol>
+                    </div>
+                    <p style="color: #78350f; font-size: 0.875rem; margin: 0;">
+                        After adding items, return here and sync your categories from App Settings.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div style="background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 2rem; text-align: center;">
+            <a href="{{ route('filament.admin.pages.app-settings') }}"
+               style="display: inline-block; padding: 0.625rem 1.25rem; background: #3b82f6; color: white; font-weight: 500; border-radius: 0.5rem; text-decoration: none;">
+                Go to App Settings to Sync
+            </a>
+        </div>
+    @elseif(empty($this->categories))
         <div style="background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 3rem; text-align: center;">
             <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">No Categories Synced</h3>
             <p style="color: #6b7280; margin-bottom: 1.5rem;">Sync your main categories from Shopify first to assign layouts.</p>

@@ -25,6 +25,8 @@ class HomeLayoutAssignments extends Page implements HasForms
 
     protected static ?int $navigationSort = 3;
 
+    protected static bool $shouldRegisterNavigation = false;
+
     protected string $view = 'filament.pages.home-layout-assignments';
 
     public ?Tenant $tenant = null;
@@ -33,6 +35,8 @@ class HomeLayoutAssignments extends Page implements HasForms
     public array $assignments = [];
     public array $availableTemplates = [];
     public array $otherCategoryLayouts = [];
+    public bool $flutterMenuExists = false;
+    public bool $flutterMenuHasItems = false;
 
     public function mount(): void
     {
@@ -49,11 +53,15 @@ class HomeLayoutAssignments extends Page implements HasForms
         }
 
         $this->tenant = $this->resolveTenant();
-        $this->loadCategories();
-        $this->loadExistingLayouts();
-        $this->loadAssignments();
-        $this->loadAvailableTemplates();
-        $this->loadOtherCategoryLayouts();
+        $this->checkFlutterMenu();
+
+        if ($this->flutterMenuExists && $this->flutterMenuHasItems) {
+            $this->loadCategories();
+            $this->loadExistingLayouts();
+            $this->loadAssignments();
+            $this->loadAvailableTemplates();
+            $this->loadOtherCategoryLayouts();
+        }
     }
 
     public static function canAccess(): bool
@@ -91,22 +99,59 @@ class HomeLayoutAssignments extends Page implements HasForms
         return $tenant;
     }
 
+    protected function checkFlutterMenu(): void
+    {
+        if (!$this->tenant) {
+            return;
+        }
+
+        $shopifyService = new ShopifyStorefrontService();
+
+        try {
+            $menu = $shopifyService->getMenuByHandle($this->tenant, 'flutter-menu');
+
+            if (!$menu) {
+                $this->flutterMenuExists = false;
+                $this->flutterMenuHasItems = false;
+                return;
+            }
+
+            $this->flutterMenuExists = true;
+            $this->flutterMenuHasItems = !empty($menu['items']);
+
+        } catch (\Throwable $e) {
+            $this->flutterMenuExists = false;
+            $this->flutterMenuHasItems = false;
+        }
+    }
+
     protected function loadCategories(): void
     {
         if (!$this->tenant) {
             return;
         }
 
+        $shopifyService = new ShopifyStorefrontService();
+
         try {
-            $shopifyService = new ShopifyStorefrontService();
-            $this->categories = $shopifyService->getFlutterMenuLevel0Categories($this->tenant);
+            $menu = $shopifyService->getMenuByHandle($this->tenant, 'flutter-menu');
+
+            if (!$menu || empty($menu['items'])) {
+                $this->categories = [];
+                return;
+            }
+
+            foreach ($menu['items'] as $item) {
+                if (isset($item['resourceId']) && isset($item['title'])) {
+                    $this->categories[] = [
+                        'handle' => basename(parse_url($item['url'], PHP_URL_PATH)),
+                        'title' => $item['title'],
+                        'gid' => $item['resourceId'],
+                    ];
+                }
+            }
         } catch (\Throwable $e) {
             $this->categories = [];
-            Notification::make()
-                ->title('Failed to load categories')
-                ->body($e->getMessage())
-                ->danger()
-                ->send();
         }
     }
 
