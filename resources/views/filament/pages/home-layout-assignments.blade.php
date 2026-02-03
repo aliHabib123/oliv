@@ -262,7 +262,7 @@
 
                             <td style="padding: 1rem 1.5rem;">
                                 <div style="display: flex; justify-content: flex-end; gap: 0.5rem; align-items: center;">
-                                    @if($assignment['has_assignment'])
+                                    @if($assignment['has_assignment'] && $assignment['layout_data'])
                                         <button
                                             type="button"
                                             wire:click="toggleStatus('{{ $handle }}')"
@@ -273,54 +273,64 @@
                                         </button>
                                     @endif
 
-                                    <div x-data="{ open: false }" style="position: relative; display: inline-block;">
-                                        <button
-                                            type="button"
-                                            @click="open = !open"
-                                            style="padding: 0.375rem 0.75rem; background: #3b82f6; color: white; font-size: 0.75rem; font-weight: 500; border-radius: 0.375rem; border: none; cursor: pointer; transition: all 0.15s;"
-                                            onmouseover="this.style.backgroundColor='#2563eb'"
-                                            onmouseout="this.style.backgroundColor='#3b82f6'">
-                                            {{ $assignment['has_assignment'] ? 'Reassign' : 'Assign' }}
-                                        </button>
+                                    @if(!$assignment['layout_data'])
+                                        <div x-data="{ showAssignModal: false }" style="position: relative; display: inline-block;">
+                                            <button
+                                                type="button"
+                                                @click="showAssignModal = true"
+                                                style="padding: 0.375rem 0.75rem; background: #3b82f6; color: white; font-size: 0.75rem; font-weight: 500; border-radius: 0.375rem; border: none; cursor: pointer; transition: all 0.15s;"
+                                                onmouseover="this.style.backgroundColor='#2563eb'"
+                                                onmouseout="this.style.backgroundColor='#3b82f6'">
+                                                Assign Layout
+                                            </button>
 
-                                        <div x-show="open"
-                                             x-transition
-                                             @click.outside="open = false"
-                                             style="position: absolute; right: 0; z-index: 50; margin-top: 0.5rem; width: 14rem; background: white; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;">
-                                            <div style="padding: 0.5rem;">
-                                                @if(!empty($this->existingLayouts))
-                                                    <div style="padding: 0.5rem 0.75rem; font-size: 0.625rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">
-                                                        Existing Layouts
-                                                    </div>
-                                                    @foreach($this->existingLayouts as $layout)
+                                            <!-- Assignment Modal -->
+                                            <div x-show="showAssignModal"
+                                                 x-cloak
+                                                 @click="showAssignModal = false"
+                                                 @keydown.escape.window="showAssignModal = false"
+                                                 style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; z-index: 9999; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; padding: 1rem;">
+                                                <div @click.stop
+                                                     style="background: white; border-radius: 0.75rem; width: 95%; max-width: 72rem; max-height: 90vh; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">
+
+                                                    <!-- Assignment Modal Header -->
+                                                    <div style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background: #f9fafb;">
+                                                        <div>
+                                                            <h3 style="font-size: 1.125rem; font-weight: 600; color: #111827; margin: 0;">Assign Layout</h3>
+                                                            <p style="font-size: 0.875rem; color: #6b7280; margin: 0.25rem 0 0 0;">Choose a template or copy from another category for {{ $assignment['category_title'] }}</p>
+                                                        </div>
                                                         <button
                                                             type="button"
-                                                            wire:click="assignExistingLayout('{{ $handle }}', {{ $layout['id'] }})"
-                                                            @click="open = false"
-                                                            style="width: 100%; text-align: left; padding: 0.5rem 0.75rem; font-size: 0.875rem; color: #374151; border-radius: 0.375rem; background: transparent; border: none; cursor: pointer; transition: background-color 0.15s;"
+                                                            @click="showAssignModal = false"
+                                                            style="padding: 0.5rem; background: transparent; border: none; color: #6b7280; cursor: pointer; border-radius: 0.375rem; transition: all 0.15s;"
                                                             onmouseover="this.style.backgroundColor='#f3f4f6'"
                                                             onmouseout="this.style.backgroundColor='transparent'">
-                                                            {{ $layout['name'] }}
+                                                            <svg style="width: 1.5rem; height: 1.5rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                            </svg>
                                                         </button>
-                                                    @endforeach
-                                                    <div style="margin: 0.5rem 0; border-top: 1px solid #e5e7eb;"></div>
-                                                @endif
+                                                    </div>
 
-                                                <button
-                                                    type="button"
-                                                    wire:click="assignFromTemplate('{{ $handle }}')"
-                                                    @click="open = false"
-                                                    style="width: 100%; text-align: left; padding: 0.5rem 0.75rem; font-size: 0.875rem; color: #374151; border-radius: 0.375rem; background: transparent; border: none; cursor: pointer; transition: background-color 0.15s; display: flex; align-items: center; gap: 0.5rem;"
-                                                    onmouseover="this.style.backgroundColor='#f3f4f6'"
-                                                    onmouseout="this.style.backgroundColor='transparent'">
-                                                    <svg style="width: 1rem; height: 1rem; color: #9ca3af; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                    </svg>
-                                                    Import from Template
-                                                </button>
+                                                    <!-- Assignment Modal Body -->
+                                                    <div style="padding: 1.5rem; overflow-y: auto; max-height: calc(90vh - 10rem); background: #f9fafb;">
+                                                        @include('filament.pages.partials.assignment-modal-content', ['handle' => $handle, 'categoryTitle' => $assignment['category_title']])
+                                                    </div>
+
+                                                    <!-- Assignment Modal Footer -->
+                                                    <div style="padding: 1rem 1.5rem; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; background: white;">
+                                                        <button
+                                                            type="button"
+                                                            @click="showAssignModal = false"
+                                                            style="padding: 0.5rem 1rem; background: #6b7280; color: white; font-size: 0.875rem; font-weight: 500; border-radius: 0.375rem; border: none; cursor: pointer; transition: all 0.15s;"
+                                                            onmouseover="this.style.backgroundColor='#4b5563'"
+                                                            onmouseout="this.style.backgroundColor='#6b7280'">
+                                                            Close
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

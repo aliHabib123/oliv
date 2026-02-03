@@ -31,6 +31,8 @@ class HomeLayoutAssignments extends Page implements HasForms
     public array $categories = [];
     public array $existingLayouts = [];
     public array $assignments = [];
+    public array $availableTemplates = [];
+    public array $otherCategoryLayouts = [];
 
     public function mount(): void
     {
@@ -50,6 +52,8 @@ class HomeLayoutAssignments extends Page implements HasForms
         $this->loadCategories();
         $this->loadExistingLayouts();
         $this->loadAssignments();
+        $this->loadAvailableTemplates();
+        $this->loadOtherCategoryLayouts();
     }
 
     public static function canAccess(): bool
@@ -119,6 +123,50 @@ class HomeLayoutAssignments extends Page implements HasForms
             ->map(fn ($layout) => [
                 'id' => $layout->id,
                 'name' => $layout->name,
+            ])
+            ->toArray();
+    }
+
+    protected function loadAvailableTemplates(): void
+    {
+        $templatesPath = storage_path('app/templates');
+        $this->availableTemplates = [];
+
+        if (!is_dir($templatesPath)) {
+            return;
+        }
+
+        $files = glob($templatesPath . '/*.json');
+        foreach ($files as $file) {
+            $filename = basename($file);
+            $templateData = json_decode(file_get_contents($file), true);
+
+            if ($templateData) {
+                $this->availableTemplates[] = [
+                    'name' => str_replace(['_', '.json'], [' ', ''], ucfirst($filename)),
+                    'filename' => $filename,
+                    'layout_data' => $templateData,
+                ];
+            }
+        }
+    }
+
+    protected function loadOtherCategoryLayouts(): void
+    {
+        if (!$this->tenant) {
+            return;
+        }
+
+        $this->otherCategoryLayouts = HomeLayout::where('tenant_id', $this->tenant->id)
+            ->whereNotNull('category_handle')
+            ->whereNotNull('layout_data')
+            ->get()
+            ->map(fn ($layout) => [
+                'id' => $layout->id,
+                'category_handle' => $layout->category_handle,
+                'category_title' => $layout->category_title,
+                'name' => $layout->name,
+                'layout_data' => $layout->layout_data,
             ])
             ->toArray();
     }
@@ -213,7 +261,7 @@ class HomeLayoutAssignments extends Page implements HasForms
         }
     }
 
-    public function assignFromTemplate(string $categoryHandle): void
+    public function assignFromTemplate(string $categoryHandle, string $templateFilename): void
     {
         if (!$this->tenant) {
             return;
@@ -221,7 +269,7 @@ class HomeLayoutAssignments extends Page implements HasForms
 
         try {
             // Load template
-            $templatePath = storage_path('app/templates/tenant_1_home_layout.json');
+            $templatePath = storage_path('app/templates/' . $templateFilename);
             if (!file_exists($templatePath)) {
                 throw new \Exception('Template not found');
             }
@@ -264,16 +312,79 @@ class HomeLayoutAssignments extends Page implements HasForms
             }
 
             $this->loadAssignments();
+            $this->loadOtherCategoryLayouts();
 
             Notification::make()
-                ->title('Template Imported')
-                ->body("Successfully imported template for {$category['title']}")
+                ->title('Template Assigned')
+                ->body("Successfully assigned template to {$category['title']}")
                 ->success()
                 ->send();
 
         } catch (\Throwable $e) {
             Notification::make()
-                ->title('Import Failed')
+                ->title('Assignment Failed')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function assignFromCategory(string $targetHandle, string $sourceHandle): void
+    {
+        if (!$this->tenant) {
+            return;
+        }
+
+        try {
+            // Find source layout
+            $sourceLayout = HomeLayout::where('tenant_id', $this->tenant->id)
+                ->where('category_handle', $sourceHandle)
+                ->firstOrFail();
+
+            $targetCategory = collect($this->categories)->firstWhere('handle', $targetHandle);
+            if (!$targetCategory) {
+                throw new \Exception('Target category not found');
+            }
+
+            // Check if target already has a layout
+            $existingLayout = HomeLayout::where('tenant_id', $this->tenant->id)
+                ->where('category_handle', $targetHandle)
+                ->first();
+
+            if ($existingLayout) {
+                // Update existing
+                $existingLayout->update([
+                    'layout_data' => $sourceLayout->layout_data,
+                    'name' => $targetCategory['title'] . ' Layout',
+                    'category_gid' => $targetCategory['gid'],
+                    'category_title' => $targetCategory['title'],
+                ]);
+            } else {
+                // Create new
+                HomeLayout::create([
+                    'tenant_id' => $this->tenant->id,
+                    'category_handle' => $targetHandle,
+                    'category_gid' => $targetCategory['gid'],
+                    'category_title' => $targetCategory['title'],
+                    'is_default' => false,
+                    'layout_data' => $sourceLayout->layout_data,
+                    'name' => $targetCategory['title'] . ' Layout',
+                    'status' => 'active',
+                ]);
+            }
+
+            $this->loadAssignments();
+            $this->loadOtherCategoryLayouts();
+
+            Notification::make()
+                ->title('Layout Assigned')
+                ->body("Successfully assigned layout from {$sourceLayout->category_title} to {$targetCategory['title']}")
+                ->success()
+                ->send();
+
+        } catch (\Throwable $e) {
+            Notification::make()
+                ->title('Assignment Failed')
                 ->body($e->getMessage())
                 ->danger()
                 ->send();
