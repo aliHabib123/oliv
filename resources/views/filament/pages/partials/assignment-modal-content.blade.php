@@ -20,7 +20,12 @@
                          onmouseover="this.style.boxShadow='0 4px 6px -1px rgba(0,0,0,0.1)'; this.style.borderColor='#3b82f6'"
                          onmouseout="this.style.boxShadow=''; this.style.borderColor='#e5e7eb'">
                         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.75rem;">
-                            <h5 style="font-size: 0.875rem; font-weight: 600; color: #111827; margin: 0;">{{ $template['name'] }}</h5>
+                            <div>
+                                <h5 style="font-size: 0.875rem; font-weight: 600; color: #111827; margin: 0;">{{ $template['name'] }}</h5>
+                                @if($template['type'] === 'tenant')
+                                    <span style="font-size: 0.625rem; color: #059669; background: #d1fae5; padding: 0.125rem 0.375rem; border-radius: 0.25rem; display: inline-block; margin-top: 0.25rem;">Current Layout</span>
+                                @endif
+                            </div>
                         </div>
                         <div style="display: flex; gap: 0.5rem;">
                             <button
@@ -33,7 +38,11 @@
                             </button>
                             <button
                                 type="button"
-                                wire:click="assignFromTemplate('{{ $handle }}', '{{ $template['filename'] }}')"
+                                @if($template['type'] === 'tenant')
+                                    wire:click="assignFromTemplate('{{ $handle }}', 'tenant', 'tenant')"
+                                @else
+                                    wire:click="assignFromTemplate('{{ $handle }}', '{{ $template['filename'] }}', 'file')"
+                                @endif
                                 @click="showAssignModal = false"
                                 style="flex: 1; padding: 0.5rem; background: #3b82f6; color: white; font-size: 0.75rem; font-weight: 500; border-radius: 0.375rem; border: none; cursor: pointer; transition: all 0.15s;"
                                 onmouseover="this.style.backgroundColor='#2563eb'"

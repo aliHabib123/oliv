@@ -174,9 +174,19 @@ class HomeLayoutAssignments extends Page implements HasForms
 
     protected function loadAvailableTemplates(): void
     {
-        $templatesPath = storage_path('app/templates');
         $this->availableTemplates = [];
 
+        // Add tenant's existing layout as a template option if it exists
+        if ($this->tenant && !empty($this->tenant->home_layout)) {
+            $this->availableTemplates[] = [
+                'name' => 'Tenant Default Layout',
+                'type' => 'tenant',
+                'layout_data' => $this->tenant->home_layout,
+            ];
+        }
+
+        // Load file-based templates
+        $templatesPath = storage_path('app/templates');
         if (!is_dir($templatesPath)) {
             return;
         }
@@ -189,6 +199,7 @@ class HomeLayoutAssignments extends Page implements HasForms
             if ($templateData) {
                 $this->availableTemplates[] = [
                     'name' => str_replace(['_', '.json'], [' ', ''], ucfirst($filename)),
+                    'type' => 'file',
                     'filename' => $filename,
                     'layout_data' => $templateData,
                 ];
@@ -306,22 +317,31 @@ class HomeLayoutAssignments extends Page implements HasForms
         }
     }
 
-    public function assignFromTemplate(string $categoryHandle, string $templateFilename): void
+    public function assignFromTemplate(string $categoryHandle, string $templateIdentifier, string $templateType = 'file'): void
     {
         if (!$this->tenant) {
             return;
         }
 
         try {
-            // Load template
-            $templatePath = storage_path('app/templates/' . $templateFilename);
-            if (!file_exists($templatePath)) {
-                throw new \Exception('Template not found');
-            }
+            // Load template based on type
+            if ($templateType === 'tenant') {
+                // Use tenant's home_layout
+                if (empty($this->tenant->home_layout)) {
+                    throw new \Exception('Tenant default layout not found');
+                }
+                $templateLayout = $this->tenant->home_layout;
+            } else {
+                // Load from file
+                $templatePath = storage_path('app/templates/' . $templateIdentifier);
+                if (!file_exists($templatePath)) {
+                    throw new \Exception('Template not found');
+                }
 
-            $templateLayout = json_decode(file_get_contents($templatePath), true);
-            if (!$templateLayout) {
-                throw new \Exception('Invalid template format');
+                $templateLayout = json_decode(file_get_contents($templatePath), true);
+                if (!$templateLayout) {
+                    throw new \Exception('Invalid template format');
+                }
             }
 
             $category = collect($this->categories)->firstWhere('handle', $categoryHandle);
