@@ -31,6 +31,26 @@ class ContentController extends Controller
     {
         $tenant = $request->attributes->get('tenant');
 
+        // Log request details
+        \Log::info('Home Layout API Request', [
+            'query_strings' => $request->query->all(),
+            'headers' => [
+                'user-agent' => $request->header('User-Agent'),
+                'accept' => $request->header('Accept'),
+                'content-type' => $request->header('Content-Type'),
+                'x-app-version' => $request->header('X-App-Version'),
+                'x-platform' => $request->header('X-Platform'),
+                'x-device-id' => $request->header('X-Device-Id'),
+                'authorization' => $request->header('Authorization') ? 'Present' : 'Absent',
+            ],
+            'all_headers' => $request->headers->all(),
+            'method' => $request->method(),
+            'url' => $request->fullUrl(),
+            'ip' => $request->ip(),
+            'tenant_id' => $tenant?->id,
+            'tenant_name' => $tenant?->name,
+        ]);
+
         if (!$tenant) {
             return response()->json([
                 'ok' => false,
