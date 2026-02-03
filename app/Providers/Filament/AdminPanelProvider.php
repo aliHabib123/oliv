@@ -31,7 +31,8 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login(Login::class)
-            ->brandLogo(asset('img/Oliv-Logo-2X-scaled.png'))
+            ->brandLogo(asset('img/IMG_5398.png'))
+            ->favicon(asset('img/favicon.png'))
             ->brandLogoHeight('3rem')
             ->colors([
                 'primary' => '#252621',
@@ -101,15 +102,15 @@ class AdminPanelProvider extends PanelProvider
                     .fi-sidebar-item:hover .fi-sidebar-item-label,
                     .fi-sidebar-item:hover .fi-sidebar span,
                     .fi-sidebar-item:hover svg {
-                       color: var(--primary-600);
+                       color: black;
                     }
 
                     /* Active text - secondary color */
                     .fi-sidebar-item.fi-active .fi-sidebar-item-label,
                     .fi-sidebar-item.fi-active .fi-sidebar span,
                     .fi-sidebar-item.fi-active .fi-sidebar a,
-                    .fi-sidebar-item.fi-active .fi-sidebar svg {
-                        color: var(--primary-600);
+                    .fi-sidebar-item.fi-active svg {
+                        color: black;
                     }
 
                     /* Sidebar groups */

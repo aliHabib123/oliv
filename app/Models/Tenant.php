@@ -46,4 +46,9 @@ class Tenant extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    public function homeLayouts()
+    {
+        return $this->hasMany(HomeLayout::class);
+    }
 }
