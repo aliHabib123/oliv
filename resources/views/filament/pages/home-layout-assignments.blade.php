@@ -82,6 +82,7 @@
 
                                         <!-- Modal Popup -->
                                         <div x-show="showPreview"
+                                             x-cloak
                                              x-transition:enter="transition ease-out duration-200"
                                              x-transition:enter-start="opacity-0"
                                              x-transition:enter-end="opacity-100"
@@ -89,9 +90,10 @@
                                              x-transition:leave-start="opacity-100"
                                              x-transition:leave-end="opacity-0"
                                              @click="showPreview = false"
-                                             style="position: fixed; inset: 0; z-index: 50; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; padding: 1rem;">
+                                             @keydown.escape.window="showPreview = false"
+                                             style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; z-index: 9999; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; padding: 1rem;">
                                             <div @click.stop
-                                                 style="background: white; border-radius: 0.75rem; max-width: 56rem; width: 100%; max-height: 90vh; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">
+                                                 style="background: white; border-radius: 0.75rem; width: 90%; max-width: 56rem; max-height: 90vh; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); margin-left: auto; margin-right: auto;">
                                                 <!-- Modal Header -->
                                                 <div style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background: #f9fafb;">
                                                     <div>
