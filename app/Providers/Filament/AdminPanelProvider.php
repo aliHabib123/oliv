@@ -66,6 +66,55 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn (): string => Blade::render('<style>
+                    /* Override default color palette with custom color */
+                    .fi-bg-color-400,
+                    [style*="background-color: #aaba3a"],
+                    [style*="background: #aaba3a"] {
+                        background-color: #615D40 !important;
+                        --bg: #615D40 !important;
+                    }
+
+                    .fi-border-color-400,
+                    [style*="border-color: #aaba3a"] {
+                        border-color: #615D40 !important;
+                        --border-color: #615D40 !important;
+                    }
+
+                    .fi-text-color-400,
+                    [style*="color: #aaba3a"] {
+                        color: #615D40 !important;
+                        --text-color: #615D40 !important;
+                    }
+
+                    /* Override focus rings and outlines */
+                    *:focus,
+                    *:focus-visible {
+                        outline-color: #615D40 !important;
+                        border-color: #615D40 !important;
+                    }
+
+                    /* Button states */
+                    .fi-btn[style*="#aaba3a"],
+                    button[style*="#aaba3a"] {
+                        background-color: #615D40 !important;
+                        border-color: #615D40 !important;
+                        color: #ffffff !important;
+                    }
+
+                    /* Ensure all button text is white */
+                    .fi-btn,
+                    .fi-btn span,
+                    .fi-btn-label,
+                    button.fi-btn {
+                        color: #ffffff !important;
+                    }
+
+                    /* Primary buttons */
+                    .fi-btn-primary,
+                    .fi-btn-primary span {
+                        color: #ffffff !important;
+                    }
+
                     /* Sidebar styling */
                     .fi-sidebar {
                         background: linear-gradient(180deg, #252621 0%, #2d2e28 100%) !important;

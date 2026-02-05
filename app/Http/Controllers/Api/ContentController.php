@@ -32,26 +32,6 @@ class ContentController extends Controller
     {
         $tenant = $request->attributes->get('tenant');
 
-        // Log request details
-        \Log::info('Home Layout API Request', [
-            'query_strings' => $request->query->all(),
-            'headers' => [
-                'user-agent' => $request->header('User-Agent'),
-                'accept' => $request->header('Accept'),
-                'content-type' => $request->header('Content-Type'),
-                'x-app-version' => $request->header('X-App-Version'),
-                'x-platform' => $request->header('X-Platform'),
-                'x-device-id' => $request->header('X-Device-Id'),
-                'authorization' => $request->header('Authorization') ? 'Present' : 'Absent',
-            ],
-            'all_headers' => $request->headers->all(),
-            'method' => $request->method(),
-            'url' => $request->fullUrl(),
-            'ip' => $request->ip(),
-            'tenant_id' => $tenant?->id,
-            'tenant_name' => $tenant?->name,
-        ]);
-
         if (!$tenant) {
             return response()->json([
                 'ok' => false,
@@ -65,7 +45,7 @@ class ContentController extends Controller
         $cacheKey = "home_layout:{$tenant->id}:" . ($categoryHandle ?? 'default');
 
         // Try to get from cache (5 minutes TTL)
-        $layoutData = \Cache::remember($cacheKey, 300, function () use ($tenant, $categoryHandle) {
+        $layoutData = Cache::remember($cacheKey, 300, function () use ($tenant, $categoryHandle) {
             // Try to get layout from home_layouts table
             if ($categoryHandle) {
                 // Look for category-specific layout
