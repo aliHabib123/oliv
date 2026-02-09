@@ -45,6 +45,8 @@ return [
         'secret' => env('STRIPE_SECRET'),
         'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
         'subscription_interval' => env('STRIPE_SUBSCRIPTION_INTERVAL', 'month'), // Options: day, week, month, year
+        'currency' => env('STRIPE_CURRENCY', 'aed'), // Currency code (ISO 4217)
+        'currency_symbol' => env('STRIPE_CURRENCY_SYMBOL', 'AED'), // Display symbol
     ],
 
 ];

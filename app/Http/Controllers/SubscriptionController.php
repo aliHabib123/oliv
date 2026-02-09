@@ -23,7 +23,9 @@ class SubscriptionController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        return view('subscriptions.index', compact('packages'));
+        $currencySymbol = config('services.stripe.currency_symbol', 'AED');
+
+        return view('subscriptions.index', compact('packages', 'currencySymbol'));
     }
 
     public function subscribe(Request $request)
@@ -102,12 +104,12 @@ class SubscriptionController extends Controller
                 'payment_method_types' => ['card'],
                 'line_items' => [[
                     'price_data' => [
-                        'currency' => 'usd',
+                        'currency' => config('services.stripe.currency', 'aed'),
                         'product_data' => [
                             'name' => $subscription->package->name,
                             'description' => $subscription->package->description,
                         ],
-                        'unit_amount' => $subscription->package->price * 100, // Convert to cents
+                        'unit_amount' => $subscription->package->price * 100, // Convert to fils (smallest unit)
                         'recurring' => [
                             'interval' => config('services.stripe.subscription_interval', 'month'),
                         ],

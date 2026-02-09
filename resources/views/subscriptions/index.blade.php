@@ -34,10 +34,10 @@
             <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
                 @if($package)
                     <div class="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 h-fit">
-                        <div class="text-white p-6 text-center" style="background: linear-gradient(135deg, #252621 0%, #3a3a35 100%);">
+                        <div class="text-white p-6 text-center" style="background: linear-gradient(135deg, #615D40 0%, #7a7558 100%);">
                             <h3 class="text-3xl font-bold mb-2">{{ $package->name }}</h3>
                             <div class="mt-4">
-                                <span class="text-5xl font-bold">${{ number_format($package->price, 2) }}</span>
+                                <span class="text-5xl font-bold">{{ $currencySymbol }} {{ number_format($package->price, 2) }}</span>
                                 <span class="text-lg" style="color: #D3D2BC;">/month</span>
                             </div>
                         </div>
@@ -51,7 +51,7 @@
                                             <svg class="h-6 w-6 text-green-500 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                             </svg>
-                                            <span class="text-gray-700 text-lg"><strong>{{ $feature }}:</strong> {{ $description }}</span>
+                                            <span class="text-gray-700 text-lg">{{ $feature }}</span>
                                         </li>
                                     @endforeach
                                 </ul>
@@ -134,20 +134,12 @@
                             <p class="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Confirm Password *</label>
-                            <input type="password" name="password_confirmation" required
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                                style="focus:ring-color: #B98B69;"
-                                minlength="8">
-                        </div>
-
                         <div class="pt-4">
                             <button type="submit"
                                 class="w-full text-white py-3 px-4 rounded-lg transition font-semibold text-lg"
-                                style="background-color: #252621;"
-                                onmouseover="this.style.backgroundColor='#3a3a35'"
-                                onmouseout="this.style.backgroundColor='#252621'">
+                                style="background-color: #615D40;"
+                                onmouseover="this.style.backgroundColor='#7a7558'"
+                                onmouseout="this.style.backgroundColor='#615D40'">
                                 Complete Registration
                             </button>
                         </div>
