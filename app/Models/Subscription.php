@@ -11,6 +11,7 @@ class Subscription extends Model
         'tenant_id',
         'package_id',
         'status',
+        'stripe_subscription_id',
         'subscribed_at',
         'expires_at',
     ];

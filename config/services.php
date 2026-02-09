@@ -40,4 +40,11 @@ return [
         'api_key' => env('ONESIGNAL_API_KEY'),
     ],
 
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+        'subscription_interval' => env('STRIPE_SUBSCRIPTION_INTERVAL', 'month'), // Options: day, week, month, year
+    ],
+
 ];
