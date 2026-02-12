@@ -49,7 +49,7 @@
 
                             <p class="text-sm text-gray-600 mb-4">ONE PRICE. EVERYTHING INCLUDED.</p>
                             <div class="mb-2">
-                                <span class="text-3xl font-bold text-gray-900" id="base-price">{{ $currencySymbol }}{{ number_format($package->price, 0) }}</span>
+                                <span class="text-3xl font-bold text-gray-900" id="base-price">{{ $currencySymbol }} {{ number_format($package->price, 0) }}</span>
                                 <span class="text-lg text-gray-600" id="period-text">/month</span>
                             </div>
                             <p class="text-sm text-gray-600 mb-4">{{ $package->description }}</p>
@@ -84,7 +84,7 @@
                                                 <div class="flex-1">
                                                     <h3 class="font-semibold text-gray-900 mb-1">{{ $addon->name }}</h3>
                                                     <p class="text-sm text-gray-600 mb-2">{{ $addon->description }}</p>
-                                                    <p class="text-sm font-medium text-gray-900">{{ $currencySymbol }}{{ number_format($addon->price, 0) }}/month</p>
+                                                    <p class="text-sm font-medium text-gray-900">{{ $currencySymbol }} {{ number_format($addon->price, 0) }}/month</p>
                                                 </div>
                                                 <button type="button" onclick="toggleAddon({{ $addon->id }}, {{ $addon->price }})"
                                                         id="addon-toggle-{{ $addon->id }}"
@@ -114,12 +114,12 @@
                         <div class="space-y-3 mb-6">
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-600">{{ $package->name ?? '' }}</span>
-                                <span class="font-medium text-gray-900" id="summary-base">{{ $currencySymbol }}{{ number_format($package->price ?? 0, 0) }}</span>
+                                <span class="font-medium text-gray-900" id="summary-base">{{ $currencySymbol }} {{ number_format($package->price ?? 0, 0) }}</span>
                             </div>
 
                             <div id="yearly-discount-line" class="hidden justify-between text-sm">
                                 <span class="text-green-600">Yearly discount (30%)</span>
-                                <span class="font-medium text-green-600" id="discount-amount">-{{ $currencySymbol }}0</span>
+                                <span class="font-medium text-green-600" id="discount-amount">-{{ $currencySymbol }} 0</span>
                             </div>
 
                             <div id="addons-list" class="space-y-2">
@@ -131,7 +131,7 @@
                             <div class="flex justify-between items-center">
                                 <span class="text-lg font-bold text-gray-900">Total</span>
                                 <div class="text-right">
-                                    <div class="text-2xl font-bold text-gray-900" id="total-amount">{{ $currencySymbol }}{{ number_format($package->price ?? 0, 0) }}</div>
+                                    <div class="text-2xl font-bold text-gray-900" id="total-amount">{{ $currencySymbol }} {{ number_format($package->price ?? 0, 0) }}</div>
                                     <div class="text-sm text-gray-600" id="billing-period">/month</div>
                                 </div>
                             </div>
@@ -323,20 +323,20 @@
                 const yearlyDiscountedPrice = yearlyFullPrice * 0.7; // 30% discount
 
                 // Show full yearly price in left card
-                document.getElementById('base-price').textContent = currencySymbol + Math.round(yearlyFullPrice);
+                document.getElementById('base-price').textContent = currencySymbol + ' ' + Math.round(yearlyFullPrice);
 
                 // Show full price in order summary
-                document.getElementById('summary-base').textContent = currencySymbol + Math.round(yearlyFullPrice);
+                document.getElementById('summary-base').textContent = currencySymbol + ' ' + Math.round(yearlyFullPrice);
 
                 // Calculate and show discount
                 const discount = yearlyFullPrice * 0.3;
-                document.getElementById('discount-amount').textContent = '-' + currencySymbol + Math.round(discount);
+                document.getElementById('discount-amount').textContent = '-' + currencySymbol + ' ' + Math.round(discount);
 
                 // Total after discount
                 total = yearlyDiscountedPrice;
             } else {
-                document.getElementById('base-price').textContent = currencySymbol + Math.round(basePrice);
-                document.getElementById('summary-base').textContent = currencySymbol + Math.round(basePrice);
+                document.getElementById('base-price').textContent = currencySymbol + ' ' + Math.round(basePrice);
+                document.getElementById('summary-base').textContent = currencySymbol + ' ' + Math.round(basePrice);
                 total = basePrice;
             }
 
@@ -355,13 +355,13 @@
                 addonDiv.className = 'flex justify-between text-sm';
                 addonDiv.innerHTML = `
                     <span class="text-gray-600">${addonName}</span>
-                    <span class="font-medium text-gray-900">${currencySymbol}${Math.round(addonTotal)}</span>
+                    <span class="font-medium text-gray-900">${currencySymbol} ${Math.round(addonTotal)}</span>
                 `;
                 addonsList.appendChild(addonDiv);
             });
 
             // Update total
-            document.getElementById('total-amount').textContent = currencySymbol + Math.round(total);
+            document.getElementById('total-amount').textContent = currencySymbol + ' ' + Math.round(total);
             document.getElementById('billing-period').textContent = isYearly ? '/year' : '/month';
         }
 
