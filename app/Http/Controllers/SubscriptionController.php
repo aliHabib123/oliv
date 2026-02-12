@@ -23,9 +23,10 @@ class SubscriptionController extends Controller
             ->orderBy('sort_order')
             ->get();
 
+        $addons = \App\Models\Addon::where('is_active', true)->get();
         $currencySymbol = config('services.stripe.currency_symbol', 'AED');
 
-        return view('subscriptions.index', compact('packages', 'currencySymbol'));
+        return view('subscriptions.index', compact('packages', 'addons', 'currencySymbol'));
     }
 
     public function subscribe(Request $request)
