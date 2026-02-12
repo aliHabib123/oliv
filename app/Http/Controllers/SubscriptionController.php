@@ -38,7 +38,7 @@ class SubscriptionController extends Controller
             'phone' => 'required|string|max:20',
             'company_name' => 'required|string|max:255',
             'website' => 'nullable|url|max:255',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'required|string|min:8',
         ]);
 
         try {
