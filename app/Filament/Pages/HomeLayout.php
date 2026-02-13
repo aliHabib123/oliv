@@ -1111,6 +1111,10 @@ class HomeLayout extends Page
     {
         $this->fillForm();
 
+        // Update the preview with the new layout data
+        $this->dispatch('preview-updated', data: $this->data['home_layout'] ?? []);
+        $this->dispatch('preview-updating');
+
         Notification::make()
             ->title('Layout Switched')
             ->body('Successfully switched to the selected layout')
