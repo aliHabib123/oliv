@@ -294,6 +294,49 @@ class SubscriptionController extends Controller
             $tenant = Tenant::findOrFail($tenantId);
             $tenant->update(['status' => 'active']);
 
+            // Fetch Stripe subscription to get all subscription items with their IDs
+            Stripe::setApiKey(config('services.stripe.secret'));
+            $stripeSubscription = \Stripe\Subscription::retrieve($session->subscription);
+
+            // Create tenant_addon records for selected addons
+            $selectedAddons = json_decode($subscription->selected_addons, true) ?? [];
+            if (!empty($selectedAddons)) {
+                // Get addon details to match with Stripe items
+                $addons = \App\Models\Addon::whereIn('id', $selectedAddons)->get()->keyBy('id');
+
+                foreach ($selectedAddons as $addonId) {
+                    $addon = $addons[$addonId] ?? null;
+                    if (!$addon) continue;
+
+                    // Find matching Stripe subscription item by product name
+                    $stripeItemId = null;
+                    foreach ($stripeSubscription->items->data as $item) {
+                        // Stripe item name should match addon name
+                        if (isset($item->price->product) && is_string($item->price->product)) {
+                            $product = \Stripe\Product::retrieve($item->price->product);
+                            if ($product->name === $addon->name) {
+                                $stripeItemId = $item->id;
+                                break;
+                            }
+                        }
+                    }
+
+                    \App\Models\TenantAddon::create([
+                        'tenant_id' => $tenantId,
+                        'addon_id' => $addonId,
+                        'stripe_subscription_item_id' => $stripeItemId,
+                        'status' => 'active',
+                        'subscribed_at' => now(),
+                        'expires_at' => null,
+                    ]);
+                }
+
+                Log::info('Tenant addons created with Stripe item IDs', [
+                    'tenant_id' => $tenantId,
+                    'addon_ids' => $selectedAddons,
+                ]);
+            }
+
             DB::commit();
 
             Log::info('Subscription activated', [

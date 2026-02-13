@@ -10,6 +10,13 @@
             @foreach($addons as $addon)
                 @php
                     $isSubscribed = in_array($addon->id, $subscribedAddons);
+                    $tenantAddon = null;
+                    if ($isSubscribed) {
+                        $tenantAddon = \App\Models\TenantAddon::where('tenant_id', Auth::user()->tenant->id)
+                            ->where('addon_id', $addon->id)
+                            ->where('status', 'active')
+                            ->first();
+                    }
                 @endphp
 
                 <x-filament::section>
@@ -22,6 +29,11 @@
                                     <x-filament::badge color="success" icon="heroicon-m-check-circle">
                                         Active
                                     </x-filament::badge>
+                                    @if($tenantAddon && $tenantAddon->expires_at)
+                                        <div style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">
+                                            Valid till {{ $tenantAddon->expires_at->format('M d, Y') }}
+                                        </div>
+                                    @endif
                                 </div>
                             @endif
 
@@ -37,8 +49,8 @@
                             @if($isSubscribed)
                                 <x-filament::button
                                     wire:click="unsubscribe({{ $addon->id }})"
+                                    wire:confirm="Are you sure you want to unsubscribe from {{ $addon->name }}? The addon will remain active until the end of your current subscription period. No refund will be issued, and it will not renew in the next cycle."
                                     color="danger"
-                                    outlined
                                     size="sm"
                                 >
                                     Unsubscribe
@@ -46,6 +58,7 @@
                             @else
                                 <x-filament::button
                                     wire:click="subscribe({{ $addon->id }})"
+                                    wire:confirm="Subscribe to {{ $addon->name }}? You will be charged a prorated amount for the remaining time in your current subscription period."
                                     size="sm"
                                 >
                                     Subscribe

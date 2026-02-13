@@ -10,6 +10,7 @@ class TenantAddon extends Model
     protected $fillable = [
         'tenant_id',
         'addon_id',
+        'stripe_subscription_item_id',
         'status',
         'subscribed_at',
         'expires_at',
