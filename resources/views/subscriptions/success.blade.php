@@ -1,77 +1,91 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="height: 100%;">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registration Successful</title>
+    <title>Payment Successful - Oliv</title>
+    <link rel="icon" type="image/png" href="{{ asset('img/favicon.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50">
-    <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-2xl w-full bg-white rounded-lg shadow-lg p-8">
-            <div class="text-center mb-8">
-                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
-                    <svg class="h-10 w-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                </div>
-                <h1 class="text-3xl font-bold text-gray-900 mb-2">Registration Successful!</h1>
-                <p class="text-gray-600">Your account has been created successfully</p>
-            </div>
+<body class="bg-gray-50 flex flex-col" style="min-height: 100vh; margin: 0;">
+    <header class="bg-white shadow-sm py-4" style="position: fixed; top: 0; left: 0; right: 0; z-index: 20; width: 100vw;">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <img src="{{ asset('img/IMG_5398.png') }}" alt="Oliv Logo" class="h-12 mx-auto">
+        </div>
+    </header>
 
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Your Login Credentials</h2>
-
-                <div class="space-y-3">
-                    <div>
-                        <label class="text-sm font-medium text-gray-700">Company:</label>
-                        <p class="text-gray-900 font-semibold">{{ $tenant->name }}</p>
+    <div class="flex-1 px-4 sm:px-6 lg:px-8" style="padding-top: 5rem; display: flex; flex-direction: column;">
+        <div class="max-w-2xl mx-auto pt-8 flex-grow w-full">
+            <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+                <div class="text-center mb-8">
+                    <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full mb-6" style="background-color: rgba(185, 139, 105, 0.1);">
+                        <svg class="h-12 w-12" style="color: #B98B69;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
                     </div>
-
-                    <div>
-                        <label class="text-sm font-medium text-gray-700">Email:</label>
-                        <p class="text-gray-900 font-mono bg-white px-3 py-2 rounded border border-gray-200">{{ $email }}</p>
-                    </div>
-
-                    <div>
-                        <label class="text-sm font-medium text-gray-700">Password:</label>
-                        <p class="text-gray-900 font-mono bg-white px-3 py-2 rounded border border-gray-200">{{ $password }}</p>
-                    </div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-3">Payment Successful!</h1>
+                    <p class="text-lg text-gray-600 mb-2">Your subscription is now active</p>
+                    <p class="text-sm text-gray-500">A confirmation email has been sent to your email address</p>
                 </div>
 
-                <div class="mt-4 bg-yellow-50 border border-yellow-200 rounded p-3">
-                    <p class="text-sm text-yellow-800">
-                        <strong>⚠️ Important:</strong> Please save these credentials securely. For security reasons, this password will not be shown again.
-                    </p>
+                <div class="rounded-lg p-6 mb-6" style="background-color: rgba(185, 139, 105, 0.05); border: 1px solid rgba(185, 139, 105, 0.2);">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Next Steps:</h3>
+                    <ol class="space-y-3 text-gray-700">
+                        <li class="flex items-start">
+                            <span class="font-bold mr-3" style="color: #B98B69;">1.</span>
+                            <span>Access your admin dashboard using your email and password</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="font-bold mr-3" style="color: #B98B69;">2.</span>
+                            <span>Complete your profile setup</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="font-bold mr-3" style="color: #B98B69;">3.</span>
+                            <span>Configure your store settings</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="font-bold mr-3" style="color: #B98B69;">4.</span>
+                            <span>Explore available add-ons to enhance your plan</span>
+                        </li>
+                    </ol>
                 </div>
-            </div>
 
-            <div class="bg-gray-50 rounded-lg p-6 mb-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-3">Next Steps:</h3>
-                <ol class="list-decimal list-inside space-y-2 text-gray-700">
-                    <li>Save your login credentials in a secure location</li>
-                    <li>Access your admin dashboard using the link below</li>
-                    <li>Complete your profile setup</li>
-                    <li>Connect your Shopify store</li>
-                    <li>Explore available add-ons to enhance your plan</li>
-                </ol>
-            </div>
+                <div class="text-center">
+                    <a href="/admin/login"
+                        class="inline-block w-full text-white text-center py-4 px-6 rounded-lg transition font-semibold text-lg shadow-lg"
+                        style="background-color: #252621;"
+                        onmouseover="this.style.backgroundColor='#3a3a35'"
+                        onmouseout="this.style.backgroundColor='#252621'">
+                        Login to Dashboard
+                    </a>
+                </div>
 
-            <div class="flex gap-4">
-                <a href="{{ route('filament.admin.auth.login') }}"
-                    class="flex-1 bg-blue-600 text-white text-center py-3 px-4 rounded-lg hover:bg-blue-700 transition font-semibold">
-                    Login to Dashboard
-                </a>
-                <a href="{{ route('subscriptions.index') }}"
-                    class="flex-1 bg-gray-300 text-gray-700 text-center py-3 px-4 rounded-lg hover:bg-gray-400 transition font-semibold">
-                    Back to Packages
-                </a>
-            </div>
-
-            <div class="mt-6 text-center text-sm text-gray-600">
-                <p>Need help? Contact our support team at <a href="mailto:support@example.com" class="text-blue-600 hover:underline">support@example.com</a></p>
+                <div class="mt-8 text-center text-sm text-gray-600">
+                    <p>Need help? Contact our support team at <a href="mailto:support@oliv.tech" class="transition" style="color: #B98B69;" onmouseover="this.style.color='#D3D2BC'" onmouseout="this.style.color='#B98B69'">support@oliv.tech</a></p>
+                </div>
             </div>
         </div>
     </div>
+
+    <footer class="bg-gray-900 text-white py-4 mt-auto" style="width: 100vw; position: relative; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw;">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center space-y-2 md:space-y-0 text-sm">
+                <div class="text-center md:text-left">
+                    <p class="text-gray-300">&copy; {{ date('Y') }} Powered by <a href="https://oliv.tech" target="_blank" class="transition" style="color: #B98B69;" onmouseover="this.style.color='#D3D2BC'" onmouseout="this.style.color='#B98B69'">Oliv.tech</a></p>
+                </div>
+                <div class="flex items-center space-x-2 text-gray-300">
+                    <svg class="h-4 w-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                    </svg>
+                    <span class="text-xs">Secured payment powered by</span>
+                    <svg class="h-5 w-auto" viewBox="0 0 60 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M11.5 3.5C11.5 1.85 12.85 0.5 14.5 0.5H45.5C47.15 0.5 48.5 1.85 48.5 3.5V21.5C48.5 23.15 47.15 24.5 45.5 24.5H14.5C12.85 24.5 11.5 23.15 11.5 21.5V3.5Z" fill="#635BFF"/>
+                        <path d="M22.8 17.2C21.4 17.2 20.3 16.5 19.9 15.3L21.4 14.6C21.6 15.3 22.2 15.8 22.9 15.8C23.7 15.8 24.2 15.3 24.2 14.3V8.5H25.8V14.3C25.8 16.2 24.7 17.2 22.8 17.2ZM27.5 17V8.5H29.1V11.1H29.2C29.5 10.3 30.2 9.8 31.1 9.8C32.3 9.8 33.2 10.6 33.2 12V17H31.6V12.4C31.6 11.6 31.1 11.2 30.4 11.2C29.6 11.2 29.1 11.7 29.1 12.6V17H27.5ZM35.2 17V8.5H36.8V11.1H36.9C37.2 10.3 37.9 9.8 38.8 9.8C40 9.8 40.9 10.6 40.9 12V17H39.3V12.4C39.3 11.6 38.8 11.2 38.1 11.2C37.3 11.2 36.8 11.7 36.8 12.6V17H35.2Z" fill="white"/>
+                    </svg>
+                    <span class="font-semibold text-xs">Stripe</span>
+                </div>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>

@@ -14,6 +14,9 @@ Route::get('/', function () {
 // Public subscription routes
 Route::get('/subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
 Route::post('/subscriptions/subscribe', [SubscriptionController::class, 'subscribe'])->name('subscriptions.subscribe');
+Route::get('/subscriptions/payment/{tenant}/{subscription}', [SubscriptionController::class, 'payment'])->name('subscriptions.payment');
+Route::get('/subscriptions/success', [SubscriptionController::class, 'success'])->name('subscriptions.success');
+Route::post('/webhooks/stripe', [SubscriptionController::class, 'webhook'])->name('webhooks.stripe');
 
 // Tenant addon routes (requires authentication)
 Route::middleware('auth')->group(function () {
