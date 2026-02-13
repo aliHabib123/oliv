@@ -10,6 +10,8 @@ class Subscription extends Model
     protected $fillable = [
         'tenant_id',
         'package_id',
+        'billing_period',
+        'selected_addons',
         'status',
         'stripe_subscription_id',
         'subscribed_at',

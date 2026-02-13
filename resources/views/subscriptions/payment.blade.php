@@ -29,9 +29,49 @@
                         <span class="text-gray-700 font-medium">Package:</span>
                         <span class="text-gray-900 font-semibold">{{ $subscription->package->name }}</span>
                     </div>
-                    <div class="flex justify-between items-center border-t border-gray-200 pt-4">
+
+                    @php
+                        $currencySymbol = config('services.stripe.currency_symbol', 'AED');
+                        $basePrice = $subscription->package->price;
+                        $selectedAddons = json_decode($subscription->selected_addons, true) ?? [];
+                        $addons = \App\Models\Addon::whereIn('id', $selectedAddons)->get();
+
+                        // Calculate total based on billing period
+                        if ($subscription->billing_period === 'yearly') {
+                            $packageTotal = $basePrice * 12 * 0.7; // 30% discount
+                            $addonsTotal = $addons->sum('price') * 12;
+                            $periodLabel = 'year';
+                        } else {
+                            $packageTotal = $basePrice;
+                            $addonsTotal = $addons->sum('price');
+                            $periodLabel = 'month';
+                        }
+                        $total = $packageTotal + $addonsTotal;
+                    @endphp
+
+                    @if($subscription->billing_period === 'yearly')
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-gray-600 text-sm">Base (yearly):</span>
+                            <span class="text-gray-700">{{ $currencySymbol }} {{ number_format($basePrice * 12, 0) }}</span>
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-green-600 text-sm">Yearly discount (30%):</span>
+                            <span class="text-green-600">-{{ $currencySymbol }} {{ number_format($basePrice * 12 * 0.3, 0) }}</span>
+                        </div>
+                    @endif
+
+                    @if($addons->count() > 0)
+                        @foreach($addons as $addon)
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-gray-600 text-sm">{{ $addon->name }}:</span>
+                                <span class="text-gray-700">{{ $currencySymbol }} {{ number_format($subscription->billing_period === 'yearly' ? $addon->price * 12 : $addon->price, 0) }}</span>
+                            </div>
+                        @endforeach
+                    @endif
+
+                    <div class="flex justify-between items-center border-t border-gray-200 pt-4 mt-4">
                         <span class="text-lg font-bold text-gray-900">Total:</span>
-                        <span class="text-2xl font-bold" style="color: #B98B69;">${{ number_format($subscription->package->price, 2) }}/month</span>
+                        <span class="text-2xl font-bold" style="color: #B98B69;">{{ $currencySymbol }} {{ number_format($total, 0) }}/{{ $periodLabel }}</span>
                     </div>
                 </div>
 

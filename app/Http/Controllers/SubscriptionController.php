@@ -40,6 +40,8 @@ class SubscriptionController extends Controller
             'company_name' => 'required|string|max:255',
             'website' => 'nullable|url|max:255',
             'password' => 'required|string|min:8',
+            'billing_period' => 'required|in:monthly,yearly',
+            'selected_addons' => 'nullable|string',
         ]);
 
         try {
@@ -65,10 +67,18 @@ class SubscriptionController extends Controller
             // Assign owner role to user
             $user->assignRole('owner');
 
+            // Parse selected addons
+            $selectedAddons = [];
+            if (!empty($validated['selected_addons'])) {
+                $selectedAddons = array_map('intval', explode(',', $validated['selected_addons']));
+            }
+
             // Create subscription with pending status
             $subscription = Subscription::create([
                 'tenant_id' => $tenant->id,
                 'package_id' => $validated['package_id'],
+                'billing_period' => $validated['billing_period'],
+                'selected_addons' => json_encode($selectedAddons),
                 'status' => 'pending_payment',
                 'subscribed_at' => now(),
             ]);
@@ -100,23 +110,79 @@ class SubscriptionController extends Controller
         try {
             Stripe::setApiKey(config('services.stripe.secret'));
 
+            // Calculate pricing based on billing period
+            $basePrice = $subscription->package->price;
+            $interval = $subscription->billing_period === 'yearly' ? 'year' : 'month';
+
+            // For yearly, calculate annual price with 30% discount
+            if ($subscription->billing_period === 'yearly') {
+                $unitAmount = round($basePrice * 12 * 0.7 * 100); // 30% discount on yearly
+            } else {
+                $unitAmount = $basePrice * 100;
+            }
+
+            // Build line items array starting with the subscription package
+            $packageName = $subscription->package->name;
+            $packageDescription = $subscription->package->description;
+
+            if ($subscription->billing_period === 'yearly') {
+                $packageName .= ' (Annual Subscription)';
+                $packageDescription = 'Billed once per year. ' . $packageDescription;
+            }
+
+            $lineItems = [[
+                'price_data' => [
+                    'currency' => config('services.stripe.currency', 'aed'),
+                    'product_data' => [
+                        'name' => $packageName,
+                        'description' => $packageDescription,
+                    ],
+                    'unit_amount' => $unitAmount,
+                    'recurring' => [
+                        'interval' => $interval,
+                    ],
+                ],
+                'quantity' => 1,
+            ]];
+
+            // Add selected addons to line items
+            $selectedAddons = json_decode($subscription->selected_addons, true) ?? [];
+            if (!empty($selectedAddons)) {
+                $addons = \App\Models\Addon::whereIn('id', $selectedAddons)->get();
+                foreach ($addons as $addon) {
+                    $addonAmount = $subscription->billing_period === 'yearly'
+                        ? $addon->price * 12 * 100
+                        : $addon->price * 100;
+
+                    $addonName = $addon->name;
+                    $addonDescription = $addon->description;
+
+                    if ($subscription->billing_period === 'yearly') {
+                        $addonName .= ' (Annual)';
+                        $addonDescription = 'Billed annually. ' . $addonDescription;
+                    }
+
+                    $lineItems[] = [
+                        'price_data' => [
+                            'currency' => config('services.stripe.currency', 'aed'),
+                            'product_data' => [
+                                'name' => $addonName,
+                                'description' => $addonDescription,
+                            ],
+                            'unit_amount' => $addonAmount,
+                            'recurring' => [
+                                'interval' => $interval,
+                            ],
+                        ],
+                        'quantity' => 1,
+                    ];
+                }
+            }
+
             // Create Stripe Checkout Session
             $checkoutSession = StripeSession::create([
                 'payment_method_types' => ['card'],
-                'line_items' => [[
-                    'price_data' => [
-                        'currency' => config('services.stripe.currency', 'aed'),
-                        'product_data' => [
-                            'name' => $subscription->package->name,
-                            'description' => $subscription->package->description,
-                        ],
-                        'unit_amount' => $subscription->package->price * 100, // Convert to fils (smallest unit)
-                        'recurring' => [
-                            'interval' => config('services.stripe.subscription_interval', 'month'),
-                        ],
-                    ],
-                    'quantity' => 1,
-                ]],
+                'line_items' => $lineItems,
                 'mode' => 'subscription',
                 'success_url' => route('subscriptions.success') . '?session_id={CHECKOUT_SESSION_ID}',
                 'cancel_url' => route('subscriptions.payment', ['tenant' => $tenant->id, 'subscription' => $subscription->id]),
@@ -125,6 +191,7 @@ class SubscriptionController extends Controller
                 'metadata' => [
                     'subscription_id' => $subscription->id,
                     'tenant_id' => $tenant->id,
+                    'billing_period' => $subscription->billing_period,
                 ],
             ]);
 
