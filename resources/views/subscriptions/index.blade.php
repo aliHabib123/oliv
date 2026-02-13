@@ -31,6 +31,14 @@
                 $package = $packages->first();
             @endphp
 
+            <!-- Promotional Banner -->
+            <div class="mb-6 p-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
+                <div class="flex items-center justify-center space-x-2">
+                    <span class="text-lg">💰</span>
+                    <p class="text-sm text-green-700 font-semibold">Save 30% when you switch to yearly billing!</p>
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Left Column: Billing & Add-ons -->
                 <div class="lg:col-span-2 space-y-6">
@@ -127,12 +135,13 @@
                             </div>
                         </div>
 
-                        <div class="border-t border-gray-200 pt-4 mb-6">
+                        <div class="border-t border-gray-200 pt-4 mb-4">
                             <div class="flex justify-between items-center">
                                 <span class="text-lg font-bold text-gray-900">Total</span>
                                 <div class="text-right">
-                                    <div class="text-2xl font-bold text-gray-900" id="total-amount">{{ $currencySymbol }} {{ number_format($package->price ?? 0, 0) }}</div>
-                                    <div class="text-sm text-gray-600" id="billing-period">/month</div>
+                                    <div class="text-2xl font-bold text-gray-900">
+                                        <span id="total-amount">{{ $currencySymbol }} {{ number_format($package->price ?? 0, 0) }}</span><span class="text-base text-gray-600" id="billing-period">/month</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
