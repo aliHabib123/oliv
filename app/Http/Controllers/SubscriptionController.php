@@ -38,7 +38,7 @@ class SubscriptionController extends Controller
             'country_code' => 'required|string|max:10',
             'phone' => 'required|string|max:20',
             'company_name' => 'required|string|max:255',
-            'website' => 'nullable|url|max:255',
+            'website' => 'nullable|string|max:255',
             'password' => 'required|string|min:8',
             'billing_period' => 'required|in:monthly,yearly',
             'selected_addons' => 'nullable|string',
