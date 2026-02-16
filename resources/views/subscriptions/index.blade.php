@@ -204,11 +204,12 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Website (Optional)</label>
-                            <input type="url" name="website"
+                            <input type="text" name="website"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
                                 style="focus:ring-color: #B98B69;"
-                                placeholder="https://example.com"
+                                placeholder="example.com or https://example.com"
                                 value="{{ old('website') }}">
+                            <p class="text-xs text-gray-500 mt-1">You can enter with or without https://</p>
                         </div>
 
                         <div>
