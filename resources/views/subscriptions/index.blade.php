@@ -87,11 +87,11 @@
                             @if($addons->count() > 0)
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     @foreach($addons as $addon)
-                                        <div class="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition">
+                                        <div class="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition relative">
                                             <div class="flex justify-between items-start mb-3">
                                                 <div class="flex-1">
                                                     <h3 class="font-semibold text-gray-900 mb-1">{{ $addon->name }}</h3>
-                                                    <p class="text-sm text-gray-600 mb-2">{{ $addon->description }}</p>
+                                                    <p class="text-sm text-gray-600 mb-2">{{ $addon->subtitle ?? $addon->description }}</p>
                                                     <p class="text-sm font-medium text-gray-900">{{ $currencySymbol }} {{ number_format($addon->price, 0) }}/month</p>
                                                 </div>
                                                 <button type="button" onclick="toggleAddon({{ $addon->id }}, {{ $addon->price }})"
@@ -104,6 +104,13 @@
                                                     <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1"></span>
                                                 </button>
                                             </div>
+                                            @if($addon->description || $addon->image || $addon->video)
+                                                <div class="text-right">
+                                                    <button type="button" onclick="openAddonModal({{ $addon->id }})" class="text-xs font-medium" style="color: #615d40;">
+                                                        More →
+                                                    </button>
+                                                </div>
+                                            @endif
                                         </div>
                                     @endforeach
                                 </div>
@@ -253,6 +260,24 @@
         </div>
     </footer>
 
+    <!-- Addon Details Modal -->
+    <div id="addonModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" style="display: none;" onclick="closeAddonModal(event)">
+        <div class="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+            <div class="p-6">
+                <div class="flex justify-end mb-4">
+                    <button onclick="closeAddonModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="modalAddonContent" class="space-y-4">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // State management
         let isYearly = false;
@@ -261,11 +286,20 @@
         const selectedAddons = new Set();
         const addonPrices = {};
         const addonNames = {};
+        const addonDetails = {};
 
         // Initialize addon data
         @foreach($addons as $addon)
             addonPrices[{{ $addon->id }}] = {{ $addon->price }};
             addonNames[{{ $addon->id }}] = '{{ $addon->name }}';
+            addonDetails[{{ $addon->id }}] = {
+                name: '{{ addslashes($addon->name) }}',
+                subtitle: '{{ addslashes($addon->subtitle ?? '') }}',
+                description: {!! json_encode($addon->description) !!},
+                image: '{{ $addon->image }}',
+                video: '{{ $addon->video }}',
+                price: {{ $addon->price }}
+            };
         @endforeach
 
         function toggleBilling() {
@@ -378,6 +412,70 @@
 
         // Initialize pricing on load
         updatePricing();
+
+        // Addon modal functions
+        function openAddonModal(addonId) {
+            const addon = addonDetails[addonId];
+            if (!addon) return;
+
+            let content = '';
+
+            // Add image if exists
+            if (addon.image) {
+                content += `<div class="mb-4">
+                    <img src="/storage/${addon.image}" alt="${addon.name}" class="w-full rounded-lg">
+                </div>`;
+            }
+
+            // Add video if exists
+            if (addon.video) {
+                content += `<div class="mb-4">
+                    <div class="aspect-video">
+                        <iframe src="${getEmbedUrl(addon.video)}" class="w-full h-full rounded-lg" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>`;
+            }
+
+            // Add description if exists
+            if (addon.description) {
+                content += `<div class="text-gray-700 whitespace-pre-line">${addon.description}</div>`;
+            }
+
+            document.getElementById('modalAddonContent').innerHTML = content;
+            document.getElementById('addonModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAddonModal(event) {
+            if (event && event.target !== event.currentTarget) return;
+            document.getElementById('addonModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function getEmbedUrl(url) {
+            // Convert YouTube URLs to embed format
+            if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                const videoId = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/i);
+                if (videoId) {
+                    return `https://www.youtube.com/embed/${videoId[1]}`;
+                }
+            }
+            // Convert Vimeo URLs to embed format
+            if (url.includes('vimeo.com')) {
+                const videoId = url.match(/vimeo\.com\/(\d+)/);
+                if (videoId) {
+                    return `https://player.vimeo.com/video/${videoId[1]}`;
+                }
+            }
+            return url;
+        }
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeAddonModal();
+            }
+        });
     </script>
 </body>
 </html>

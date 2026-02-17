@@ -15,6 +15,11 @@ class AddonForm
                     ->required()
                     ->maxLength(255),
 
+                Forms\Components\TextInput::make('subtitle')
+                    ->maxLength(255)
+                    ->helperText('Short subtitle shown in addon cards')
+                    ->columnSpanFull(),
+
                 Forms\Components\TextInput::make('key')
                     ->required()
                     ->unique(ignoreRecord: true)
@@ -25,6 +30,24 @@ class AddonForm
 
                 Forms\Components\Textarea::make('description')
                     ->rows(3)
+                    ->helperText('Full description shown in view more modal')
+                    ->columnSpanFull(),
+
+                Forms\Components\FileUpload::make('image')
+                    ->label('Image')
+                    ->image()
+                    ->disk('public')
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp'])
+                    ->maxSize(5120)
+                    ->helperText('Optional image or GIF (max 5MB)')
+                    ->directory('addons/images')
+                    ->columnSpanFull(),
+
+                Forms\Components\TextInput::make('video')
+                    ->label('Video URL')
+                    ->url()
+                    ->maxLength(255)
+                    ->helperText('Optional video URL (YouTube, Vimeo, etc.)')
                     ->columnSpanFull(),
 
                 Forms\Components\TextInput::make('price')
