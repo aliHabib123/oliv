@@ -10,8 +10,11 @@ class Addon extends Model
 {
     protected $fillable = [
         'name',
+        'subtitle',
         'key',
         'description',
+        'image',
+        'video',
         'price',
         'is_active',
         'created_by',
