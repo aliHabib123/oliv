@@ -96,43 +96,43 @@
                             id: 'section',
                             label: 'Section',
                             attributes: { class: 'gjs-block-section' },
-                            content: `<section style="padding: 40px 20px;">
-                                <h2 style="text-align: center; font-size: 2em; margin-bottom: 20px;">Section Title</h2>
-                                <p style="text-align: center;">Section content goes here</p>
+                            content: `<section data-gjs-droppable="false" style="padding: 40px 20px;">
+                                <h2 data-gjs-draggable="false" data-gjs-movable="false" style="text-align: center; font-size: 2em; margin-bottom: 20px;">Section Title</h2>
+                                <p data-gjs-draggable="false" data-gjs-movable="false" style="text-align: center;">Section content goes here</p>
                             </section>`,
                         },
                         {
                             id: 'text',
                             label: 'Text',
-                            content: '<div style="padding: 10px;">Insert your text here</div>',
+                            content: '<div data-gjs-droppable="false" style="padding: 10px;">Insert your text here</div>',
                         },
                         {
                             id: 'image',
                             label: 'Image',
                             select: true,
-                            content: { type: 'image' },
+                            content: { type: 'image', droppable: false },
                             activate: true,
                         },
                         {
                             id: 'button',
                             label: 'Button',
-                            content: '<a href="#" style="display: inline-block; padding: 10px 20px; background: #615d40; color: white; text-decoration: none; border-radius: 5px;">Button</a>',
+                            content: '<a data-gjs-droppable="false" href="#" style="display: inline-block; padding: 10px 20px; background: #615d40; color: white; text-decoration: none; border-radius: 5px;">Button</a>',
                         },
                         {
                             id: 'grid-2',
                             label: '2 Columns',
-                            content: `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px;">
-                                <div style="padding: 20px; border: 1px solid #ddd;">Column 1</div>
-                                <div style="padding: 20px; border: 1px solid #ddd;">Column 2</div>
+                            content: `<div data-gjs-droppable="false" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px;">
+                                <div data-gjs-draggable="false" data-gjs-movable="false" style="padding: 20px; border: 1px solid #ddd;">Column 1</div>
+                                <div data-gjs-draggable="false" data-gjs-movable="false" style="padding: 20px; border: 1px solid #ddd;">Column 2</div>
                             </div>`,
                         },
                         {
                             id: 'grid-3',
                             label: '3 Columns',
-                            content: `<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; padding: 20px;">
-                                <div style="padding: 20px; border: 1px solid #ddd;">Column 1</div>
-                                <div style="padding: 20px; border: 1px solid #ddd;">Column 2</div>
-                                <div style="padding: 20px; border: 1px solid #ddd;">Column 3</div>
+                            content: `<div data-gjs-droppable="false" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; padding: 20px;">
+                                <div data-gjs-draggable="false" data-gjs-movable="false" style="padding: 20px; border: 1px solid #ddd;">Column 1</div>
+                                <div data-gjs-draggable="false" data-gjs-movable="false" style="padding: 20px; border: 1px solid #ddd;">Column 2</div>
+                                <div data-gjs-draggable="false" data-gjs-movable="false" style="padding: 20px; border: 1px solid #ddd;">Column 3</div>
                             </div>`,
                         },
                     ]
