@@ -30,7 +30,13 @@
                         <div style="display: flex; gap: 0.5rem;">
                             <button
                                 type="button"
-                                @click="selectedPreview = 'template-{{ $loop->index }}'; previewData = {{ json_encode($template['layout_data']) }}; previewTitle = '{{ $template['name'] }}'"
+                                @if($template['type'] === 'tenant')
+                                    wire:click="openTemplatePreview('tenant', 'tenant')"
+                                @elseif($template['type'] === 'db')
+                                    wire:click="openTemplatePreview('db', '{{ $template['template_id'] }}')"
+                                @else
+                                    wire:click="openTemplatePreview('file', '{{ $template['filename'] }}')"
+                                @endif
                                 style="flex: 1; padding: 0.5rem; background: #eff6ff; color: #1e40af; font-size: 0.75rem; font-weight: 500; border-radius: 0.375rem; border: 1px solid #bfdbfe; cursor: pointer; transition: all 0.15s;"
                                 onmouseover="this.style.backgroundColor='#dbeafe'"
                                 onmouseout="this.style.backgroundColor='#eff6ff'">
@@ -88,7 +94,7 @@
                         <div style="display: flex; gap: 0.5rem;">
                             <button
                                 type="button"
-                                @click="selectedPreview = 'category-{{ $loop->index }}'; previewData = {{ json_encode($layout['layout_data']) }}; previewTitle = '{{ $layout['category_title'] }} - {{ $layout['name'] }}'"
+                                wire:click="openCategoryPreview('{{ $layout['category_handle'] }}')"
                                 style="flex: 1; padding: 0.5rem; background: #f0fdf4; color: #166534; font-size: 0.75rem; font-weight: 500; border-radius: 0.375rem; border: 1px solid #bbf7d0; cursor: pointer; transition: all 0.15s;"
                                 onmouseover="this.style.backgroundColor='#dcfce7'"
                                 onmouseout="this.style.backgroundColor='#f0fdf4'">
@@ -112,72 +118,4 @@
         @endif
     </div>
 
-    <!-- Preview Modals for Templates -->
-    @foreach($this->availableTemplates as $index => $template)
-        <div x-show="selectedPreview === 'template-{{ $index }}'"
-             x-cloak
-             @click="selectedPreview = null"
-             @keydown.escape.window="selectedPreview = null"
-             style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; z-index: 10000; background: rgba(0, 0, 0, 0.75); display: flex; align-items: center; justify-content: center; padding: 1rem;">
-            <div @click.stop
-                 style="background: white; border-radius: 0.75rem; width: 90%; max-width: 50rem; max-height: 85vh; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">
-
-                <!-- Preview Header -->
-                <div style="padding: 1rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background: #f9fafb;">
-                    <h4 style="font-size: 1rem; font-weight: 600; color: #111827; margin: 0;">{{ $template['name'] }}</h4>
-                    <button
-                        type="button"
-                        @click="selectedPreview = null"
-                        style="padding: 0.5rem; background: transparent; border: none; color: #6b7280; cursor: pointer; border-radius: 0.375rem; transition: all 0.15s;"
-                        onmouseover="this.style.backgroundColor='#f3f4f6'"
-                        onmouseout="this.style.backgroundColor='transparent'">
-                        <svg style="width: 1.25rem; height: 1.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-
-                <!-- Preview Body -->
-                <div style="padding: 1.5rem; overflow-y: auto; max-height: calc(85vh - 8rem); background: #f3f4f6; display: flex; justify-content: center; align-items: center;">
-                    @include('filament.pages.partials.layout-preview-phone', ['layoutData' => $template['layout_data']])
-                </div>
-            </div>
-        </div>
-    @endforeach
-
-    <!-- Preview Modals for Other Categories -->
-    @php
-        $otherLayouts = collect($this->otherCategoryLayouts)->filter(fn($layout) => $layout['category_handle'] !== $handle);
-    @endphp
-    @foreach($otherLayouts as $index => $layout)
-        <div x-show="selectedPreview === 'category-{{ $index }}'"
-             x-cloak
-             @click="selectedPreview = null"
-             @keydown.escape.window="selectedPreview = null"
-             style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; z-index: 10000; background: rgba(0, 0, 0, 0.75); display: flex; align-items: center; justify-content: center; padding: 1rem;">
-            <div @click.stop
-                 style="background: white; border-radius: 0.75rem; width: 90%; max-width: 50rem; max-height: 85vh; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">
-
-                <!-- Preview Header -->
-                <div style="padding: 1rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background: #f9fafb;">
-                    <h4 style="font-size: 1rem; font-weight: 600; color: #111827; margin: 0;">{{ $layout['category_title'] }} - {{ $layout['name'] }}</h4>
-                    <button
-                        type="button"
-                        @click="selectedPreview = null"
-                        style="padding: 0.5rem; background: transparent; border: none; color: #6b7280; cursor: pointer; border-radius: 0.375rem; transition: all 0.15s;"
-                        onmouseover="this.style.backgroundColor='#f3f4f6'"
-                        onmouseout="this.style.backgroundColor='transparent'">
-                        <svg style="width: 1.25rem; height: 1.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-
-                <!-- Preview Body -->
-                <div style="padding: 1.5rem; overflow-y: auto; max-height: calc(85vh - 8rem); background: #f3f4f6; display: flex; justify-content: center; align-items: center;">
-                    @include('filament.pages.partials.layout-preview-phone', ['layoutData' => $layout['layout_data']])
-                </div>
-            </div>
-        </div>
-    @endforeach
 </div>

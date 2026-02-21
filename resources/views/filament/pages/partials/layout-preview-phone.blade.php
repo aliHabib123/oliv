@@ -85,67 +85,17 @@
                                     <h3 style="font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 500; margin-bottom: 0.5rem; color: #000;">{{ $block['data']['title'] }}</h3>
                                 @endif
                                 <div style="display: flex; gap: 0.5rem; overflow-x: auto;">
-                                    @if($block['type'] === 'product_list' && !empty($block['data']['products']))
-                                        @php
-                                            $shopify = app(\App\Services\Shopify\ShopifyStorefrontService::class);
-                                            $tenant = auth()->user()->tenant;
-                                        @endphp
-                                        @foreach(array_slice($block['data']['products'], 0, 3) as $productData)
-                                            @php
-                                                $productId = $productData['product_id'] ?? null;
-                                                $product = null;
-                                                if ($productId && str_starts_with($productId, 'gid://shopify/Product/')) {
-                                                    try {
-                                                        $product = $shopify->getProductById($tenant, $productId);
-                                                    } catch (\Exception $e) {}
-                                                }
-                                            @endphp
-                                            <div style="background: white; border-radius: 0.5rem; overflow: hidden; padding: 0.5rem; min-width: 120px;">
-                                                @if($product && !empty($product['images'][0]['url'] ?? null))
-                                                    <img src="{{ $product['images'][0]['url'] }}" alt="{{ $product['title'] ?? 'Product' }}" style="width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 0.375rem; display: block; margin-bottom: 0.5rem;">
-                                                @else
-                                                    <div style="width: 100%; aspect-ratio: 3/4; background: #e5e7eb; border-radius: 0.375rem; margin-bottom: 0.5rem;"></div>
-                                                @endif
-                                                <h4 style="font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 500; color: #000; text-align: center;">
-                                                    {{ $product['title'] ?? 'Product' }}
-                                                </h4>
-                                                @if($product && !empty($product['priceRange']['minVariantPrice']['amount']))
-                                                    <p style="font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 600; color: #b45309; text-align: center;">
-                                                        {{ number_format($product['priceRange']['minVariantPrice']['amount'], 0) }} {{ $product['priceRange']['minVariantPrice']['currencyCode'] }}
-                                                    </p>
-                                                @endif
-                                            </div>
-                                        @endforeach
-                                    @elseif($block['type'] === 'new_releases')
-                                        @php
-                                            $shopify = app(\App\Services\Shopify\ShopifyStorefrontService::class);
-                                            $tenant = auth()->user()->tenant;
-                                            $latestProducts = [];
-                                            try {
-                                                $count = $block['data']['count'] ?? 10;
-                                                $latestProducts = $shopify->getLatestProducts($tenant, min($count, 3));
-                                            } catch (\Exception $e) {}
-                                        @endphp
-                                        @if(!empty($latestProducts))
-                                            @foreach($latestProducts as $product)
-                                                <div style="background: white; border-radius: 0.5rem; overflow: hidden; padding: 0.5rem; min-width: 120px;">
-                                                    @if(!empty($product['images'][0]['url'] ?? null))
-                                                        <img src="{{ $product['images'][0]['url'] }}" alt="{{ $product['title'] ?? 'Product' }}" style="width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 0.375rem; display: block; margin-bottom: 0.5rem;">
-                                                    @else
-                                                        <div style="width: 100%; aspect-ratio: 3/4; background: #e5e7eb; border-radius: 0.375rem; margin-bottom: 0.5rem;"></div>
-                                                    @endif
-                                                    <h4 style="font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 500; color: #000; text-align: center;">
-                                                        {{ $product['title'] ?? 'Product' }}
-                                                    </h4>
-                                                    @if(!empty($product['priceRange']['minVariantPrice']['amount']))
-                                                        <p style="font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 600; color: #b45309; text-align: center;">
-                                                            {{ number_format($product['priceRange']['minVariantPrice']['amount'], 0) }} {{ $product['priceRange']['minVariantPrice']['currencyCode'] }}
-                                                        </p>
-                                                    @endif
-                                                </div>
-                                            @endforeach
-                                        @endif
-                                    @endif
+                                    @for($i = 0; $i < 3; $i++)
+                                        <div style="background: white; border-radius: 0.5rem; overflow: hidden; padding: 0.5rem; min-width: 120px;">
+                                            <div style="width: 100%; aspect-ratio: 3/4; background: #e5e7eb; border-radius: 0.375rem; margin-bottom: 0.5rem;"></div>
+                                            <h4 style="font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 500; color: #000; text-align: center;">
+                                                Product
+                                            </h4>
+                                            <p style="font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 600; color: #b45309; text-align: center;">
+                                                0.00
+                                            </p>
+                                        </div>
+                                    @endfor
                                 </div>
                             </div>
                         @elseif($block['type'] === 'category_grid')
