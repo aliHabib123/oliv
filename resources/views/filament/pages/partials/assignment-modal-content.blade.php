@@ -40,6 +40,8 @@
                                 type="button"
                                 @if($template['type'] === 'tenant')
                                     wire:click="assignFromTemplate('{{ $handle }}', 'tenant', 'tenant')"
+                                @elseif($template['type'] === 'db')
+                                    wire:click="assignFromTemplate('{{ $handle }}', '{{ $template['template_id'] }}', 'db')"
                                 @else
                                     wire:click="assignFromTemplate('{{ $handle }}', '{{ $template['filename'] }}', 'file')"
                                 @endif

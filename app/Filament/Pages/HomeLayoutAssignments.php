@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Models\HomeLayout;
 use App\Models\Tenant;
+use App\Models\Template;
 use App\Services\Shopify\ShopifyStorefrontService;
 use Filament\Forms;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -185,6 +186,31 @@ class HomeLayoutAssignments extends Page implements HasForms
             ];
         }
 
+        // Load DB templates (created in Templates section)
+        $dbTemplates = Template::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        foreach ($dbTemplates as $template) {
+            if (empty($template->layout_json)) {
+                continue;
+            }
+
+            $decoded = json_decode($template->layout_json, true);
+
+            if (! is_array($decoded)) {
+                continue;
+            }
+
+            $this->availableTemplates[] = [
+                'name' => $template->name,
+                'type' => 'db',
+                'template_id' => $template->id,
+                'layout_data' => $decoded,
+            ];
+        }
+
         // Load file-based templates
         $templatesPath = storage_path('app/templates');
         if (!is_dir($templatesPath)) {
@@ -331,6 +357,20 @@ class HomeLayoutAssignments extends Page implements HasForms
                     throw new \Exception('Tenant default layout not found');
                 }
                 $templateLayout = $this->tenant->home_layout;
+            } elseif ($templateType === 'db') {
+                $template = Template::query()
+                    ->where('is_active', true)
+                    ->find($templateIdentifier);
+
+                if (! $template || empty($template->layout_json)) {
+                    throw new \Exception('Template not found');
+                }
+
+                $templateLayout = json_decode($template->layout_json, true);
+
+                if (! is_array($templateLayout)) {
+                    throw new \Exception('Invalid template format');
+                }
             } else {
                 // Load from file
                 $templatePath = storage_path('app/templates/' . $templateIdentifier);

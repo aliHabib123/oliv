@@ -15,6 +15,10 @@
             @if(!empty($layoutData))
                 <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1rem;">
                     @foreach($layoutData as $block)
+                        @if(!is_array($block) || empty($block['type']) || !array_key_exists('data', $block))
+                            @continue
+                        @endif
+
                         @if($block['type'] === 'banner')
                             @php
                                 $imageUrl = $block['data']['image_url'] ?? null;
