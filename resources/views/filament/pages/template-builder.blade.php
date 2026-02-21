@@ -9,39 +9,21 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Template Name *</label>
-                    <input type="text" id="templateName" wire:model.live="templateName"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md"
-                        placeholder="Enter template name">
+                    <input type="text" id="templateName" value="{{ $templateName }}" disabled
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100"
+                        placeholder="">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Industry</label>
-                    <select id="industrySelect" wire:model.live="industry"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                        <option value="">Select Industry</option>
-                        <option value="restaurant">Restaurant</option>
-                        <option value="retail">Retail</option>
-                        <option value="healthcare">Healthcare</option>
-                        <option value="education">Education</option>
-                        <option value="real_estate">Real Estate</option>
-                        <option value="technology">Technology</option>
-                        <option value="fashion">Fashion</option>
-                        <option value="automotive">Automotive</option>
-                        <option value="sports">Sports</option>
-                        <option value="other">Other</option>
-                    </select>
+                    <input type="text" id="industrySelect" value="{{ $industry }}" disabled
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100"
+                        placeholder="">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Style</label>
-                    <select id="styleSelect" wire:model.live="style"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                        <option value="">Select Style</option>
-                        <option value="modern">Modern</option>
-                        <option value="classic">Classic</option>
-                        <option value="minimal">Minimal</option>
-                        <option value="bold">Bold</option>
-                        <option value="elegant">Elegant</option>
-                        <option value="playful">Playful</option>
-                    </select>
+                    <input type="text" id="styleSelect" value="{{ $style }}" disabled
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100"
+                        placeholder="">
                 </div>
             </div>
             <div class="flex justify-end">
@@ -87,6 +69,16 @@
                 width: 'auto',
                 storageManager: false,
                 plugins: ['gjs-preset-webpage'],
+                deviceManager: {
+                    devices: [
+                        {
+                            id: 'mobile-portrait',
+                            name: 'Mobile',
+                            width: '375px',
+                            widthMedia: '375px',
+                        },
+                    ],
+                },
                 pluginsOpts: {
                     'gjs-preset-webpage': {
                         blocks: ['link-block', 'quote', 'text-basic'],
@@ -149,6 +141,9 @@
 
             console.log('GrapesJS initialized successfully!');
 
+            // Default to mobile portrait view
+            editor.setDevice('mobile-portrait');
+
             // Hide loading message
             const loadingEl = document.getElementById('gjs-loading');
             if (loadingEl) {
@@ -194,23 +189,11 @@
         }
 
         function saveTemplate() {
-            const templateName = document.getElementById('templateName').value;
-            const industry = document.getElementById('industrySelect').value;
-            const style = document.getElementById('styleSelect').value;
-
-            if (!templateName) {
-                alert('Please enter a template name');
-                return;
-            }
-
             const gjsData = JSON.stringify(editor.getProjectData());
             const html = editor.getHtml();
             const css = editor.getCss();
 
             @this.call('saveTemplate', {
-                name: templateName,
-                industry: industry,
-                style: style,
                 gjsData: gjsData,
                 html: html,
                 css: css

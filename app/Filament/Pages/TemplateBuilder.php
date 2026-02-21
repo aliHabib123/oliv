@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\Template;
+use App\Filament\Resources\Templates\TemplateResource;
 use Filament\Pages\Page;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
@@ -20,6 +21,8 @@ class TemplateBuilder extends Page implements HasForms
 
     protected static ?string $navigationLabel = 'Template Builder';
 
+    protected static bool $shouldRegisterNavigation = false;
+
     public ?int $templateId = null;
     public ?string $templateName = null;
     public ?string $industry = null;
@@ -35,37 +38,67 @@ class TemplateBuilder extends Page implements HasForms
         return 'filament.pages.template-builder';
     }
 
-    public function mount(?int $template = null): void
+    public function mount(?int $template = null)
     {
-        if ($template) {
-            $this->templateId = $template;
-            $templateData = Template::find($template);
-            if ($templateData) {
-                $this->templateName = $templateData->name;
-                $this->industry = $templateData->industry;
-                $this->style = $templateData->style;
-            }
+        if (! $template) {
+            $template = request()->integer('template');
         }
+
+        if (! $template) {
+            \Filament\Notifications\Notification::make()
+                ->title('Please select a template to edit')
+                ->warning()
+                ->send();
+
+            return $this->redirect(TemplateResource::getUrl());
+        }
+
+        $this->templateId = $template;
+        $templateData = Template::find($template);
+
+        if (! $templateData) {
+            \Filament\Notifications\Notification::make()
+                ->title('Template not found')
+                ->danger()
+                ->send();
+
+            return $this->redirect(TemplateResource::getUrl());
+        }
+
+        $this->templateName = $templateData->name;
+        $this->industry = $templateData->industry;
+        $this->style = $templateData->style;
     }
 
     public function saveTemplate(array $data): void
     {
+        if (! $this->templateId) {
+            \Filament\Notifications\Notification::make()
+                ->title('No template selected')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $template = Template::find($this->templateId);
+
+        if (! $template) {
+            \Filament\Notifications\Notification::make()
+                ->title('Template not found')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
         $templateData = [
-            'name' => $data['name'] ?? 'Untitled Template',
-            'industry' => $data['industry'] ?? null,
-            'style' => $data['style'] ?? null,
             'layout_json' => $data['gjsData'] ?? null,
             'layout_html' => $data['html'] ?? null,
             'layout_css' => $data['css'] ?? null,
-            'created_by' => Auth::id(),
         ];
 
-        if ($this->templateId) {
-            Template::where('id', $this->templateId)->update($templateData);
-        } else {
-            $template = Template::create($templateData);
-            $this->templateId = $template->id;
-        }
+        $template->update($templateData);
 
         $this->dispatch('template-saved');
         \Filament\Notifications\Notification::make()

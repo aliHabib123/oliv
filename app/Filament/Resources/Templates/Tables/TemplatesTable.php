@@ -2,6 +2,9 @@
 
 namespace App\Filament\Resources\Templates\Tables;
 
+use App\Filament\Pages\TemplateBuilder;
+use App\Models\Template;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -41,6 +44,9 @@ class TemplatesTable
                 //
             ])
             ->recordActions([
+                Action::make('openInBuilder')
+                    ->label('Open in Builder')
+                    ->url(fn (Template $record): string => TemplateBuilder::getUrl(['template' => $record->id])),
                 EditAction::make(),
             ])
             ->toolbarActions([
