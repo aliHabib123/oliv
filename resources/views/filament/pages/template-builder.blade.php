@@ -1,5 +1,5 @@
 <x-filament-panels::page>
-    <x-filament-panels::form wire:submit="save">
+    <form wire:submit="save">
         <div class="space-y-4">
             <div class="bg-white rounded-lg shadow p-4">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -26,10 +26,14 @@
 
             {{ $this->form }}
 
-            <x-filament-panels::form.actions
-                :actions="$this->getCachedFormActions()"
-                :full-width="$this->hasFullWidthFormActions()"
-            />
+            <div class="pt-4">
+                <button
+                    type="submit"
+                    class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                    Save
+                </button>
+            </div>
         </div>
-    </x-filament-panels::form>
+    </form>
 </x-filament-panels::page>
