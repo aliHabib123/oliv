@@ -1,4 +1,37 @@
 <x-filament-panels::page>
+    <style>
+        .tb-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            align-items: flex-start;
+            overflow-x: hidden;
+        }
+
+        .tb-editor {
+            flex: 1 1 0%;
+            min-width: 0;
+        }
+
+        .tb-preview {
+            width: 100%;
+            flex: 0 0 auto;
+        }
+
+        @media (min-width: 1024px) {
+            .tb-layout {
+                flex-direction: row;
+            }
+
+            .tb-preview {
+                width: 520px;
+                position: sticky;
+                top: 4.5rem;
+                margin-top: 2.2rem;
+            }
+        }
+    </style>
+
     <form wire:submit="save">
         <div class="space-y-4">
             <div class="bg-white rounded-lg shadow p-4">
@@ -24,7 +57,19 @@
                 </div>
             </div>
 
-            {{ $this->form }}
+            <div class="tb-layout">
+                <div class="tb-editor">
+                    {{ $this->form }}
+                </div>
+
+                <div class="tb-preview">
+                    <livewire:home-layout-preview
+                        :layoutData="$this->data['layout_data'] ?? []"
+                        :tenant="null"
+                        :key="'template-builder-preview-' . ($this->templateId ?? 'none')"
+                    />
+                </div>
+            </div>
 
             <div class="pt-4">
                 <button

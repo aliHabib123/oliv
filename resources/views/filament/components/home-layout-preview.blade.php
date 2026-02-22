@@ -125,7 +125,7 @@
                                     {{ $block['data']['title'] ?? 'Products Grid' }}
                                 </h3>
                                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.75rem;">
-                                    @if(!empty($block['data']['products']))
+                                    @if(!empty($block['data']['products']) && $tenant)
                                         @php
                                             $shopify = app(\App\Services\Shopify\ShopifyStorefrontService::class);
                                         @endphp
@@ -152,6 +152,15 @@
                                                 </p>
                                             </div>
                                         @endforeach
+                                    @elseif(!empty($block['data']['products']) && ! $tenant)
+                                        @for($i = 0; $i < 4; $i++)
+                                            <div style="background: #f9fafb; border-radius: 0.375rem; padding: 0.75rem; text-align: center;">
+                                                <div style="width: 100%; height: 80px; background: #e5e7eb; border-radius: 0.375rem; margin-bottom: 0.5rem;"></div>
+                                                <p style="font-family: 'Montserrat', sans-serif; font-size: 0.75rem; font-weight: 600; color: #374151;">
+                                                    Product
+                                                </p>
+                                            </div>
+                                        @endfor
                                     @else
                                         <p style="font-family: 'Montserrat', sans-serif; color: #9ca3af; font-size: 0.875rem;">No products added</p>
                                     @endif
@@ -167,7 +176,7 @@
                                     </h3>
                                 @endif
                                 <div style="display: flex; gap: 1rem; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 0.5rem; margin-left: -1rem; padding-left: 1rem; margin-right: -1rem; padding-right: 1rem;">
-                                    @if(!empty($block['data']['products']))
+                                    @if(!empty($block['data']['products']) && $tenant)
                                         @php
                                             $shopify = app(\App\Services\Shopify\ShopifyStorefrontService::class);
                                         @endphp
@@ -229,16 +238,17 @@
                                     </h3>
                                 @endif
                                 <div style="display: flex; gap: 1rem; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 0.5rem; margin-left: -1rem; padding-left: 1rem; margin-right: -1rem; padding-right: 1rem;">
-                                    @php
-                                        $shopify = app(\App\Services\Shopify\ShopifyStorefrontService::class);
-                                        $latestProducts = [];
-                                        try {
-                                            $count = $block['data']['count'] ?? 10;
-                                            $latestProducts = $shopify->getLatestProducts($tenant, min($count, 10));
-                                        } catch (\Exception $e) {}
-                                    @endphp
-                                    @if(!empty($latestProducts))
-                                        @foreach(array_slice($latestProducts, 0, 4) as $product)
+                                    @if($tenant)
+                                        @php
+                                            $shopify = app(\App\Services\Shopify\ShopifyStorefrontService::class);
+                                            $latestProducts = [];
+                                            try {
+                                                $count = $block['data']['count'] ?? 10;
+                                                $latestProducts = $shopify->getLatestProducts($tenant, min($count, 10));
+                                            } catch (\Exception $e) {}
+                                        @endphp
+                                        @if(!empty($latestProducts))
+                                            @foreach(array_slice($latestProducts, 0, 4) as $product)
                                             <div style="background: white; border-radius: 0.5rem; overflow: hidden; padding: 0.75rem; flex: 0 0 52%; scroll-snap-align: start;">
                                                 <div style="position: relative; margin-bottom: 0.75rem;">
                                                     @if(!empty($product['images'][0]['url'] ?? null))
@@ -268,9 +278,24 @@
                                                     </p>
                                                 @endif
                                             </div>
-                                        @endforeach
+                                            @endforeach
+                                        @else
+                                            <p style="font-family: 'Montserrat', sans-serif; color: #9ca3af; font-size: 0.875rem;">No new releases available</p>
+                                        @endif
                                     @else
-                                        <p style="font-family: 'Montserrat', sans-serif; color: #9ca3af; font-size: 0.875rem;">No new releases available</p>
+                                        @for($i = 0; $i < 4; $i++)
+                                            <div style="background: white; border-radius: 0.5rem; overflow: hidden; padding: 0.75rem; flex: 0 0 52%; scroll-snap-align: start;">
+                                                <div style="position: relative; margin-bottom: 0.75rem;">
+                                                    <div style="width: 100%; aspect-ratio: 3/4; background: #e5e7eb; border-radius: 0.375rem;"></div>
+                                                </div>
+                                                <h4 style="font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 500; color: #000; margin-bottom: 0.5rem; text-align: center;">
+                                                    Product
+                                                </h4>
+                                                <p style="font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 600; color: #b45309; text-align: center;">
+                                                    0.00
+                                                </p>
+                                            </div>
+                                        @endfor
                                     @endif
                                 </div>
                             </div>

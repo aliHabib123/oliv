@@ -144,6 +144,11 @@ class TemplateBuilder extends Page implements HasForms
                 Forms\Components\Builder::make('layout_data')
                     ->label('Template layout')
                     ->hiddenLabel()
+                    ->live(onBlur: false)
+                    ->afterStateUpdated(function (): void {
+                        $this->dispatch('preview-updated', data: $this->data['layout_data'] ?? []);
+                        $this->dispatch('preview-updating');
+                    })
                     ->blocks([
                         Forms\Components\Builder\Block::make('banner')
                             ->label('Banner')
@@ -161,25 +166,57 @@ class TemplateBuilder extends Page implements HasForms
                                         ->hidden(),
                                 ]),
 
-                                Forms\Components\TextInput::make('image_url')
-                                    ->label('Image URL (optional)')
-                                    ->maxLength(2048)
-                                    ->default(''),
+                                Forms\Components\FileUpload::make('image_url')
+                                    ->label('Image')
+                                    ->image()
+                                    ->disk('public')
+                                    ->directory('home-layout')
+                                    ->columnSpanFull(),
 
                                 Forms\Components\TextInput::make('cta_label')
                                     ->label('CTA label')
                                     ->maxLength(255)
                                     ->default('')
                                     ->hidden(),
+
+                                Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\Select::make('cta_target_type')
+                                            ->label('CTA target type')
+                                            ->options([
+                                                'none' => 'None',
+                                                'product' => 'Product',
+                                                'brand' => 'Brand',
+                                                'category' => 'Category',
+                                                'url' => 'URL',
+                                            ])
+                                            ->default('none')
+                                            ->disabled()
+                                            ->hidden(),
+
+                                        Forms\Components\TextInput::make('cta_target_id')
+                                            ->label('CTA target ID')
+                                            ->maxLength(255)
+                                            ->disabled()
+                                            ->hidden(),
+                                    ]),
+
+                                Forms\Components\TextInput::make('cta_target_url')
+                                    ->label('CTA target URL')
+                                    ->maxLength(2048)
+                                    ->disabled()
+                                    ->hidden(),
                             ]),
 
                         Forms\Components\Builder\Block::make('mini_banner')
                             ->label('Mini banner')
                             ->schema([
-                                Forms\Components\TextInput::make('image_url')
-                                    ->label('Image URL (optional)')
-                                    ->maxLength(2048)
-                                    ->default(''),
+                                Forms\Components\FileUpload::make('image_url')
+                                    ->label('Image')
+                                    ->image()
+                                    ->disk('public')
+                                    ->directory('home-layout')
+                                    ->columnSpanFull(),
                                 Forms\Components\TextInput::make('url')
                                     ->label('URL (optional)')
                                     ->maxLength(2048)
@@ -190,10 +227,12 @@ class TemplateBuilder extends Page implements HasForms
                         Forms\Components\Builder\Block::make('promo_card')
                             ->label('Promo card')
                             ->schema([
-                                Forms\Components\TextInput::make('image_url')
-                                    ->label('Image URL (optional)')
-                                    ->maxLength(2048)
-                                    ->default(''),
+                                Forms\Components\FileUpload::make('image_url')
+                                    ->label('Image')
+                                    ->image()
+                                    ->disk('public')
+                                    ->directory('home-layout')
+                                    ->columnSpanFull(),
                                 Forms\Components\TextInput::make('title')
                                     ->label('Title')
                                     ->maxLength(255)
@@ -208,6 +247,23 @@ class TemplateBuilder extends Page implements HasForms
                                     ->maxLength(255)
                                     ->default('')
                                     ->hidden(),
+
+                                Forms\Components\Select::make('cta_target_type')
+                                    ->label('CTA target type')
+                                    ->options([
+                                        'none' => 'None',
+                                        'brand' => 'Brand',
+                                        'category' => 'Category',
+                                    ])
+                                    ->default('none')
+                                    ->disabled()
+                                    ->hidden(),
+
+                                Forms\Components\TextInput::make('cta_target_id')
+                                    ->label('CTA target ID')
+                                    ->maxLength(255)
+                                    ->disabled()
+                                    ->hidden(),
                             ]),
 
                         Forms\Components\Builder\Block::make('category_grid')
@@ -220,14 +276,16 @@ class TemplateBuilder extends Page implements HasForms
                                 Forms\Components\Repeater::make('categories')
                                     ->label('Categories')
                                     ->schema([
+                                        Forms\Components\FileUpload::make('image_url')
+                                            ->label('Image')
+                                            ->image()
+                                            ->disk('public')
+                                            ->directory('home-layout')
+                                            ->columnSpanFull(),
                                         Forms\Components\TextInput::make('title')
                                             ->label('Title')
                                             ->maxLength(255)
                                             ->default('Category'),
-                                        Forms\Components\TextInput::make('image_url')
-                                            ->label('Image URL (optional)')
-                                            ->maxLength(2048)
-                                            ->default(''),
                                         Forms\Components\TextInput::make('category_id')
                                             ->label('Category ID (optional)')
                                             ->maxLength(255)
@@ -257,6 +315,7 @@ class TemplateBuilder extends Page implements HasForms
                                     ->minValue(1)
                                     ->maxValue(50)
                                     ->default(10)
+                                    ->helperText('Flutter app will fetch the latest products from Shopify')
                                     ->hidden(),
                             ]),
 
