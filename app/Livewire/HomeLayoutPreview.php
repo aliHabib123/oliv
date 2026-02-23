@@ -12,6 +12,8 @@ class HomeLayoutPreview extends Component
 
     public ?Tenant $tenant = null;
 
+    public ?string $industry = null;
+
     #[On('preview-updated')]
     public function updatePreview($data)
     {

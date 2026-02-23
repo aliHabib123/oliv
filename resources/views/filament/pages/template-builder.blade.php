@@ -5,7 +5,6 @@
             flex-direction: column;
             gap: 1.5rem;
             align-items: flex-start;
-            overflow-x: hidden;
         }
 
         .tb-editor {
@@ -16,6 +15,11 @@
         .tb-preview {
             width: 100%;
             flex: 0 0 auto;
+            align-self: flex-start;
+        }
+
+        .tb-preview-scroll {
+            width: 100%;
         }
 
         @media (min-width: 1024px) {
@@ -28,6 +32,13 @@
                 position: sticky;
                 top: 4.5rem;
                 margin-top: 2.2rem;
+                overflow: visible;
+            }
+
+            .tb-preview-scroll {
+                max-height: calc(100vh - 6.7rem);
+                overflow-y: auto;
+                overscroll-behavior: contain;
             }
         }
     </style>
@@ -63,11 +74,14 @@
                 </div>
 
                 <div class="tb-preview">
-                    <livewire:home-layout-preview
-                        :layoutData="$this->data['layout_data'] ?? []"
-                        :tenant="null"
-                        :key="'template-builder-preview-' . ($this->templateId ?? 'none')"
-                    />
+                    <div class="tb-preview-scroll">
+                        <livewire:home-layout-preview
+                            :layoutData="$this->data['layout_data'] ?? []"
+                            :tenant="null"
+                            :industry="$industry"
+                            :key="'template-builder-preview-' . ($this->templateId ?? 'none')"
+                        />
+                    </div>
                 </div>
             </div>
 
