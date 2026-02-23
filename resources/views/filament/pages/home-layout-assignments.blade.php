@@ -1,4 +1,42 @@
 <x-filament-panels::page>
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+
+    @if($this->previewOpen)
+        <div
+            x-data
+            x-cloak
+            @keydown.escape.window="$wire.closePreview()"
+            wire:click="closePreview"
+            style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; z-index: 10000; background: rgba(0, 0, 0, 0.75); display: flex; align-items: center; justify-content: center; padding: 1rem;"
+        >
+            <div
+                wire:click.stop
+                style="background: white; border-radius: 0.75rem; width: 90%; max-width: 50rem; max-height: 85vh; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);"
+            >
+                <div style="padding: 1rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background: #f9fafb;">
+                    <h4 style="font-size: 1rem; font-weight: 600; color: #111827; margin: 0;">{{ $this->previewTitle }}</h4>
+                    <button
+                        type="button"
+                        wire:click="closePreview"
+                        style="padding: 0.5rem; background: transparent; border: none; color: #6b7280; cursor: pointer; border-radius: 0.375rem; transition: all 0.15s;"
+                        onmouseover="this.style.backgroundColor='#f3f4f6'"
+                        onmouseout="this.style.backgroundColor='transparent'"
+                    >
+                        <svg style="width: 1.25rem; height: 1.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div style="padding: 1.5rem; overflow-y: auto; max-height: calc(85vh - 8rem); background: #f3f4f6; display: flex; justify-content: center; align-items: center;">
+                    @include('filament.pages.partials.layout-preview-phone', ['layoutData' => $this->previewLayoutData])
+                </div>
+            </div>
+        </div>
+    @endif
+
     @if(!$this->flutterMenuExists)
         <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem;">
             <div style="display: flex; align-items: start; gap: 1rem;">

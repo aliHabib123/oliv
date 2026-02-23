@@ -106,15 +106,19 @@ class AdminPanelProvider extends PanelProvider
                     .fi-btn span,
                     .fi-btn-label,
                     button.fi-btn {
-                        color: #ffffff !important;
+                        color: #ffffff;
                     }
 
                     /* Primary buttons */
                     .fi-btn-primary,
                     .fi-btn-primary span {
-                        color: #ffffff !important;
+                        color: #ffffff;
                     }
-
+                    .fi-fo-builder-add-between-items-ctn button.fi-btn,
+                    .fi-fo-repeater-add button.fi-btn,
+                    .fi-dropdown.fi-fo-builder-block-picker button.fi-btn{
+                        color: #000;
+                    }
                     /* Sidebar styling */
                     .fi-sidebar {
                         background: linear-gradient(180deg, #252621 0%, #2d2e28 100%) !important;

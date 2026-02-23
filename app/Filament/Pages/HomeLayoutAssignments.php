@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Models\HomeLayout;
 use App\Models\Tenant;
+use App\Models\Template;
 use App\Services\Shopify\ShopifyStorefrontService;
 use Filament\Forms;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -38,6 +39,14 @@ class HomeLayoutAssignments extends Page implements HasForms
     public bool $flutterMenuExists = false;
     public bool $flutterMenuHasItems = false;
 
+    public array $libraryTemplates = [];
+    public ?string $libraryIndustry = null;
+    public ?string $libraryStyle = null;
+
+    public bool $previewOpen = false;
+    public array $previewLayoutData = [];
+    public string $previewTitle = '';
+
     public function mount(): void
     {
         /** @var Authenticatable|null $user */
@@ -60,6 +69,7 @@ class HomeLayoutAssignments extends Page implements HasForms
             $this->loadExistingLayouts();
             $this->loadAssignments();
             $this->loadAvailableTemplates();
+            $this->loadLibraryTemplates();
             $this->loadOtherCategoryLayouts();
         }
     }
@@ -181,7 +191,24 @@ class HomeLayoutAssignments extends Page implements HasForms
             $this->availableTemplates[] = [
                 'name' => 'Tenant Default Layout',
                 'type' => 'tenant',
-                'layout_data' => $this->tenant->home_layout,
+            ];
+        }
+
+        // Load DB templates (created in Templates section)
+        $dbTemplates = Template::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        foreach ($dbTemplates as $template) {
+            if (empty($template->layout_json)) {
+                continue;
+            }
+
+            $this->availableTemplates[] = [
+                'name' => $template->name,
+                'type' => 'db',
+                'template_id' => $template->id,
             ];
         }
 
@@ -194,16 +221,38 @@ class HomeLayoutAssignments extends Page implements HasForms
         $files = glob($templatesPath . '/*.json');
         foreach ($files as $file) {
             $filename = basename($file);
-            $templateData = json_decode(file_get_contents($file), true);
 
-            if ($templateData) {
-                $this->availableTemplates[] = [
-                    'name' => str_replace(['_', '.json'], [' ', ''], ucfirst($filename)),
-                    'type' => 'file',
-                    'filename' => $filename,
-                    'layout_data' => $templateData,
-                ];
+            $this->availableTemplates[] = [
+                'name' => str_replace(['_', '.json'], [' ', ''], ucfirst($filename)),
+                'type' => 'file',
+                'filename' => $filename,
+            ];
+        }
+    }
+
+    protected function loadLibraryTemplates(): void
+    {
+        $this->libraryTemplates = [];
+
+        $dbTemplates = Template::query()
+            ->select(['id', 'name', 'industry', 'style', 'preview_image', 'layout_json'])
+            ->where('is_active', true)
+            ->whereNotNull('layout_json')
+            ->orderBy('name')
+            ->get();
+
+        foreach ($dbTemplates as $template) {
+            if (empty($template->layout_json)) {
+                continue;
             }
+
+            $this->libraryTemplates[] = [
+                'id' => (string) $template->id,
+                'name' => $template->name,
+                'industry' => $template->industry,
+                'style' => $template->style,
+                'preview_image' => $template->preview_image,
+            ];
         }
     }
 
@@ -222,9 +271,143 @@ class HomeLayoutAssignments extends Page implements HasForms
                 'category_handle' => $layout->category_handle,
                 'category_title' => $layout->category_title,
                 'name' => $layout->name,
-                'layout_data' => $layout->layout_data,
             ])
             ->toArray();
+    }
+
+    public function openTemplatePreview(string $templateType, string $templateIdentifier): void
+    {
+        $this->previewTitle = '';
+        $this->previewLayoutData = [];
+
+        try {
+            $layout = $this->loadTemplateLayoutForPreview($templateType, $templateIdentifier);
+
+            if (! is_array($layout)) {
+                throw new \Exception('Invalid template format');
+            }
+
+            // Guard: avoid rendering huge legacy project JSON (eg GrapesJS assets/base64)
+            $encoded = json_encode($layout);
+            if ($encoded !== false && strlen($encoded) > 250_000) {
+                throw new \Exception('Template preview is too large to render.');
+            }
+
+            $this->previewLayoutData = $layout;
+            $this->previewTitle = $this->resolveTemplatePreviewTitle($templateType, $templateIdentifier);
+            $this->previewOpen = true;
+        } catch (\Throwable $e) {
+            $this->previewOpen = false;
+            $this->previewLayoutData = [];
+
+            Notification::make()
+                ->title('Preview Failed')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function openCategoryPreview(string $sourceHandle): void
+    {
+        $this->previewTitle = '';
+        $this->previewLayoutData = [];
+
+        try {
+            if (! $this->tenant) {
+                throw new \Exception('Tenant not found');
+            }
+
+            $layout = HomeLayout::query()
+                ->where('tenant_id', $this->tenant->id)
+                ->where('category_handle', $sourceHandle)
+                ->value('layout_data');
+
+            if (! is_array($layout)) {
+                throw new \Exception('No preview available');
+            }
+
+            $encoded = json_encode($layout);
+            if ($encoded !== false && strlen($encoded) > 250_000) {
+                throw new \Exception('Preview is too large to render.');
+            }
+
+            $this->previewLayoutData = $layout;
+            $this->previewTitle = (string) (collect($this->categories)->firstWhere('handle', $sourceHandle)['title'] ?? 'Category Preview');
+            $this->previewOpen = true;
+        } catch (\Throwable $e) {
+            $this->previewOpen = false;
+            $this->previewLayoutData = [];
+
+            Notification::make()
+                ->title('Preview Failed')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function closePreview(): void
+    {
+        $this->previewOpen = false;
+    }
+
+    protected function loadTemplateLayoutForPreview(string $templateType, string $templateIdentifier): array
+    {
+        if (! $this->tenant) {
+            throw new \Exception('Tenant not found');
+        }
+
+        if ($templateType === 'tenant') {
+            if (empty($this->tenant->home_layout) || ! is_array($this->tenant->home_layout)) {
+                throw new \Exception('Tenant default layout not found');
+            }
+
+            return $this->tenant->home_layout;
+        }
+
+        if ($templateType === 'db') {
+            $template = Template::query()
+                ->where('is_active', true)
+                ->find($templateIdentifier);
+
+            if (! $template || empty($template->layout_json)) {
+                throw new \Exception('Template not found');
+            }
+
+            $decoded = json_decode($template->layout_json, true);
+            if (! is_array($decoded)) {
+                throw new \Exception('Invalid template format');
+            }
+
+            return $decoded;
+        }
+
+        $templatePath = storage_path('app/templates/' . $templateIdentifier);
+        if (! file_exists($templatePath)) {
+            throw new \Exception('Template not found');
+        }
+
+        $decoded = json_decode(file_get_contents($templatePath), true);
+        if (! is_array($decoded)) {
+            throw new \Exception('Invalid template format');
+        }
+
+        return $decoded;
+    }
+
+    protected function resolveTemplatePreviewTitle(string $templateType, string $templateIdentifier): string
+    {
+        if ($templateType === 'tenant') {
+            return 'Tenant Default Layout';
+        }
+
+        if ($templateType === 'db') {
+            $template = Template::query()->find($templateIdentifier);
+            return (string) ($template?->name ?? 'Template');
+        }
+
+        return (string) $templateIdentifier;
     }
 
     protected function loadAssignments(): void
@@ -331,6 +514,20 @@ class HomeLayoutAssignments extends Page implements HasForms
                     throw new \Exception('Tenant default layout not found');
                 }
                 $templateLayout = $this->tenant->home_layout;
+            } elseif ($templateType === 'db') {
+                $template = Template::query()
+                    ->where('is_active', true)
+                    ->find($templateIdentifier);
+
+                if (! $template || empty($template->layout_json)) {
+                    throw new \Exception('Template not found');
+                }
+
+                $templateLayout = json_decode($template->layout_json, true);
+
+                if (! is_array($templateLayout)) {
+                    throw new \Exception('Invalid template format');
+                }
             } else {
                 // Load from file
                 $templatePath = storage_path('app/templates/' . $templateIdentifier);

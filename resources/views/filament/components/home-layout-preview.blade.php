@@ -25,6 +25,94 @@
         }
     </style>
 
+    @php
+        $dummyCurrency = 'AED';
+        $dummyProducts = [
+            [
+                'title' => 'Classic Linen Shirt',
+                'description' => 'Lightweight linen with a relaxed fit.',
+                'price' => 189,
+                'color' => '#1f2937',
+            ],
+            [
+                'title' => 'Everyday Sneakers',
+                'description' => 'Comfort sole, clean minimal upper.',
+                'price' => 299,
+                'color' => '#b45309',
+            ],
+            [
+                'title' => 'Citrus Body Mist',
+                'description' => 'Fresh notes with long-lasting wear.',
+                'price' => 89,
+                'color' => '#065f46',
+            ],
+            [
+                'title' => 'Soft Knit Sweater',
+                'description' => 'Warm, soft knit for cooler days.',
+                'price' => 249,
+                'color' => '#6d28d9',
+            ],
+            [
+                'title' => 'Hydrating Face Serum',
+                'description' => 'Daily hydration with a dewy finish.',
+                'price' => 129,
+                'color' => '#0e7490',
+            ],
+            [
+                'title' => 'Leather Card Wallet',
+                'description' => 'Slim profile, premium leather.',
+                'price' => 149,
+                'color' => '#7f1d1d',
+            ],
+        ];
+
+        $dummyCategories = [
+            ['title' => 'New In', 'color' => '#111827'],
+            ['title' => 'Best Sellers', 'color' => '#b45309'],
+            ['title' => 'Skincare', 'color' => '#0f766e'],
+            ['title' => 'Shoes', 'color' => '#4338ca'],
+            ['title' => 'Accessories', 'color' => '#7c2d12'],
+            ['title' => 'Sale', 'color' => '#be123c'],
+        ];
+
+        $dummyImage = function (string $title, string $color): string {
+            $svg = "<svg xmlns='http://www.w3.org/2000/svg' width='600' height='800' viewBox='0 0 600 800'>" .
+                "<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>" .
+                "<stop offset='0' stop-color='" . $color . "' stop-opacity='0.95'/>" .
+                "<stop offset='1' stop-color='#000000' stop-opacity='0.15'/></linearGradient></defs>" .
+                "<rect width='600' height='800' fill='url(#g)'/>" .
+                "<rect x='42' y='52' width='516' height='696' rx='24' fill='rgba(255,255,255,0.10)'/>" .
+                "<text x='70' y='120' fill='white' font-family='Montserrat, Arial, sans-serif' font-weight='700' font-size='34'>" .
+                htmlspecialchars(mb_strtoupper(mb_substr($title, 0, 18))) .
+                "</text>" .
+                "<text x='70' y='165' fill='rgba(255,255,255,0.85)' font-family='Montserrat, Arial, sans-serif' font-weight='400' font-size='18'>Preview item</text>" .
+                "</svg>";
+
+            return 'data:image/svg+xml;utf8,' . rawurlencode($svg);
+        };
+
+        $industryKey = $industry ?: 'other';
+        $industryProductsDir = public_path('img/template-preview/' . $industryKey . '/products');
+        $industryProductsUrl = 'img/template-preview/' . $industryKey . '/products';
+        $industryProductImage = function (int $index, string $title, string $color) use ($industryProductsDir, $industryProductsUrl, $dummyImage): string {
+            $candidates = [
+                $index . '.jpg',
+                $index . '.jpeg',
+                $index . '.png',
+                $index . '.webp',
+            ];
+
+            foreach ($candidates as $file) {
+                $absolute = $industryProductsDir . DIRECTORY_SEPARATOR . $file;
+                if (is_string($absolute) && file_exists($absolute)) {
+                    return asset($industryProductsUrl . '/' . $file);
+                }
+            }
+
+            return $dummyImage($title, $color);
+        };
+    @endphp
+
     <x-filament::section>
         <div style="display: flex; justify-content: center; align-items: center; padding: 2rem; background: #f3f4f6; border-radius: 0.5rem; height: 770px; overflow: hidden;">
             {{-- iPhone Mockup Container --}}
@@ -125,7 +213,7 @@
                                     {{ $block['data']['title'] ?? 'Products Grid' }}
                                 </h3>
                                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.75rem;">
-                                    @if(!empty($block['data']['products']))
+                                    @if(!empty($block['data']['products']) && $tenant)
                                         @php
                                             $shopify = app(\App\Services\Shopify\ShopifyStorefrontService::class);
                                         @endphp
@@ -152,6 +240,20 @@
                                                 </p>
                                             </div>
                                         @endforeach
+                                    @elseif(! $tenant)
+                                        @foreach(array_values(array_slice($dummyProducts, 0, 4)) as $i => $p)
+                                            @php
+                                                $imgIndex = $i + 1;
+                                            @endphp
+                                            <div style="background: #f9fafb; border-radius: 0.375rem; padding: 0.75rem; text-align: center;">
+                                                <img src="{{ $industryProductImage($imgIndex, $p['title'], $p['color']) }}"
+                                                     alt="{{ $p['title'] }}"
+                                                     style="width: 100%; height: 80px; object-fit: cover; border-radius: 0.375rem; margin-bottom: 0.5rem; display: block;">
+                                                <p style="font-family: 'Montserrat', sans-serif; font-size: 0.75rem; font-weight: 600; color: #374151;">
+                                                    {{ $p['title'] }}
+                                                </p>
+                                            </div>
+                                        @endforeach
                                     @else
                                         <p style="font-family: 'Montserrat', sans-serif; color: #9ca3af; font-size: 0.875rem;">No products added</p>
                                     @endif
@@ -167,7 +269,7 @@
                                     </h3>
                                 @endif
                                 <div style="display: flex; gap: 1rem; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 0.5rem; margin-left: -1rem; padding-left: 1rem; margin-right: -1rem; padding-right: 1rem;">
-                                    @if(!empty($block['data']['products']))
+                                    @if(!empty($block['data']['products']) && $tenant)
                                         @php
                                             $shopify = app(\App\Services\Shopify\ShopifyStorefrontService::class);
                                         @endphp
@@ -214,6 +316,33 @@
                                                 @endif
                                             </div>
                                         @endforeach
+                                    @elseif(! $tenant)
+                                        @foreach(array_values(array_slice($dummyProducts, 0, 4)) as $i => $p)
+                                            @php
+                                                $imgIndex = $i + 1;
+                                            @endphp
+                                            <div style="background: white; border-radius: 0.5rem; overflow: hidden; padding: 0.75rem; flex: 0 0 52%; scroll-snap-align: start;">
+                                                <div style="position: relative; margin-bottom: 0.75rem;">
+                                                    <img src="{{ $industryProductImage($imgIndex, $p['title'], $p['color']) }}"
+                                                         alt="{{ $p['title'] }}"
+                                                         style="width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 0.375rem; display: block;">
+                                                    <div style="position: absolute; top: 0.5rem; right: 2rem;">
+                                                        <svg style="width: 2rem; height: 2rem; color: #b45309; fill: none; stroke: currentColor; stroke-width: 1;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                                <h4 style="font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 500; color: #000; margin-bottom: 0.5rem; text-align: center;">
+                                                    {{ $p['title'] }}
+                                                </h4>
+                                                <p style="font-family: 'Montserrat', sans-serif; font-size: 0.75rem; color: #6b7280; margin-bottom: 0.5rem; text-align: center; line-height: 1.5;">
+                                                    {{ $p['description'] }}
+                                                </p>
+                                                <p style="font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 600; color: #b45309; text-align: center;">
+                                                    {{ number_format($p['price'], 0) }} {{ $dummyCurrency }}
+                                                </p>
+                                            </div>
+                                        @endforeach
                                     @else
                                         <p style="font-family: 'Montserrat', sans-serif; color: #9ca3af; font-size: 0.875rem;">No products added</p>
                                     @endif
@@ -229,16 +358,17 @@
                                     </h3>
                                 @endif
                                 <div style="display: flex; gap: 1rem; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 0.5rem; margin-left: -1rem; padding-left: 1rem; margin-right: -1rem; padding-right: 1rem;">
-                                    @php
-                                        $shopify = app(\App\Services\Shopify\ShopifyStorefrontService::class);
-                                        $latestProducts = [];
-                                        try {
-                                            $count = $block['data']['count'] ?? 10;
-                                            $latestProducts = $shopify->getLatestProducts($tenant, min($count, 10));
-                                        } catch (\Exception $e) {}
-                                    @endphp
-                                    @if(!empty($latestProducts))
-                                        @foreach(array_slice($latestProducts, 0, 4) as $product)
+                                    @if($tenant)
+                                        @php
+                                            $shopify = app(\App\Services\Shopify\ShopifyStorefrontService::class);
+                                            $latestProducts = [];
+                                            try {
+                                                $count = $block['data']['count'] ?? 10;
+                                                $latestProducts = $shopify->getLatestProducts($tenant, min($count, 10));
+                                            } catch (\Exception $e) {}
+                                        @endphp
+                                        @if(!empty($latestProducts))
+                                            @foreach(array_slice($latestProducts, 0, 4) as $product)
                                             <div style="background: white; border-radius: 0.5rem; overflow: hidden; padding: 0.75rem; flex: 0 0 52%; scroll-snap-align: start;">
                                                 <div style="position: relative; margin-bottom: 0.75rem;">
                                                     @if(!empty($product['images'][0]['url'] ?? null))
@@ -268,9 +398,29 @@
                                                     </p>
                                                 @endif
                                             </div>
-                                        @endforeach
+                                            @endforeach
+                                        @else
+                                            <p style="font-family: 'Montserrat', sans-serif; color: #9ca3af; font-size: 0.875rem;">No new releases available</p>
+                                        @endif
                                     @else
-                                        <p style="font-family: 'Montserrat', sans-serif; color: #9ca3af; font-size: 0.875rem;">No new releases available</p>
+                                        @foreach(array_values(array_slice($dummyProducts, 2, 4)) as $i => $p)
+                                            @php
+                                                $imgIndex = $i + 1;
+                                            @endphp
+                                            <div style="background: white; border-radius: 0.5rem; overflow: hidden; padding: 0.75rem; flex: 0 0 52%; scroll-snap-align: start;">
+                                                <div style="position: relative; margin-bottom: 0.75rem;">
+                                                    <img src="{{ $industryProductImage($imgIndex, $p['title'], $p['color']) }}"
+                                                         alt="{{ $p['title'] }}"
+                                                         style="width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 0.375rem; display: block;">
+                                                </div>
+                                                <h4 style="font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 500; color: #000; margin-bottom: 0.5rem; text-align: center;">
+                                                    {{ $p['title'] }}
+                                                </h4>
+                                                <p style="font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 600; color: #b45309; text-align: center;">
+                                                    {{ number_format($p['price'], 0) }} {{ $dummyCurrency }}
+                                                </p>
+                                            </div>
+                                        @endforeach
                                     @endif
                                 </div>
                             </div>
@@ -303,6 +453,19 @@
                                                 <div style="position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: center; background: rgba(0,0,0,0.2);">
                                                     <p style="font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 500; color: white; text-transform: uppercase; text-align: center; padding: 1rem; text-decoration: underline;">
                                                         {{ $category['title'] ?? 'Category' }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    @elseif(! $tenant)
+                                        @foreach(array_slice($dummyCategories, 0, 6) as $c)
+                                            <div style="position: relative; border-radius: 1rem; overflow: hidden; aspect-ratio: 2/3; flex: 0 0 30%; scroll-snap-align: start;">
+                                                <img src="{{ $dummyImage($c['title'], $c['color']) }}"
+                                                     alt="{{ $c['title'] }}"
+                                                     style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                                                <div style="position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: center; background: rgba(0,0,0,0.18);">
+                                                    <p style="font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 500; color: white; text-transform: uppercase; text-align: center; padding: 1rem; text-decoration: underline;">
+                                                        {{ $c['title'] }}
                                                     </p>
                                                 </div>
                                             </div>
