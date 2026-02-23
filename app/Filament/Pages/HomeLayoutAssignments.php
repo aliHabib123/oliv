@@ -39,6 +39,10 @@ class HomeLayoutAssignments extends Page implements HasForms
     public bool $flutterMenuExists = false;
     public bool $flutterMenuHasItems = false;
 
+    public array $libraryTemplates = [];
+    public ?string $libraryIndustry = null;
+    public ?string $libraryStyle = null;
+
     public bool $previewOpen = false;
     public array $previewLayoutData = [];
     public string $previewTitle = '';
@@ -65,6 +69,7 @@ class HomeLayoutAssignments extends Page implements HasForms
             $this->loadExistingLayouts();
             $this->loadAssignments();
             $this->loadAvailableTemplates();
+            $this->loadLibraryTemplates();
             $this->loadOtherCategoryLayouts();
         }
     }
@@ -221,6 +226,32 @@ class HomeLayoutAssignments extends Page implements HasForms
                 'name' => str_replace(['_', '.json'], [' ', ''], ucfirst($filename)),
                 'type' => 'file',
                 'filename' => $filename,
+            ];
+        }
+    }
+
+    protected function loadLibraryTemplates(): void
+    {
+        $this->libraryTemplates = [];
+
+        $dbTemplates = Template::query()
+            ->select(['id', 'name', 'industry', 'style', 'preview_image', 'layout_json'])
+            ->where('is_active', true)
+            ->whereNotNull('layout_json')
+            ->orderBy('name')
+            ->get();
+
+        foreach ($dbTemplates as $template) {
+            if (empty($template->layout_json)) {
+                continue;
+            }
+
+            $this->libraryTemplates[] = [
+                'id' => (string) $template->id,
+                'name' => $template->name,
+                'industry' => $template->industry,
+                'style' => $template->style,
+                'preview_image' => $template->preview_image,
             ];
         }
     }
