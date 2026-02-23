@@ -29,6 +29,8 @@
 
             @php
                 $package = $packages->first();
+                $monthlyPrice = 1299;
+                $yearlyPrice = 10999;
             @endphp
 
             <!-- Promotional Banner -->
@@ -57,7 +59,7 @@
 
                             <p class="text-sm text-gray-600 mb-4">ONE PRICE. EVERYTHING INCLUDED.</p>
                             <div class="mb-2">
-                                <span class="text-3xl font-bold text-gray-900" id="base-price">{{ $currencySymbol }} {{ number_format($package->price, 0) }}</span>
+                                <span class="text-3xl font-bold text-gray-900" id="base-price">{{ $currencySymbol }} {{ number_format($monthlyPrice, 0) }}</span>
                                 <span class="text-lg text-gray-600" id="period-text">/month</span>
                             </div>
                             <p class="text-sm text-gray-600 mb-4">{{ $package->description }}</p>
@@ -129,7 +131,7 @@
                         <div class="space-y-3 mb-6">
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-600">{{ $package->name ?? '' }}</span>
-                                <span class="font-medium text-gray-900" id="summary-base">{{ $currencySymbol }} {{ number_format($package->price ?? 0, 0) }}</span>
+                                <span class="font-medium text-gray-900" id="summary-base">{{ $currencySymbol }} {{ number_format($monthlyPrice, 0) }}</span>
                             </div>
 
                             <div id="yearly-discount-line" class="hidden justify-between text-sm">
@@ -147,7 +149,7 @@
                                 <span class="text-lg font-bold text-gray-900">Total</span>
                                 <div class="text-right">
                                     <div class="text-2xl font-bold text-gray-900">
-                                        <span id="total-amount">{{ $currencySymbol }} {{ number_format($package->price ?? 0, 0) }}</span><span class="text-base text-gray-600" id="billing-period">/month</span>
+                                        <span id="total-amount">{{ $currencySymbol }} {{ number_format($monthlyPrice, 0) }}</span><span class="text-base text-gray-600" id="billing-period">/month</span>
                                     </div>
                                 </div>
                             </div>
@@ -281,7 +283,8 @@
     <script>
         // State management
         let isYearly = false;
-        const basePrice = {{ $package->price ?? 0 }};
+        const basePrice = {{ $monthlyPrice }};
+        const yearlyPrice = {{ $yearlyPrice }};
         const currencySymbol = '{{ $currencySymbol }}';
         const selectedAddons = new Set();
         const addonPrices = {};
@@ -360,20 +363,18 @@
             // Calculate base subscription
             if (isYearly) {
                 const yearlyFullPrice = basePrice * 12;
-                const yearlyDiscountedPrice = yearlyFullPrice * 0.7; // 30% discount
+                const effectiveDiscount = Math.max(0, yearlyFullPrice - yearlyPrice);
 
-                // Show full yearly price in left card
-                document.getElementById('base-price').textContent = currencySymbol + ' ' + Math.round(yearlyFullPrice);
+                // Show fixed yearly price in left card
+                document.getElementById('base-price').textContent = currencySymbol + ' ' + Math.round(yearlyPrice);
 
-                // Show full price in order summary
-                document.getElementById('summary-base').textContent = currencySymbol + ' ' + Math.round(yearlyFullPrice);
+                // Show fixed yearly price in order summary
+                document.getElementById('summary-base').textContent = currencySymbol + ' ' + Math.round(yearlyPrice);
 
-                // Calculate and show discount
-                const discount = yearlyFullPrice * 0.3;
-                document.getElementById('discount-amount').textContent = '-' + currencySymbol + ' ' + Math.round(discount);
+                // Show discount line (label may still say 30%)
+                document.getElementById('discount-amount').textContent = '-' + currencySymbol + ' ' + Math.round(effectiveDiscount);
 
-                // Total after discount
-                total = yearlyDiscountedPrice;
+                total = yearlyPrice;
             } else {
                 document.getElementById('base-price').textContent = currencySymbol + ' ' + Math.round(basePrice);
                 document.getElementById('summary-base').textContent = currencySymbol + ' ' + Math.round(basePrice);

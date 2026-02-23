@@ -32,17 +32,18 @@
 
                     @php
                         $currencySymbol = config('services.stripe.currency_symbol', 'AED');
-                        $basePrice = $subscription->package->price;
+                        $monthlyPrice = 1299;
+                        $yearlyPrice = 10999;
                         $selectedAddons = json_decode($subscription->selected_addons, true) ?? [];
                         $addons = \App\Models\Addon::whereIn('id', $selectedAddons)->get();
 
                         // Calculate total based on billing period
                         if ($subscription->billing_period === 'yearly') {
-                            $packageTotal = $basePrice * 12 * 0.7; // 30% discount
+                            $packageTotal = $yearlyPrice;
                             $addonsTotal = $addons->sum('price') * 12;
                             $periodLabel = 'year';
                         } else {
-                            $packageTotal = $basePrice;
+                            $packageTotal = $monthlyPrice;
                             $addonsTotal = $addons->sum('price');
                             $periodLabel = 'month';
                         }
@@ -52,11 +53,11 @@
                     @if($subscription->billing_period === 'yearly')
                         <div class="flex justify-between items-center mb-2">
                             <span class="text-gray-600 text-sm">Base (yearly):</span>
-                            <span class="text-gray-700">{{ $currencySymbol }} {{ number_format($basePrice * 12, 0) }}</span>
+                            <span class="text-gray-700">{{ $currencySymbol }} {{ number_format($monthlyPrice * 12, 0) }}</span>
                         </div>
                         <div class="flex justify-between items-center mb-2">
                             <span class="text-green-600 text-sm">Yearly discount (30%):</span>
-                            <span class="text-green-600">-{{ $currencySymbol }} {{ number_format($basePrice * 12 * 0.3, 0) }}</span>
+                            <span class="text-green-600">-{{ $currencySymbol }} {{ number_format(max(0, ($monthlyPrice * 12) - $yearlyPrice), 0) }}</span>
                         </div>
                     @endif
 

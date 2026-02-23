@@ -111,12 +111,13 @@ class SubscriptionController extends Controller
             Stripe::setApiKey(config('services.stripe.secret'));
 
             // Calculate pricing based on billing period
-            $basePrice = $subscription->package->price;
+            $basePrice = 1299;
+            $yearlyPrice = 10999;
             $interval = $subscription->billing_period === 'yearly' ? 'year' : 'month';
 
-            // For yearly, calculate annual price with 30% discount
+            // For yearly, use fixed annual pricing (regardless of displayed discount)
             if ($subscription->billing_period === 'yearly') {
-                $unitAmount = round($basePrice * 12 * 0.7 * 100); // 30% discount on yearly
+                $unitAmount = $yearlyPrice * 100;
             } else {
                 $unitAmount = $basePrice * 100;
             }
