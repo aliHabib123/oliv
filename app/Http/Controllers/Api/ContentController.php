@@ -11,17 +11,27 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Services\Shopify\ShopifyStorefrontService;
 use Illuminate\Support\Facades\Cache;
+use OpenApi\Attributes as OA;
 
 class ContentController extends Controller
 {
-    /**
-     * @OA\Get(
-     *     path="/v1/ping",
-     *     tags={"Content"},
-     *     security={{"AppKey":{}}},
-     *     @OA\Response(response=200, description="Ping successful")
-     * )
-     */
+    #[OA\Get(
+        path: '/v1/ping',
+        tags: ['Content'],
+        summary: 'Ping endpoint',
+        security: [['XAppKey' => []]]
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Pong response',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'ok', type: 'boolean'),
+                new OA\Property(property: 'timestamp', type: 'string'),
+                new OA\Property(property: 'tenant', type: 'object', nullable: true)
+            ]
+        )
+    )]
     public function ping(Request $request): JsonResponse
     {
         $tenant = $request->attributes->get('tenant');
@@ -37,15 +47,30 @@ class ContentController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Get(
-     *     path="/v1/home-layout",
-     *     tags={"Content"},
-     *     security={{"AppKey":{}}},
-     *     @OA\Parameter(name="id", in="query", description="Category handle", @OA\Schema(type="string")),
-     *     @OA\Response(response=200, description="Home layout data")
-     * )
-     */
+    #[OA\Get(
+        path: '/v1/home-layout',
+        tags: ['Content'],
+        summary: 'Get home layout for a category',
+        security: [['XAppKey' => []]]
+    )]
+    #[OA\Parameter(
+        name: 'id',
+        in: 'query',
+        required: false,
+        description: 'Category handle',
+        schema: new OA\Schema(type: 'string')
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Layout data',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'ok', type: 'boolean'),
+                new OA\Property(property: 'layout', type: 'object')
+            ]
+        )
+    )]
+    #[OA\Response(response: 404, description: 'Tenant not resolved')]
     public function homeLayout(Request $request): JsonResponse
     {
         $tenant = $request->attributes->get('tenant');
@@ -97,14 +122,23 @@ class ContentController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Get(
-     *     path="/v1/introduction",
-     *     tags={"Content"},
-     *     security={{"AppKey":{}}},
-     *     @OA\Response(response=200, description="Introduction config")
-     * )
-     */
+    #[OA\Get(
+        path: '/v1/introduction',
+        tags: ['Content'],
+        summary: 'Get introduction configuration',
+        security: [['XAppKey' => []]]
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Introduction config',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'ok', type: 'boolean'),
+                new OA\Property(property: 'introduction', type: 'object')
+            ]
+        )
+    )]
+    #[OA\Response(response: 404, description: 'Tenant not resolved')]
     public function introduction(Request $request): JsonResponse
     {
         $tenant = $request->attributes->get('tenant');
@@ -122,14 +156,23 @@ class ContentController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Get(
-     *     path="/v1/app-config",
-     *     tags={"Content"},
-     *     security={{"AppKey":{}}},
-     *     @OA\Response(response=200, description="App configuration")
-     * )
-     */
+    #[OA\Get(
+        path: '/v1/app-config',
+        tags: ['Content'],
+        summary: 'Get app configuration',
+        security: [['XAppKey' => []]]
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'App config',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'ok', type: 'boolean'),
+                new OA\Property(property: 'config', type: 'object')
+            ]
+        )
+    )]
+    #[OA\Response(response: 404, description: 'Tenant not resolved')]
     public function appConfig(Request $request): JsonResponse
     {
         $tenant = $request->attributes->get('tenant');

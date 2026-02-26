@@ -8,6 +8,7 @@ use App\Services\Cart\CartService;
 use App\Services\Shopify\ShopifyStorefrontService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use OpenApi\Attributes as OA;
 
 class CheckoutController extends Controller
 {
@@ -16,6 +17,44 @@ class CheckoutController extends Controller
         private ShopifyStorefrontService $shopifyService
     ) {}
 
+    #[OA\Post(
+        path: '/v1/checkout/create',
+        tags: ['Checkout'],
+        summary: 'Create Shopify checkout',
+        security: [['XAppKey' => []]]
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['line_items'],
+            properties: [
+                new OA\Property(
+                    property: 'line_items',
+                    type: 'array',
+                    items: new OA\Items(
+                        required: ['variant_id', 'quantity'],
+                        properties: [
+                            new OA\Property(property: 'variant_id', type: 'string'),
+                            new OA\Property(property: 'quantity', type: 'integer', minimum: 1)
+                        ]
+                    )
+                )
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Checkout created successfully',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'ok', type: 'boolean'),
+                new OA\Property(property: 'checkout_id', type: 'string'),
+                new OA\Property(property: 'checkout_url', type: 'string'),
+                new OA\Property(property: 'is_authenticated', type: 'boolean')
+            ]
+        )
+    )]
+    #[OA\Response(response: 400, description: 'Bad request')]
     public function create(Request $request): JsonResponse
     {
         try {

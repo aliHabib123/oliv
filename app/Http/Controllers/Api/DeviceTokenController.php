@@ -7,9 +7,34 @@ use App\Models\DeviceToken;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use OpenApi\Attributes as OA;
 
 class DeviceTokenController extends Controller
 {
+    #[OA\Post(
+        path: '/v1/device-tokens/register',
+        tags: ['Device Tokens'],
+        summary: 'Register device push token',
+        security: [['XAppKey' => []]]
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['push_token'],
+            properties: [
+                new OA\Property(property: 'push_token', type: 'string'),
+                new OA\Property(property: 'user_id', type: 'integer', nullable: true),
+                new OA\Property(property: 'provider', type: 'string', enum: ['onesignal', 'firebase'], nullable: true),
+                new OA\Property(property: 'device_type', type: 'string', nullable: true),
+                new OA\Property(property: 'platform', type: 'string', enum: ['ios', 'android'], nullable: true),
+                new OA\Property(property: 'app_version', type: 'string', nullable: true),
+                new OA\Property(property: 'metadata', type: 'object', nullable: true)
+            ]
+        )
+    )]
+    #[OA\Response(response: 201, description: 'Device token registered')]
+    #[OA\Response(response: 400, description: 'Tenant not found')]
+    #[OA\Response(response: 422, description: 'Validation failed')]
     public function register(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -70,6 +95,24 @@ class DeviceTokenController extends Controller
         }
     }
 
+    #[OA\Post(
+        path: '/v1/device-tokens/unregister',
+        tags: ['Device Tokens'],
+        summary: 'Unregister device push token',
+        security: [['XAppKey' => []]]
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['push_token'],
+            properties: [
+                new OA\Property(property: 'push_token', type: 'string')
+            ]
+        )
+    )]
+    #[OA\Response(response: 200, description: 'Device token unregistered')]
+    #[OA\Response(response: 400, description: 'Tenant not found')]
+    #[OA\Response(response: 422, description: 'Validation failed')]
     public function unregister(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
