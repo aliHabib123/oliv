@@ -75,7 +75,36 @@ X-App-Key: required
 
 ---
 
-### 2. Get Tenant Addons
+### 2. Get Payment Settings
+
+Get Shopify payment settings including accepted card brands, currency, and supported digital wallets.
+
+**Endpoint:** `GET /v1/payment-settings`
+
+**Headers:**
+```
+X-App-Key: required
+```
+
+**Response:**
+```json
+{
+  "ok": true,
+  "payment_settings": {
+    "acceptedCardBrands": ["VISA", "MASTERCARD", "AMEX"],
+    "cardVaultUrl": "https://vault.shopify.com/...",
+    "countryCode": "US",
+    "currencyCode": "USD",
+    "enabledPresentmentCurrencies": ["USD", "EUR"],
+    "shopifyPaymentsAccountId": "gid://shopify/ShopifyPaymentsAccount/12345",
+    "supportedDigitalWallets": ["APPLE_PAY", "GOOGLE_PAY"]
+  }
+}
+```
+
+---
+
+### 3. Get Tenant Addons
 
 Get list of active addons subscribed by the tenant with their keys for feature checking.
 
@@ -124,7 +153,7 @@ if (hasWhatsApp) {
 
 ---
 
-### 3. Get Introduction Page
+### 4. Get Introduction Page
 
 Get introduction/onboarding page content with banner, title, and features.
 
@@ -164,7 +193,7 @@ X-App-Key: required
 
 ---
 
-### 3. Get Home Layout
+### 5. Get Home Layout
 
 Get home page layout with banner, blocks, and featured content.
 

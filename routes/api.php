@@ -10,6 +10,7 @@ Route::middleware(ResolveTenantFromAppKey::class)->group(function () {
     Route::get('v1/home-layout', [ContentController::class, 'homeLayout']);
     Route::get('v1/introduction', [ContentController::class, 'introduction']);
     Route::get('v1/app-config', [ContentController::class, 'appConfig']);
+    Route::get('v1/payment-settings', [ContentController::class, 'paymentSettings']);
 
     // Product helper endpoints
     Route::get('v1/products/{productId}/default-variant', [App\Http\Controllers\Api\ProductController::class, 'getDefaultVariant']);

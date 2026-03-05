@@ -9,6 +9,7 @@ use App\Http\Resources\IntroductionResource;
 use App\Models\AppConfiguration;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Services\Shopify\ShopifyStorefrontService;
 use Illuminate\Support\Facades\Cache;
 
 class ContentController extends Controller
@@ -112,6 +113,30 @@ class ContentController extends Controller
         return response()->json([
             'ok' => true,
             'config' => new AppConfigResource($config?->config ?? []),
+        ]);
+    }
+
+    public function paymentSettings(Request $request): JsonResponse
+    {
+        $tenant = $request->attributes->get('tenant');
+
+        if (!$tenant) {
+            return response()->json([
+                'ok' => false,
+                'error' => 'Tenant not resolved.',
+            ], 404);
+        }
+
+        $cacheKey = "payment_settings:{$tenant->id}";
+
+        $paymentSettings = Cache::remember($cacheKey, 3600, function () use ($tenant) {
+            $shopifyService = new ShopifyStorefrontService();
+            return $shopifyService->getPaymentSettings($tenant);
+        });
+
+        return response()->json([
+            'ok' => true,
+            'payment_settings' => $paymentSettings,
         ]);
     }
 }
