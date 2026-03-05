@@ -1094,6 +1094,34 @@ class ShopifyStorefrontService
     }
 
     /**
+     * Get shop payment settings.
+     *
+     * @return array<string, mixed>
+     */
+    public function getPaymentSettings(Tenant $tenant): array
+    {
+        $query = <<<'GRAPHQL'
+            query GetPaymentSettings {
+                shop {
+                    paymentSettings {
+                        acceptedCardBrands
+                        cardVaultUrl
+                        countryCode
+                        currencyCode
+                        enabledPresentmentCurrencies
+                        shopifyPaymentsAccountId
+                        supportedDigitalWallets
+                    }
+                }
+            }
+        GRAPHQL;
+
+        $response = $this->graphql($tenant, $query);
+
+        return $response['data']['shop']['paymentSettings'] ?? [];
+    }
+
+    /**
      * Extract collection handle from Shopify URL.
      *
      * @param string $url
