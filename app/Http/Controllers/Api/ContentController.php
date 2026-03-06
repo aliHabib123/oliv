@@ -14,6 +14,14 @@ use Illuminate\Support\Facades\Cache;
 
 class ContentController extends Controller
 {
+    /**
+     * @OA\Get(
+     *     path="/v1/ping",
+     *     tags={"Content"},
+     *     security={{"AppKey":{}}},
+     *     @OA\Response(response=200, description="Ping successful")
+     * )
+     */
     public function ping(Request $request): JsonResponse
     {
         $tenant = $request->attributes->get('tenant');
@@ -29,6 +37,15 @@ class ContentController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/v1/home-layout",
+     *     tags={"Content"},
+     *     security={{"AppKey":{}}},
+     *     @OA\Parameter(name="id", in="query", description="Category handle", @OA\Schema(type="string")),
+     *     @OA\Response(response=200, description="Home layout data")
+     * )
+     */
     public function homeLayout(Request $request): JsonResponse
     {
         $tenant = $request->attributes->get('tenant');
@@ -80,6 +97,14 @@ class ContentController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/v1/introduction",
+     *     tags={"Content"},
+     *     security={{"AppKey":{}}},
+     *     @OA\Response(response=200, description="Introduction config")
+     * )
+     */
     public function introduction(Request $request): JsonResponse
     {
         $tenant = $request->attributes->get('tenant');
@@ -97,6 +122,14 @@ class ContentController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/v1/app-config",
+     *     tags={"Content"},
+     *     security={{"AppKey":{}}},
+     *     @OA\Response(response=200, description="App configuration")
+     * )
+     */
     public function appConfig(Request $request): JsonResponse
     {
         $tenant = $request->attributes->get('tenant');
@@ -116,6 +149,14 @@ class ContentController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/v1/payment-settings",
+     *     tags={"Content"},
+     *     security={{"AppKey":{}}},
+     *     @OA\Response(response=200, description="Payment settings")
+     * )
+     */
     public function paymentSettings(Request $request): JsonResponse
     {
         $tenant = $request->attributes->get('tenant');
