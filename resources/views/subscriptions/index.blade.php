@@ -109,19 +109,22 @@
                             @if($addons->count() > 0)
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     @foreach($addons as $addon)
+                                        @php
+                                            $addonPrice = $addonPricing[$addon->id]['price'] ?? $addon->price;
+                                        @endphp
                                         <div class="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition relative">
                                             <div class="flex justify-between items-start mb-3">
                                                 <div class="flex-1">
                                                     <h3 class="font-semibold text-gray-900 mb-1">{{ $addon->name }}</h3>
                                                     <p class="text-sm text-gray-600 mb-2">{{ $addon->subtitle ?? $addon->description }}</p>
-                                                    <p class="text-sm font-medium text-gray-900">{{ $currencySymbol }} {{ number_format($addon->price, 0) }}/month</p>
+                                                    <p class="text-sm font-medium text-gray-900">{{ $currencySymbol }} {{ number_format($addonPrice, 2) }}/month</p>
                                                 </div>
-                                                <button type="button" onclick="toggleAddon({{ $addon->id }}, {{ $addon->price }})"
+                                                <button type="button" onclick="toggleAddon({{ $addon->id }}, {{ $addonPrice }})"
                                                         id="addon-toggle-{{ $addon->id }}"
                                                         class="addon-toggle relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ml-4"
                                                         style="background-color: #e5e7eb;"
                                                         data-addon-id="{{ $addon->id }}"
-                                                        data-addon-price="{{ $addon->price }}"
+                                                        data-addon-price="{{ $addonPrice }}"
                                                         data-addon-name="{{ $addon->name }}">
                                                     <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1"></span>
                                                 </button>
@@ -312,9 +315,12 @@
         const addonNames = {};
         const addonDetails = {};
 
-        // Initialize addon data
+        // Initialize addon data with country-specific pricing
         @foreach($addons as $addon)
-            addonPrices[{{ $addon->id }}] = {{ $addon->price }};
+            @php
+                $addonPrice = $addonPricing[$addon->id]['price'] ?? $addon->price;
+            @endphp
+            addonPrices[{{ $addon->id }}] = {{ $addonPrice }};
             addonNames[{{ $addon->id }}] = '{{ $addon->name }}';
             addonDetails[{{ $addon->id }}] = {
                 name: '{{ addslashes($addon->name) }}',
@@ -322,7 +328,7 @@
                 description: {!! json_encode($addon->description) !!},
                 image: '{{ $addon->image }}',
                 video: '{{ $addon->video }}',
-                price: {{ $addon->price }}
+                price: {{ $addonPrice }}
             };
         @endforeach
 

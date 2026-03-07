@@ -96,14 +96,11 @@ class CountryPricingService
     {
         $addons = Addon::where('is_active', true)->get();
 
-        return $addons->map(function ($addon) use ($countryCode, $billingPeriod) {
+        return $addons->mapWithKeys(function ($addon) use ($countryCode, $billingPeriod) {
             $pricing = $this->getAddonPricing($addon->id, $countryCode, $billingPeriod);
-            
-            return [
-                'addon' => $addon,
-                'pricing' => $pricing,
-            ];
-        });
+
+            return [$addon->id => $pricing];
+        })->toArray();
     }
 
     /**
@@ -114,7 +111,7 @@ class CountryPricingService
         $yearlyPrice = $monthlyPrice * 12;
         $discountPercentage = 30; // 30% discount for yearly
         $discountedYearlyPrice = $yearlyPrice * (1 - $discountPercentage / 100);
-        
+
         return [
             'monthly_total' => $yearlyPrice,
             'yearly_price' => $discountedYearlyPrice,
