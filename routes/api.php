@@ -31,6 +31,9 @@ Route::middleware(ResolveTenantFromAppKey::class)->group(function () {
     // Checkout endpoints
     Route::post('v1/checkout/create', [App\Http\Controllers\Api\CheckoutController::class, 'create']);
 
+    // Payment endpoints
+    Route::post('v1/pay', [App\Http\Controllers\Api\PaymentController::class, 'pay']);
+
     // Shopify Webhooks
     Route::post('webhooks/shopify/checkouts/create', [App\Http\Controllers\Api\ShopifyWebhookController::class, 'checkoutCreate']);
     Route::post('webhooks/shopify/checkouts/update', [App\Http\Controllers\Api\ShopifyWebhookController::class, 'checkoutUpdate']);
