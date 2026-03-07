@@ -29,9 +29,29 @@
 
             @php
                 $package = $packages->first();
-                $monthlyPrice = 1299;
-                $yearlyPrice = 10999;
+                $monthlyPrice = $packagePricing ? $packagePricing['price'] : 12.99;
+                $yearlyPricing = $country ? app(\App\Services\CountryPricingService::class)->getPackagePricing($currentCountry, 'yearly') : null;
+                $yearlyPrice = $yearlyPricing ? $yearlyPricing['price'] : 109.99;
             @endphp
+
+            <!-- Country Selector -->
+            <div class="mb-6 bg-white rounded-lg shadow-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-1">Select Your Region</h3>
+                        <p class="text-sm text-gray-600">Pricing will be shown in your local currency</p>
+                    </div>
+                    <div class="w-64">
+                        <select id="country-selector" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B98B69] focus:border-transparent">
+                            @foreach($countries as $c)
+                                <option value="{{ $c->code }}" {{ $c->code === $currentCountry ? 'selected' : '' }}>
+                                    {{ $c->name }} ({{ $c->symbol }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            </div>
 
             <!-- Promotional Banner -->
             <div class="mb-6 p-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
@@ -162,6 +182,7 @@
                     <input type="hidden" name="package_id" value="{{ $package->id ?? '' }}">
                     <input type="hidden" name="billing_period" id="billing_period_input" value="monthly">
                     <input type="hidden" name="selected_addons" id="selected_addons_input" value="">
+                    <input type="hidden" name="pricing_country" id="pricing_country_input" value="{{ $currentCountry }}">
 
                     <div class="space-y-4">
                         <div>
@@ -470,6 +491,33 @@
             }
             return url;
         }
+
+        // Country selector handler
+        document.getElementById('country-selector').addEventListener('change', function(e) {
+            const country = e.target.value;
+            const pricingCountryInput = document.getElementById('pricing_country_input');
+            pricingCountryInput.value = country;
+
+            // Send AJAX request to update session
+            fetch('{{ route('subscriptions.set-country') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ country: country })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload page to get updated pricing
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error updating country:', error);
+            });
+        });
 
         // Close modal on Escape key
         document.addEventListener('keydown', function(event) {

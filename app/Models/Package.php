@@ -26,4 +26,14 @@ class Package extends Model
     {
         return $this->hasMany(Subscription::class);
     }
+
+    /**
+     * Get pricing for specific country
+     */
+    public function getPricingForCountry(string $countryCode): ?PackagePricing
+    {
+        return PackagePricing::where('country_code', $countryCode)
+            ->where('is_active', true)
+            ->first();
+    }
 }

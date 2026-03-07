@@ -34,4 +34,20 @@ class Addon extends Model
     {
         return $this->hasMany(TenantAddon::class);
     }
+
+    public function countryPricing(): HasMany
+    {
+        return $this->hasMany(AddonPricing::class);
+    }
+
+    /**
+     * Get pricing for specific country
+     */
+    public function getPricingForCountry(string $countryCode): ?AddonPricing
+    {
+        return $this->countryPricing()
+            ->where('country_code', $countryCode)
+            ->where('is_active', true)
+            ->first();
+    }
 }

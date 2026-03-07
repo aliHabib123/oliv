@@ -6,6 +6,7 @@ use App\Models\Package;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\Subscription;
+use App\Services\CountryPricingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -17,6 +18,10 @@ use Stripe\Checkout\Session as StripeSession;
 
 class SubscriptionController extends Controller
 {
+    public function __construct(
+        private CountryPricingService $pricingService
+    ) {}
+
     public function index()
     {
         $packages = Package::where('is_active', true)
@@ -24,9 +29,52 @@ class SubscriptionController extends Controller
             ->get();
 
         $addons = \App\Models\Addon::where('is_active', true)->get();
-        $currencySymbol = config('services.stripe.currency_symbol', 'AED');
 
-        return view('subscriptions.index', compact('packages', 'addons', 'currencySymbol'));
+        // Get current country from session or default to US
+        $currentCountry = $this->pricingService->getCurrentCountry();
+        $countries = $this->pricingService->getActiveCountries();
+        $country = $this->pricingService->getCountry($currentCountry);
+
+        // Get package pricing for current country
+        $packagePricing = $this->pricingService->getPackagePricing($currentCountry, 'monthly');
+
+        // Get addon pricing for current country
+        $addonPricing = $this->pricingService->getAddonsWithPricing($currentCountry, 'monthly');
+
+        // Currency symbol for backward compatibility
+        $currencySymbol = $country ? $country->symbol : '$';
+
+        return view('subscriptions.index', compact(
+            'packages',
+            'addons',
+            'countries',
+            'currentCountry',
+            'country',
+            'packagePricing',
+            'addonPricing',
+            'currencySymbol'
+        ));
+    }
+
+    /**
+     * Set country in session (AJAX endpoint)
+     */
+    public function setCountry(Request $request)
+    {
+        $validated = $request->validate([
+            'country' => 'required|string|size:2',
+        ]);
+
+        if (!$this->pricingService->isValidCountry($validated['country'])) {
+            return response()->json(['error' => 'Invalid country'], 400);
+        }
+
+        $this->pricingService->setCountry($validated['country']);
+
+        return response()->json([
+            'success' => true,
+            'country' => $validated['country'],
+        ]);
     }
 
     public function subscribe(Request $request)
@@ -42,7 +90,13 @@ class SubscriptionController extends Controller
             'password' => 'required|string|min:8',
             'billing_period' => 'required|in:monthly,yearly',
             'selected_addons' => 'nullable|string',
+            'pricing_country' => 'required|string|size:2', // Country code for pricing
         ]);
+
+        // Validate pricing country exists
+        if (!$this->pricingService->isValidCountry($validated['pricing_country'])) {
+            return back()->withErrors(['pricing_country' => 'Invalid country selected']);
+        }
 
         try {
             DB::beginTransaction();
@@ -78,6 +132,7 @@ class SubscriptionController extends Controller
                 'tenant_id' => $tenant->id,
                 'package_id' => $validated['package_id'],
                 'billing_period' => $validated['billing_period'],
+                'country_code' => $validated['pricing_country'],
                 'selected_addons' => json_encode($selectedAddons),
                 'status' => 'pending_payment',
                 'subscribed_at' => now(),
@@ -110,17 +165,17 @@ class SubscriptionController extends Controller
         try {
             Stripe::setApiKey(config('services.stripe.secret'));
 
-            // Calculate pricing based on billing period
-            $basePrice = 1299;
-            $yearlyPrice = 10999;
-            $interval = $subscription->billing_period === 'yearly' ? 'year' : 'month';
+            // Get country-specific pricing
+            $countryCode = $subscription->country_code ?? 'US';
+            $packagePricing = $this->pricingService->getPackagePricing($countryCode, $subscription->billing_period);
 
-            // For yearly, use fixed annual pricing (regardless of displayed discount)
-            if ($subscription->billing_period === 'yearly') {
-                $unitAmount = $yearlyPrice * 100;
-            } else {
-                $unitAmount = $basePrice * 100;
+            if (!$packagePricing) {
+                return back()->withErrors(['error' => 'Pricing not available for selected country']);
             }
+
+            $interval = $subscription->billing_period === 'yearly' ? 'year' : 'month';
+            $unitAmount = (int)($packagePricing['price'] * 100); // Convert to cents
+            $currency = strtolower($packagePricing['currency']);
 
             // Build line items array starting with the subscription package
             $packageName = $subscription->package->name;
@@ -133,7 +188,7 @@ class SubscriptionController extends Controller
 
             $lineItems = [[
                 'price_data' => [
-                    'currency' => config('services.stripe.currency', 'aed'),
+                    'currency' => $currency,
                     'product_data' => [
                         'name' => $packageName,
                         'description' => $packageDescription,
@@ -149,14 +204,16 @@ class SubscriptionController extends Controller
             // Add selected addons to line items
             $selectedAddons = json_decode($subscription->selected_addons, true) ?? [];
             if (!empty($selectedAddons)) {
-                $addons = \App\Models\Addon::whereIn('id', $selectedAddons)->get();
-                foreach ($addons as $addon) {
-                    $addonAmount = $subscription->billing_period === 'yearly'
-                        ? $addon->price * 12 * 100
-                        : $addon->price * 100;
+                foreach ($selectedAddons as $addonId) {
+                    $addonPricing = $this->pricingService->getAddonPricing($addonId, $countryCode, $subscription->billing_period);
 
-                    $addonName = $addon->name;
-                    $addonDescription = $addon->description;
+                    if (!$addonPricing) {
+                        continue; // Skip if pricing not available
+                    }
+
+                    $addonAmount = (int)($addonPricing['price'] * 100); // Convert to cents
+                    $addonName = $addonPricing['addon']->name;
+                    $addonDescription = $addonPricing['addon']->description;
 
                     if ($subscription->billing_period === 'yearly') {
                         $addonName .= ' (Annual)';
@@ -165,7 +222,7 @@ class SubscriptionController extends Controller
 
                     $lineItems[] = [
                         'price_data' => [
-                            'currency' => config('services.stripe.currency', 'aed'),
+                            'currency' => $currency,
                             'product_data' => [
                                 'name' => $addonName,
                                 'description' => $addonDescription,
@@ -196,11 +253,23 @@ class SubscriptionController extends Controller
                 ],
             ]);
 
+            // Get country and addon pricing for display
+            $country = $this->pricingService->getCountry($countryCode);
+            $addonPricingData = [];
+            if (!empty($selectedAddons)) {
+                foreach ($selectedAddons as $addonId) {
+                    $addonPricingData[$addonId] = $this->pricingService->getAddonPricing($addonId, $countryCode, $subscription->billing_period);
+                }
+            }
+
             return view('subscriptions.payment', [
                 'tenant' => $tenant,
                 'subscription' => $subscription,
                 'checkoutSessionId' => $checkoutSession->id,
                 'stripePublicKey' => config('services.stripe.key'),
+                'country' => $country,
+                'packagePricing' => $packagePricing,
+                'addonPricingData' => $addonPricingData,
             ]);
 
         } catch (\Exception $e) {
