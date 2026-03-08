@@ -27,7 +27,7 @@ class HomeLayout extends Page
 
     protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static string | UnitEnum | null $navigationGroup = 'App Settings';
+    protected static string | UnitEnum | null $navigationGroup = 'Content';
 
     protected static ?string $navigationLabel = 'Home layout';
 
