@@ -26,7 +26,7 @@ class Introduction extends Page implements HasForms
 
     protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-sparkles';
 
-    protected static string | UnitEnum | null $navigationGroup = 'App Settings';
+    protected static string | UnitEnum | null $navigationGroup = 'Content';
 
     protected static ?string $navigationLabel = 'Introduction';
 
