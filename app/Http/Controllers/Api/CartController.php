@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\Cart\CartService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use OpenApi\Attributes as OA;
 
 class CartController extends Controller
 {
@@ -13,6 +14,35 @@ class CartController extends Controller
         private CartService $cartService
     ) {}
 
+    #[OA\Post(
+        path: '/v1/cart/add',
+        tags: ['Cart'],
+        summary: 'Add item to cart',
+        security: [['XAppKey' => []]]
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['product_id', 'variant_id'],
+            properties: [
+                new OA\Property(property: 'product_id', type: 'string'),
+                new OA\Property(property: 'variant_id', type: 'string'),
+                new OA\Property(property: 'quantity', type: 'integer', minimum: 1, default: 1),
+                new OA\Property(property: 'attributes', type: 'object', nullable: true)
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Item added to cart',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'ok', type: 'boolean'),
+                new OA\Property(property: 'cart', type: 'object')
+            ]
+        )
+    )]
+    #[OA\Response(response: 400, description: 'Bad request')]
     public function add(Request $request): JsonResponse
     {
         try {
@@ -51,6 +81,32 @@ class CartController extends Controller
         }
     }
 
+    #[OA\Post(
+        path: '/v1/cart/remove',
+        tags: ['Cart'],
+        summary: 'Remove item from cart',
+        security: [['XAppKey' => []]]
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['line_id'],
+            properties: [
+                new OA\Property(property: 'line_id', type: 'string')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Item removed from cart',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'ok', type: 'boolean'),
+                new OA\Property(property: 'cart', type: 'object')
+            ]
+        )
+    )]
+    #[OA\Response(response: 400, description: 'Bad request')]
     public function remove(Request $request): JsonResponse
     {
         try {
@@ -83,6 +139,33 @@ class CartController extends Controller
         }
     }
 
+    #[OA\Post(
+        path: '/v1/cart/update',
+        tags: ['Cart'],
+        summary: 'Update cart item quantity',
+        security: [['XAppKey' => []]]
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['line_id', 'quantity'],
+            properties: [
+                new OA\Property(property: 'line_id', type: 'string'),
+                new OA\Property(property: 'quantity', type: 'integer', minimum: 0)
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Cart item updated',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'ok', type: 'boolean'),
+                new OA\Property(property: 'cart', type: 'object')
+            ]
+        )
+    )]
+    #[OA\Response(response: 400, description: 'Bad request')]
     public function update(Request $request): JsonResponse
     {
         try {
@@ -117,6 +200,23 @@ class CartController extends Controller
         }
     }
 
+    #[OA\Get(
+        path: '/v1/cart',
+        tags: ['Cart'],
+        summary: 'Get current cart',
+        security: [['XAppKey' => []]]
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Current cart data',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'ok', type: 'boolean'),
+                new OA\Property(property: 'cart', type: 'object')
+            ]
+        )
+    )]
+    #[OA\Response(response: 400, description: 'Bad request')]
     public function get(Request $request): JsonResponse
     {
         try {

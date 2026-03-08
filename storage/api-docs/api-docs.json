@@ -1,0 +1,751 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Oliv API",
+        "description": "API for Oliv mobile app",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/api",
+            "description": "API Base URL"
+        }
+    ],
+    "paths": {
+        "/v1/addons": {
+            "get": {
+                "tags": [
+                    "Addons"
+                ],
+                "summary": "Get active tenant addons",
+                "operationId": "15578cb8aac8db33331cdee54b2e4a20",
+                "responses": {
+                    "200": {
+                        "description": "List of active addons",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ok": {
+                                            "type": "boolean"
+                                        },
+                                        "addons": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "key": {
+                                                        "type": "string"
+                                                    },
+                                                    "description": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "price": {
+                                                        "type": "number"
+                                                    },
+                                                    "subscribed_at": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "expires_at": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Tenant not found"
+                    }
+                },
+                "security": [
+                    {
+                        "XAppKey": []
+                    }
+                ]
+            }
+        },
+        "/v1/cart/add": {
+            "post": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Add item to cart",
+                "operationId": "1533789d8711282757c4069a9c06f4ad",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "product_id",
+                                    "variant_id"
+                                ],
+                                "properties": {
+                                    "product_id": {
+                                        "type": "string"
+                                    },
+                                    "variant_id": {
+                                        "type": "string"
+                                    },
+                                    "quantity": {
+                                        "type": "integer",
+                                        "default": 1,
+                                        "minimum": 1
+                                    },
+                                    "attributes": {
+                                        "type": "object",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Item added to cart",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ok": {
+                                            "type": "boolean"
+                                        },
+                                        "cart": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    }
+                },
+                "security": [
+                    {
+                        "XAppKey": []
+                    }
+                ]
+            }
+        },
+        "/v1/cart/remove": {
+            "post": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Remove item from cart",
+                "operationId": "36e1caec4adbe305e46afc0584a88e51",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "line_id"
+                                ],
+                                "properties": {
+                                    "line_id": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Item removed from cart",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ok": {
+                                            "type": "boolean"
+                                        },
+                                        "cart": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    }
+                },
+                "security": [
+                    {
+                        "XAppKey": []
+                    }
+                ]
+            }
+        },
+        "/v1/cart/update": {
+            "post": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Update cart item quantity",
+                "operationId": "e4a6d53b697e18ea3822aad3a322ab71",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "line_id",
+                                    "quantity"
+                                ],
+                                "properties": {
+                                    "line_id": {
+                                        "type": "string"
+                                    },
+                                    "quantity": {
+                                        "type": "integer",
+                                        "minimum": 0
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cart item updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ok": {
+                                            "type": "boolean"
+                                        },
+                                        "cart": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    }
+                },
+                "security": [
+                    {
+                        "XAppKey": []
+                    }
+                ]
+            }
+        },
+        "/v1/cart": {
+            "get": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Get current cart",
+                "operationId": "702aab2d7be8bdccd11b5e2c5abd1c73",
+                "responses": {
+                    "200": {
+                        "description": "Current cart data",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ok": {
+                                            "type": "boolean"
+                                        },
+                                        "cart": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    }
+                },
+                "security": [
+                    {
+                        "XAppKey": []
+                    }
+                ]
+            }
+        },
+        "/v1/checkout/create": {
+            "post": {
+                "tags": [
+                    "Checkout"
+                ],
+                "summary": "Create Shopify checkout",
+                "operationId": "c1d2a5635ae3f88ba0f9d8cfc556b264",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "line_items"
+                                ],
+                                "properties": {
+                                    "line_items": {
+                                        "type": "array",
+                                        "items": {
+                                            "required": [
+                                                "variant_id",
+                                                "quantity"
+                                            ],
+                                            "properties": {
+                                                "variant_id": {
+                                                    "type": "string"
+                                                },
+                                                "quantity": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Checkout created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ok": {
+                                            "type": "boolean"
+                                        },
+                                        "checkout_id": {
+                                            "type": "string"
+                                        },
+                                        "checkout_url": {
+                                            "type": "string"
+                                        },
+                                        "is_authenticated": {
+                                            "type": "boolean"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    }
+                },
+                "security": [
+                    {
+                        "XAppKey": []
+                    }
+                ]
+            }
+        },
+        "/v1/ping": {
+            "get": {
+                "tags": [
+                    "Content"
+                ],
+                "summary": "Ping endpoint",
+                "operationId": "b7b086d74ab0ca4fd946467ff09d603b",
+                "responses": {
+                    "200": {
+                        "description": "Pong response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ok": {
+                                            "type": "boolean"
+                                        },
+                                        "timestamp": {
+                                            "type": "string"
+                                        },
+                                        "tenant": {
+                                            "type": "object",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "XAppKey": []
+                    }
+                ]
+            }
+        },
+        "/v1/home-layout": {
+            "get": {
+                "tags": [
+                    "Content"
+                ],
+                "summary": "Get home layout for a category",
+                "operationId": "4f7ff01d4cf8b70096f58966df44d701",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "description": "Category handle",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Layout data",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ok": {
+                                            "type": "boolean"
+                                        },
+                                        "layout": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Tenant not resolved"
+                    }
+                },
+                "security": [
+                    {
+                        "XAppKey": []
+                    }
+                ]
+            }
+        },
+        "/v1/introduction": {
+            "get": {
+                "tags": [
+                    "Content"
+                ],
+                "summary": "Get introduction configuration",
+                "operationId": "31d597efef19cfa0e80a3ba62a24aeea",
+                "responses": {
+                    "200": {
+                        "description": "Introduction config",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ok": {
+                                            "type": "boolean"
+                                        },
+                                        "introduction": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Tenant not resolved"
+                    }
+                },
+                "security": [
+                    {
+                        "XAppKey": []
+                    }
+                ]
+            }
+        },
+        "/v1/app-config": {
+            "get": {
+                "tags": [
+                    "Content"
+                ],
+                "summary": "Get app configuration",
+                "operationId": "d387698f93ec6e0040ce01680898701e",
+                "responses": {
+                    "200": {
+                        "description": "App config",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ok": {
+                                            "type": "boolean"
+                                        },
+                                        "config": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Tenant not resolved"
+                    }
+                },
+                "security": [
+                    {
+                        "XAppKey": []
+                    }
+                ]
+            }
+        },
+        "/v1/device-tokens/register": {
+            "post": {
+                "tags": [
+                    "Device Tokens"
+                ],
+                "summary": "Register device push token",
+                "operationId": "7f684530b24cee91176acd5c9e820aa4",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "push_token"
+                                ],
+                                "properties": {
+                                    "push_token": {
+                                        "type": "string"
+                                    },
+                                    "user_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "provider": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "enum": [
+                                            "onesignal",
+                                            "firebase"
+                                        ]
+                                    },
+                                    "device_type": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "platform": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "enum": [
+                                            "ios",
+                                            "android"
+                                        ]
+                                    },
+                                    "app_version": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "metadata": {
+                                        "type": "object",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Device token registered"
+                    },
+                    "400": {
+                        "description": "Tenant not found"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "security": [
+                    {
+                        "XAppKey": []
+                    }
+                ]
+            }
+        },
+        "/v1/device-tokens/unregister": {
+            "post": {
+                "tags": [
+                    "Device Tokens"
+                ],
+                "summary": "Unregister device push token",
+                "operationId": "0d1286cf38115be82f527ef55d11fc1b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "push_token"
+                                ],
+                                "properties": {
+                                    "push_token": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Device token unregistered"
+                    },
+                    "400": {
+                        "description": "Tenant not found"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "security": [
+                    {
+                        "XAppKey": []
+                    }
+                ]
+            }
+        },
+        "/v1/products/{productId}/default-variant": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Get product default variant",
+                "operationId": "53180d43679b6764aa329aacebf93356",
+                "parameters": [
+                    {
+                        "name": "productId",
+                        "in": "path",
+                        "description": "Product ID (numeric or GID format)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product variant details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ok": {
+                                            "type": "boolean"
+                                        },
+                                        "product_id": {
+                                            "type": "string"
+                                        },
+                                        "variant": {
+                                            "type": "object"
+                                        },
+                                        "all_variants": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Product or tenant not found"
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    }
+                },
+                "security": [
+                    {
+                        "XAppKey": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "XAppKey": {
+                "type": "apiKey",
+                "description": "Tenant public key (generated during registration)",
+                "name": "X-App-Key",
+                "in": "header"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Addons",
+            "description": "Addons"
+        },
+        {
+            "name": "Cart",
+            "description": "Cart"
+        },
+        {
+            "name": "Checkout",
+            "description": "Checkout"
+        },
+        {
+            "name": "Content",
+            "description": "Content"
+        },
+        {
+            "name": "Device Tokens",
+            "description": "Device Tokens"
+        },
+        {
+            "name": "Products",
+            "description": "Products"
+        }
+    ]
+}

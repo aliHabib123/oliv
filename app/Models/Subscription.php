@@ -11,6 +11,7 @@ class Subscription extends Model
         'tenant_id',
         'package_id',
         'billing_period',
+        'country_code',
         'selected_addons',
         'status',
         'stripe_subscription_id',
@@ -31,5 +32,10 @@ class Subscription extends Model
     public function package(): BelongsTo
     {
         return $this->belongsTo(Package::class);
+    }
+
+    public function country(): BelongsTo
+    {
+        return $this->belongsTo(Country::class, 'country_code', 'code');
     }
 }

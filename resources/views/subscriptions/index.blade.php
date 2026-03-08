@@ -29,9 +29,29 @@
 
             @php
                 $package = $packages->first();
-                $monthlyPrice = 1299;
-                $yearlyPrice = 10999;
+                $monthlyPrice = $packagePricing ? $packagePricing['price'] : 12.99;
+                $yearlyPricing = $country ? app(\App\Services\CountryPricingService::class)->getPackagePricing($currentCountry, 'yearly') : null;
+                $yearlyPrice = $yearlyPricing ? $yearlyPricing['price'] : 109.99;
             @endphp
+
+            <!-- Country Selector -->
+            <div class="mb-6 bg-white rounded-lg shadow-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-1">Select Your Region</h3>
+                        <p class="text-sm text-gray-600">Pricing will be shown in your local currency</p>
+                    </div>
+                    <div class="w-64">
+                        <select id="country-selector" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B98B69] focus:border-transparent">
+                            @foreach($countries as $c)
+                                <option value="{{ $c->code }}" {{ $c->code === $currentCountry ? 'selected' : '' }}>
+                                    {{ $c->name }} ({{ $c->symbol }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            </div>
 
             <!-- Promotional Banner -->
             <div class="mb-6 p-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
@@ -89,19 +109,22 @@
                             @if($addons->count() > 0)
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     @foreach($addons as $addon)
+                                        @php
+                                            $addonPrice = $addonPricing[$addon->id]['price'] ?? $addon->price;
+                                        @endphp
                                         <div class="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition relative">
                                             <div class="flex justify-between items-start mb-3">
                                                 <div class="flex-1">
                                                     <h3 class="font-semibold text-gray-900 mb-1">{{ $addon->name }}</h3>
                                                     <p class="text-sm text-gray-600 mb-2">{{ $addon->subtitle ?? $addon->description }}</p>
-                                                    <p class="text-sm font-medium text-gray-900">{{ $currencySymbol }} {{ number_format($addon->price, 0) }}/month</p>
+                                                    <p class="text-sm font-medium text-gray-900">{{ $currencySymbol }} {{ number_format($addonPrice, 2) }}/month</p>
                                                 </div>
-                                                <button type="button" onclick="toggleAddon({{ $addon->id }}, {{ $addon->price }})"
+                                                <button type="button" onclick="toggleAddon({{ $addon->id }}, {{ $addonPrice }})"
                                                         id="addon-toggle-{{ $addon->id }}"
                                                         class="addon-toggle relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ml-4"
                                                         style="background-color: #e5e7eb;"
                                                         data-addon-id="{{ $addon->id }}"
-                                                        data-addon-price="{{ $addon->price }}"
+                                                        data-addon-price="{{ $addonPrice }}"
                                                         data-addon-name="{{ $addon->name }}">
                                                     <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1"></span>
                                                 </button>
@@ -162,6 +185,7 @@
                     <input type="hidden" name="package_id" value="{{ $package->id ?? '' }}">
                     <input type="hidden" name="billing_period" id="billing_period_input" value="monthly">
                     <input type="hidden" name="selected_addons" id="selected_addons_input" value="">
+                    <input type="hidden" name="pricing_country" id="pricing_country_input" value="{{ $currentCountry }}">
 
                     <div class="space-y-4">
                         <div>
@@ -291,9 +315,12 @@
         const addonNames = {};
         const addonDetails = {};
 
-        // Initialize addon data
+        // Initialize addon data with country-specific pricing
         @foreach($addons as $addon)
-            addonPrices[{{ $addon->id }}] = {{ $addon->price }};
+            @php
+                $addonPrice = $addonPricing[$addon->id]['price'] ?? $addon->price;
+            @endphp
+            addonPrices[{{ $addon->id }}] = {{ $addonPrice }};
             addonNames[{{ $addon->id }}] = '{{ $addon->name }}';
             addonDetails[{{ $addon->id }}] = {
                 name: '{{ addslashes($addon->name) }}',
@@ -301,7 +328,7 @@
                 description: {!! json_encode($addon->description) !!},
                 image: '{{ $addon->image }}',
                 video: '{{ $addon->video }}',
-                price: {{ $addon->price }}
+                price: {{ $addonPrice }}
             };
         @endforeach
 
@@ -470,6 +497,33 @@
             }
             return url;
         }
+
+        // Country selector handler
+        document.getElementById('country-selector').addEventListener('change', function(e) {
+            const country = e.target.value;
+            const pricingCountryInput = document.getElementById('pricing_country_input');
+            pricingCountryInput.value = country;
+
+            // Send AJAX request to update session
+            fetch('{{ route('subscriptions.set-country') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ country: country })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload page to get updated pricing
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error updating country:', error);
+            });
+        });
 
         // Close modal on Escape key
         document.addEventListener('keydown', function(event) {

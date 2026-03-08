@@ -44,10 +44,12 @@ class ShopifyStorefrontService
         }
 
         try {
-            $response = Http::withHeaders($headers)->post($endpoint, [
-                'query' => $query,
-                'variables' => $variables,
-            ]);
+            $response = Http::withHeaders($headers)
+                ->timeout(30)
+                ->post($endpoint, [
+                    'query' => $query,
+                    'variables' => $variables,
+                ]);
         } catch (\Throwable $exception) {
             Log::error('ShopifyStorefrontService: HTTP error when calling Storefront API', [
                 'tenant_id' => $tenant->id ?? null,

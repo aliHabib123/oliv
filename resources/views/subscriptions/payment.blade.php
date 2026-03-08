@@ -31,42 +31,58 @@
                     </div>
 
                     @php
-                        $currencySymbol = config('services.stripe.currency_symbol', 'AED');
-                        $monthlyPrice = 1299;
-                        $yearlyPrice = 10999;
+                        $currencySymbol = $country ? $country->symbol : '$';
                         $selectedAddons = json_decode($subscription->selected_addons, true) ?? [];
-                        $addons = \App\Models\Addon::whereIn('id', $selectedAddons)->get();
 
-                        // Calculate total based on billing period
+                        // Get monthly pricing for discount calculation (if yearly)
+                        $monthlyPricing = null;
                         if ($subscription->billing_period === 'yearly') {
-                            $packageTotal = $yearlyPrice;
-                            $addonsTotal = $addons->sum('price') * 12;
-                            $periodLabel = 'year';
-                        } else {
-                            $packageTotal = $monthlyPrice;
-                            $addonsTotal = $addons->sum('price');
-                            $periodLabel = 'month';
+                            $monthlyPricing = app(\App\Services\CountryPricingService::class)
+                                ->getPackagePricing($subscription->country_code ?? 'US', 'monthly');
                         }
+
+                        // Calculate total
+                        $packageTotal = $packagePricing['price'];
+                        $addonsTotal = 0;
+
+                        if (!empty($selectedAddons)) {
+                            foreach ($selectedAddons as $addonId) {
+                                if (isset($addonPricingData[$addonId])) {
+                                    $addonsTotal += $addonPricingData[$addonId]['price'];
+                                }
+                            }
+                        }
+
                         $total = $packageTotal + $addonsTotal;
+                        $periodLabel = $subscription->billing_period === 'yearly' ? 'year' : 'month';
                     @endphp
 
-                    @if($subscription->billing_period === 'yearly')
+                    @if($subscription->billing_period === 'yearly' && $monthlyPricing)
+                        @php
+                            $monthlyTotal = $monthlyPricing['price'] * 12;
+                            $discount = $monthlyTotal - $packagePricing['price'];
+                        @endphp
                         <div class="flex justify-between items-center mb-2">
                             <span class="text-gray-600 text-sm">Base (yearly):</span>
-                            <span class="text-gray-700">{{ $currencySymbol }} {{ number_format($monthlyPrice * 12, 0) }}</span>
+                            <span class="text-gray-700">{{ $currencySymbol }} {{ number_format($monthlyTotal, 2) }}</span>
                         </div>
                         <div class="flex justify-between items-center mb-2">
                             <span class="text-green-600 text-sm">Yearly discount (30%):</span>
-                            <span class="text-green-600">-{{ $currencySymbol }} {{ number_format(max(0, ($monthlyPrice * 12) - $yearlyPrice), 0) }}</span>
+                            <span class="text-green-600">-{{ $currencySymbol }} {{ number_format($discount, 2) }}</span>
                         </div>
                     @endif
 
-                    @if($addons->count() > 0)
-                        @foreach($addons as $addon)
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="text-gray-600 text-sm">{{ $addon->name }}:</span>
-                                <span class="text-gray-700">{{ $currencySymbol }} {{ number_format($subscription->billing_period === 'yearly' ? $addon->price * 12 : $addon->price, 0) }}</span>
-                            </div>
+                    @if(!empty($selectedAddons))
+                        @foreach($selectedAddons as $addonId)
+                            @if(isset($addonPricingData[$addonId]))
+                                @php
+                                    $addonData = $addonPricingData[$addonId];
+                                @endphp
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-gray-600 text-sm">{{ $addonData['addon']->name }}:</span>
+                                    <span class="text-gray-700">{{ $currencySymbol }} {{ number_format($addonData['price'], 2) }}</span>
+                                </div>
+                            @endif
                         @endforeach
                     @endif
 

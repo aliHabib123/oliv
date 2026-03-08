@@ -1,11 +1,12 @@
 <x-filament-panels::page>
-    @if($addons->isEmpty())
-        <x-filament::section>
-            <div class="text-center py-8">
-                <p class="text-gray-500">No add-ons available at the moment.</p>
-            </div>
-        </x-filament::section>
-    @else
+    <div>
+        @if($addons->isEmpty())
+            <x-filament::section>
+                <div class="text-center py-8">
+                    <p class="text-gray-500">No add-ons available at the moment.</p>
+                </div>
+            </x-filament::section>
+        @else
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
             @foreach($addons as $addon)
                 @php
@@ -110,6 +111,7 @@
         </div>
     </div>
 
+    @script
     <script>
         const addonDetails = {};
 
@@ -188,4 +190,6 @@
             }
         });
     </script>
+    @endscript
+    </div>
 </x-filament-panels::page>
