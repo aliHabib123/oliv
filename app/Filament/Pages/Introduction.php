@@ -38,6 +38,12 @@ class Introduction extends Page implements HasForms
 
     public ?Tenant $tenant = null;
 
+    // Tracks live uploaded banner (temp URL or saved path)
+    public ?string $liveBannerImage = null;
+
+    // Tracks live feature sections with icon URLs (temp or saved)
+    public array $liveFeatureSections = [];
+
     public $banner_image = null;
     public $welcome_title = null;
     public $welcome_text = null;
@@ -63,6 +69,23 @@ class Introduction extends Page implements HasForms
 
         $introConfig = $this->tenant->intro_config;
         $this->data = is_array($introConfig) ? $introConfig : [];
+
+        // Initialize liveBannerImage with existing saved image
+        if (isset($this->data['banner_image']) && is_string($this->data['banner_image'])) {
+            $this->liveBannerImage = $this->data['banner_image'];
+        }
+
+        // Initialize liveFeatureSections with existing saved sections
+        // Use array_values to ensure sequential arrays for proper JSON encoding
+        if (isset($this->data['feature_sections']) && is_array($this->data['feature_sections'])) {
+            $sections = array_values($this->data['feature_sections']);
+            foreach ($sections as &$section) {
+                if (isset($section['items']) && is_array($section['items'])) {
+                    $section['items'] = array_values($section['items']);
+                }
+            }
+            $this->liveFeatureSections = $sections;
+        }
 
         $this->form->fill($this->data);
     }
@@ -144,13 +167,24 @@ class Introduction extends Page implements HasForms
                 ->directory('introduction')
                 ->required()
                 ->live(onBlur: false)
-                ->afterStateUpdated(function (callable $get) {
-                    $this->dispatch('preview-updated', data: [
-                        'banner_image' => $get('banner_image'),
-                        'welcome_title' => $get('welcome_title'),
-                        'welcome_text' => $get('welcome_text'),
-                        'feature_sections' => $get('feature_sections'),
-                    ]);
+                ->afterStateUpdated(function ($state) {
+                    // Update live banner state
+                    if ($state === null) {
+                        $this->liveBannerImage = null;
+                    } elseif ($state instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
+                        try {
+                            $this->liveBannerImage = $state->temporaryUrl();
+                        } catch (\Exception $e) {
+                            $this->liveBannerImage = null;
+                        }
+                    } else {
+                        $this->liveBannerImage = is_string($state) ? $state : null;
+                    }
+
+                    // Dispatch with live banner
+                    $data = $this->data;
+                    $data['banner_image'] = $this->liveBannerImage;
+                    $this->dispatch('preview-updated', data: $data);
                 })
                 ->columnSpanFull(),
 
@@ -160,12 +194,12 @@ class Introduction extends Page implements HasForms
                 ->required()
                 ->default('WELCOME')
                 ->live(onBlur: false)
-                ->afterStateUpdated(function (callable $get) {
+                ->afterStateUpdated(function ($state, $get) {
                     $this->dispatch('preview-updated', data: [
-                        'banner_image' => $get('banner_image'),
-                        'welcome_title' => $get('welcome_title'),
+                        'banner_image' => $this->liveBannerImage,
+                        'welcome_title' => $state,
                         'welcome_text' => $get('welcome_text'),
-                        'feature_sections' => $get('feature_sections'),
+                        'feature_sections' => $this->liveFeatureSections,
                     ]);
                 }),
 
@@ -175,12 +209,12 @@ class Introduction extends Page implements HasForms
                 ->rows(4)
                 ->required()
                 ->live(onBlur: false)
-                ->afterStateUpdated(function (callable $get) {
+                ->afterStateUpdated(function ($state, $get) {
                     $this->dispatch('preview-updated', data: [
-                        'banner_image' => $get('banner_image'),
+                        'banner_image' => $this->liveBannerImage,
                         'welcome_title' => $get('welcome_title'),
-                        'welcome_text' => $get('welcome_text'),
-                        'feature_sections' => $get('feature_sections'),
+                        'welcome_text' => $state,
+                        'feature_sections' => $this->liveFeatureSections,
                     ]);
                 })
                 ->columnSpanFull(),
@@ -188,12 +222,47 @@ class Introduction extends Page implements HasForms
             Forms\Components\Repeater::make('feature_sections')
                 ->label('Feature Section')
                 ->live(onBlur: false)
-                ->afterStateUpdated(function (callable $get) {
+                ->afterStateUpdated(function ($state, $get) {
+                    // Update live feature sections with icon conversions
+                    $sections = is_array($state) ? array_values($state) : [];
+
+                    foreach ($sections as $sKey => &$section) {
+                        if (isset($section['items']) && is_array($section['items'])) {
+                            $section['items'] = array_values($section['items']);
+                            foreach ($section['items'] as &$item) {
+                                if (isset($item['icon'])) {
+                                    $icon = $item['icon'];
+
+                                    // Filament wraps uploads in UUID-keyed arrays
+                                    // Unwrap if needed: ['uuid' => TemporaryUploadedFile] or ['uuid' => 'path']
+                                    if (is_array($icon) && !empty($icon)) {
+                                        $icon = reset($icon); // Get first value
+                                    }
+
+                                    if ($icon instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
+                                        try {
+                                            $item['icon'] = $icon->temporaryUrl();
+                                        } catch (\Exception $e) {
+                                            $item['icon'] = null;
+                                        }
+                                    } elseif (is_string($icon)) {
+                                        // Keep string paths as-is
+                                        $item['icon'] = $icon;
+                                    } else {
+                                        // Invalid/null
+                                        $item['icon'] = null;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    $this->liveFeatureSections = $sections;
+
                     $this->dispatch('preview-updated', data: [
-                        'banner_image' => $get('banner_image'),
+                        'banner_image' => $this->liveBannerImage,
                         'welcome_title' => $get('welcome_title'),
                         'welcome_text' => $get('welcome_text'),
-                        'feature_sections' => $get('feature_sections'),
+                        'feature_sections' => $this->liveFeatureSections,
                     ]);
                 })
                 ->schema([

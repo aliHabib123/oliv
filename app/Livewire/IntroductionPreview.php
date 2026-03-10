@@ -12,12 +12,6 @@ class IntroductionPreview extends Component
 
     public ?Tenant $tenant = null;
 
-    #[On('preview-updated')]
-    public function updatePreview($data)
-    {
-        $this->introData = $data;
-    }
-
     public function render()
     {
         return view('filament.components.introduction-preview');

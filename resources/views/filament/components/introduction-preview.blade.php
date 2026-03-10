@@ -1,38 +1,53 @@
-<div x-data="{
+<div wire:ignore x-data="{
         isUpdating: false,
         previewData: @js($introData ?? []),
 
         init() {
-            console.log('Alpine: Init with data', this.previewData);
-
             // Listen for Livewire events
             Livewire.on('preview-updated', (eventData) => {
-                console.log('Alpine: Raw event', eventData);
-
                 // Livewire 3 passes array with objects
                 const data = Array.isArray(eventData) ? eventData[0]?.data : eventData.data;
-                console.log('Alpine: Extracted data', data);
-                console.log('Alpine: welcome_title =', data?.welcome_title);
 
-                // Force reactivity by creating new object
+                this.isUpdating = true;
+
+                // Replace entire object to trigger Alpine Proxy reactivity
                 this.previewData = { ...data };
 
-                console.log('Alpine: Updated previewData', this.previewData);
-                this.isUpdating = true;
-                setTimeout(() => this.isUpdating = false, 100);
+                this.$nextTick(() => {
+                    this.isUpdating = false;
+                });
             });
         },
 
         getBannerUrl() {
-            if (!this.previewData.banner_image) return null;
-            const img = Array.isArray(this.previewData.banner_image)
-                ? this.previewData.banner_image[0]
-                : this.previewData.banner_image;
-            return img ? '/storage/' + img : null;
+            const raw = this.previewData.banner_image;
+
+            if (!raw) {
+                return null;
+            }
+
+            // Reject empty objects {} (Filament sends this during upload)
+            if (typeof raw === 'object' && !Array.isArray(raw)) {
+                const keys = Object.keys(raw);
+                if (keys.length === 0) {
+                    return null;
+                }
+            }
+
+            // Only process strings
+            if (typeof raw !== 'string') {
+                return null;
+            }
+
+            // Full URLs (from temporaryUrl) or relative paths
+            return raw.startsWith('http') || raw.startsWith('/') ? raw : '/storage/' + raw;
         },
 
         getIconUrl(icon) {
-            if (!icon) return null;
+            if (!icon) {
+                return null;
+            }
+
             let path = icon;
 
             // Handle array format
@@ -45,10 +60,15 @@
                 path = values[0];
             }
 
-            if (!path || typeof path !== 'string') return null;
+            if (!path || typeof path !== 'string') {
+                return null;
+            }
 
             // Already has /storage/ prefix or is a URL
-            if (path.startsWith('/storage/') || path.startsWith('http')) return path;
+            if (path.startsWith('/storage/') || path.startsWith('http')) {
+                return path;
+            }
+
             return '/storage/' + path;
         }
     }"
@@ -87,18 +107,16 @@
                      style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none;">
 
                 {{-- Screen Content Area --}}
-                <div wire:ignore style="position: absolute; top: 15px; left: 16px; right: 16px; bottom: 15px; background: white; border-radius: 40px; overflow-y: scroll; z-index: 1;">
+                <div style="position: absolute; top: 15px; left: 16px; right: 16px; bottom: 15px; background: white; border-radius: 40px; overflow-y: scroll; z-index: 1;">
                     <div class="phone-scroll" style="height: 100%; max-height: 100%; overflow-y: scroll; overflow-x: hidden; background: white; transition: opacity 0.2s; -webkit-overflow-scrolling: touch;" :style="isUpdating ? 'opacity: 0.6' : ''">
-                        {{-- Debug: Show current title value --}}
-                        <div style="background: #fef3c7; padding: 0.5rem; font-size: 0.75rem; text-align: center;">
-                            Debug: <span x-text="previewData.welcome_title || 'empty'"></span>
-                        </div>
-
                         {{-- Content when data exists --}}
                         <div x-show="previewData && Object.keys(previewData).length > 0">
                             {{-- Full Screen Banner Image --}}
-                            <div x-show="getBannerUrl()" style="width: 100%; position: relative; height: 360px; background-color: #f3f4f6;">
-                                <img :src="getBannerUrl()" alt="Banner" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                            <div x-show="getBannerUrl()"
+                                 style="width: 100%; position: relative; background-color: #f3f4f6;">
+                                <img :src="getBannerUrl()"
+                                     alt="Banner"
+                                     style="width: 100%; height: auto; display: block;">
                             </div>
 
                             {{-- Welcome Title --}}
