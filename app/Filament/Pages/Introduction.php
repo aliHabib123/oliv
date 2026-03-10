@@ -15,6 +15,8 @@ use Filament\Schemas\Components\Actions as SchemaActions;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\EmbeddedSchema;
 use Filament\Schemas\Components\Form;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Livewire as LivewireComponent;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\Auth\Authenticatable;
 use UnitEnum;
@@ -141,23 +143,59 @@ class Introduction extends Page implements HasForms
                 ->disk('public')
                 ->directory('introduction')
                 ->required()
+                ->live(onBlur: false)
+                ->afterStateUpdated(function (callable $get) {
+                    $this->dispatch('preview-updated', data: [
+                        'banner_image' => $get('banner_image'),
+                        'welcome_title' => $get('welcome_title'),
+                        'welcome_text' => $get('welcome_text'),
+                        'feature_sections' => $get('feature_sections'),
+                    ]);
+                })
                 ->columnSpanFull(),
 
             Forms\Components\TextInput::make('welcome_title')
                 ->label('Welcome Title')
                 ->maxLength(255)
                 ->required()
-                ->default('WELCOME'),
+                ->default('WELCOME')
+                ->live(onBlur: false)
+                ->afterStateUpdated(function (callable $get) {
+                    $this->dispatch('preview-updated', data: [
+                        'banner_image' => $get('banner_image'),
+                        'welcome_title' => $get('welcome_title'),
+                        'welcome_text' => $get('welcome_text'),
+                        'feature_sections' => $get('feature_sections'),
+                    ]);
+                }),
 
             Forms\Components\Textarea::make('welcome_text')
                 ->label('Welcome Text')
                 ->maxLength(1000)
                 ->rows(4)
                 ->required()
+                ->live(onBlur: false)
+                ->afterStateUpdated(function (callable $get) {
+                    $this->dispatch('preview-updated', data: [
+                        'banner_image' => $get('banner_image'),
+                        'welcome_title' => $get('welcome_title'),
+                        'welcome_text' => $get('welcome_text'),
+                        'feature_sections' => $get('feature_sections'),
+                    ]);
+                })
                 ->columnSpanFull(),
 
             Forms\Components\Repeater::make('feature_sections')
                 ->label('Feature Section')
+                ->live(onBlur: false)
+                ->afterStateUpdated(function (callable $get) {
+                    $this->dispatch('preview-updated', data: [
+                        'banner_image' => $get('banner_image'),
+                        'welcome_title' => $get('welcome_title'),
+                        'welcome_text' => $get('welcome_text'),
+                        'feature_sections' => $get('feature_sections'),
+                    ]);
+                })
                 ->schema([
                     Forms\Components\TextInput::make('section_title')
                         ->label('Section Title')
@@ -202,7 +240,22 @@ class Introduction extends Page implements HasForms
     {
         return $schema
             ->components([
-                $this->getFormContentComponent(),
+                // Two-column layout: builder on left, preview on right
+                Grid::make(2)
+                    ->schema([
+                        // Left column: Form builder
+                        $this->getFormContentComponent(),
+
+                        // Right column: Live preview with sticky positioning to stay on screen during scroll
+                        LivewireComponent::make(\App\Livewire\IntroductionPreview::class)
+                            ->key('introduction-preview')
+                            ->data([
+                                'introData' => $this->data,
+                                'tenant' => $this->tenant,
+                            ])
+                            ->extraAttributes(['style' => 'position: sticky; top: 4.5rem; margin-top: 2.2rem;']),
+                    ])
+                    ->columns(2),
             ]);
     }
 
