@@ -9,12 +9,37 @@ use Illuminate\Support\Facades\Cache;
 
 class PaymentController extends Controller
 {
+    /**
+     * @OA\Post(
+     *     path="/v1/pay",
+     *     tags={"Payment"},
+     *     security={{"AppKey":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"payment_type", "amount", "currency", "order_id", "customer", "items"},
+     *             @OA\Property(property="payment_type", type="string", enum={"tabby", "tamara", "stripe", "paypal"}),
+     *             @OA\Property(property="amount", type="number", minimum=0),
+     *             @OA\Property(property="currency", type="string", maxLength=3),
+     *             @OA\Property(property="order_id", type="string"),
+     *             @OA\Property(property="customer", type="object",
+     *                 @OA\Property(property="email", type="string", format="email"),
+     *                 @OA\Property(property="phone", type="string")
+     *             ),
+     *             @OA\Property(property="items", type="array", @OA\Items(type="object"))
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Payment processed successfully"),
+     *     @OA\Response(response=401, description="Missing X-App-Key header"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
     public function pay(Request $request)
     {
         $tenant = $request->attributes->get('tenant');
         
         if (!$tenant) {
-            return response()->json(['ok' => false, 'error' => 'Tenant not found'], 404);
+            return response()->json(['ok' => false, 'error' => 'X-App-Key header is required'], 401);
         }
 
         $validated = $request->validate([
