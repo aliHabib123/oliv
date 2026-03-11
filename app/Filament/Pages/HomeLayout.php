@@ -42,6 +42,12 @@ class HomeLayout extends Page
 
     public ?int $selectedLayoutId = null;
 
+    /**
+     * Live state for home layout blocks with converted temp file URLs
+     * @var array
+     */
+    public array $liveHomeLayout = [];
+
     public static function canAccess(): bool
     {
         /** @var Authenticatable|null $user */
@@ -136,6 +142,27 @@ class HomeLayout extends Page
             'home_layout' => $homeLayout?->layout_data ?? $tenant->home_layout ?? [],
         ];
 
+        // Initialize live state with existing layout data, converting storage paths to full URLs
+        $blocks = is_array($data['home_layout']) ? array_values($data['home_layout']) : [];
+        foreach ($blocks as &$block) {
+            if (!isset($block['data']) || !is_array($block['data'])) continue;
+
+            // Process main image
+            if (isset($block['data']['image_url']) && is_string($block['data']['image_url'])) {
+                $block['data']['image_url'] = \Storage::url($block['data']['image_url']);
+            }
+
+            // Process category images
+            if ($block['type'] === 'category_grid' && isset($block['data']['categories']) && is_array($block['data']['categories'])) {
+                foreach ($block['data']['categories'] as &$category) {
+                    if (isset($category['image_url']) && is_string($category['image_url'])) {
+                        $category['image_url'] = \Storage::url($category['image_url']);
+                    }
+                }
+            }
+        }
+        $this->liveHomeLayout = $blocks;
+
         $this->form->fill($data);
     }
 
@@ -223,8 +250,69 @@ class HomeLayout extends Page
                 ->label('Home layout blocks')
                 ->hiddenLabel()
                 ->live(onBlur: false)
-                ->afterStateUpdated(function () {
-                    $this->dispatch('preview-updated', data: $this->data['home_layout'] ?? []);
+                ->afterStateUpdated(function ($state) {
+                    // Show loading state immediately
+                    $this->dispatch('preview-updating');
+
+                    // Convert temp files to URLs and ensure proper array structure
+                    $blocks = is_array($state) ? array_values($state) : [];
+
+                    foreach ($blocks as &$block) {
+                        if (!isset($block['data']) || !is_array($block['data'])) {
+                            continue;
+                        }
+
+                        // Convert image_url if it's a TemporaryUploadedFile
+                        if (isset($block['data']['image_url'])) {
+                            $img = $block['data']['image_url'];
+
+                            // Unwrap UUID-keyed array if needed
+                            if (is_array($img) && !empty($img)) {
+                                $img = reset($img);
+                            }
+
+                            if ($img instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
+                                try {
+                                    $block['data']['image_url'] = $img->temporaryUrl();
+                                } catch (\Exception $e) {
+                                    $block['data']['image_url'] = null;
+                                }
+                            } elseif (is_string($img)) {
+                                $block['data']['image_url'] = $img;
+                            } else {
+                                $block['data']['image_url'] = null;
+                            }
+                        }
+
+                        // Handle category_grid repeater images
+                        if ($block['type'] === 'category_grid' && isset($block['data']['categories']) && is_array($block['data']['categories'])) {
+                            $block['data']['categories'] = array_values($block['data']['categories']);
+                            foreach ($block['data']['categories'] as &$category) {
+                                if (isset($category['image_url'])) {
+                                    $catImg = $category['image_url'];
+
+                                    if (is_array($catImg) && !empty($catImg)) {
+                                        $catImg = reset($catImg);
+                                    }
+
+                                    if ($catImg instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
+                                        try {
+                                            $category['image_url'] = $catImg->temporaryUrl();
+                                        } catch (\Exception $e) {
+                                            $category['image_url'] = null;
+                                        }
+                                    } elseif (is_string($catImg)) {
+                                        $category['image_url'] = $catImg;
+                                    } else {
+                                        $category['image_url'] = null;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    $this->liveHomeLayout = $blocks;
+                    $this->dispatch('preview-updated', data: $this->liveHomeLayout);
                     $this->dispatch('preview-updating');
                 })
                 ->collapseAllAction(
@@ -1069,7 +1157,7 @@ class HomeLayout extends Page
                         LivewireComponent::make(\App\Livewire\HomeLayoutPreview::class)
                             ->key('home-layout-preview')
                             ->data([
-                                'layoutData' => $this->data['home_layout'] ?? [],
+                                'layoutData' => $this->liveHomeLayout ?? [],
                                 'tenant' => $this->tenant,
                             ])
                             ->extraAttributes(['style' => 'position: sticky; top: 4.5rem; margin-top: 2.2rem;']),
