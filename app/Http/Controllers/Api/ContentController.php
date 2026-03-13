@@ -192,14 +192,23 @@ class ContentController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Get(
-     *     path="/v1/payment-settings",
-     *     tags={"Content"},
-     *     security={{"AppKey":{}}},
-     *     @OA\Response(response=200, description="Payment settings")
-     * )
-     */
+    #[OA\Get(
+        path: '/v1/payment-settings',
+        tags: ['Payment'],
+        summary: 'Get payment settings for tenant',
+        security: [['XAppKey' => []]]
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Payment settings',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'ok', type: 'boolean'),
+                new OA\Property(property: 'payment_settings', type: 'object')
+            ]
+        )
+    )]
+    #[OA\Response(response: 404, description: 'Tenant not resolved')]
     public function paymentSettings(Request $request): JsonResponse
     {
         $tenant = $request->attributes->get('tenant');

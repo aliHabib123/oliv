@@ -535,6 +535,43 @@
                 ]
             }
         },
+        "/v1/payment-settings": {
+            "get": {
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Get payment settings for tenant",
+                "operationId": "b902af602c872e3a08f312c918ba2c5c",
+                "responses": {
+                    "200": {
+                        "description": "Payment settings",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ok": {
+                                            "type": "boolean"
+                                        },
+                                        "payment_settings": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Tenant not resolved"
+                    }
+                },
+                "security": [
+                    {
+                        "XAppKey": []
+                    }
+                ]
+            }
+        },
         "/v1/device-tokens/register": {
             "post": {
                 "tags": [
@@ -653,6 +690,128 @@
                 ]
             }
         },
+        "/v1/pay": {
+            "post": {
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Process payment with various payment providers",
+                "operationId": "83fd19dea42d83ba003221521ebedb95",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "payment_type",
+                                    "amount",
+                                    "currency",
+                                    "order_id",
+                                    "customer",
+                                    "items"
+                                ],
+                                "properties": {
+                                    "payment_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "tabby",
+                                            "tamara",
+                                            "stripe",
+                                            "paypal"
+                                        ]
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float"
+                                    },
+                                    "currency": {
+                                        "type": "string",
+                                        "maxLength": 3,
+                                        "minLength": 3
+                                    },
+                                    "order_id": {
+                                        "type": "string"
+                                    },
+                                    "customer": {
+                                        "required": [
+                                            "email",
+                                            "phone"
+                                        ],
+                                        "properties": {
+                                            "email": {
+                                                "type": "string",
+                                                "format": "email"
+                                            },
+                                            "phone": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "type": "object"
+                                    },
+                                    "items": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Payment processed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "payment_type": {
+                                            "type": "string"
+                                        },
+                                        "redirect_url": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "session_id": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "client_secret": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "order_id": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "currency": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Tenant not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "XAppKey": []
+                    }
+                ]
+            }
+        },
         "/v1/products/{productId}/default-variant": {
             "get": {
                 "tags": [
@@ -738,6 +897,10 @@
         {
             "name": "Content",
             "description": "Content"
+        },
+        {
+            "name": "Payment",
+            "description": "Payment"
         },
         {
             "name": "Device Tokens",
