@@ -1,0 +1,218 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Oliv API",
+        "description": "Oliv API Documentation",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/api",
+            "description": "API Server"
+        }
+    ],
+    "paths": {
+        "/v1/ping": {
+            "get": {
+                "tags": [
+                    "Content"
+                ],
+                "operationId": "b7b086d74ab0ca4fd946467ff09d603b",
+                "responses": {
+                    "200": {
+                        "description": "Ping successful"
+                    }
+                },
+                "security": [
+                    {
+                        "AppKey": []
+                    }
+                ]
+            }
+        },
+        "/v1/home-layout": {
+            "get": {
+                "tags": [
+                    "Content"
+                ],
+                "operationId": "4f7ff01d4cf8b70096f58966df44d701",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "description": "Category handle",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Home layout data"
+                    }
+                },
+                "security": [
+                    {
+                        "AppKey": []
+                    }
+                ]
+            }
+        },
+        "/v1/introduction": {
+            "get": {
+                "tags": [
+                    "Content"
+                ],
+                "operationId": "31d597efef19cfa0e80a3ba62a24aeea",
+                "responses": {
+                    "200": {
+                        "description": "Introduction config"
+                    }
+                },
+                "security": [
+                    {
+                        "AppKey": []
+                    }
+                ]
+            }
+        },
+        "/v1/app-config": {
+            "get": {
+                "tags": [
+                    "Content"
+                ],
+                "operationId": "d387698f93ec6e0040ce01680898701e",
+                "responses": {
+                    "200": {
+                        "description": "App configuration"
+                    }
+                },
+                "security": [
+                    {
+                        "AppKey": []
+                    }
+                ]
+            }
+        },
+        "/v1/payment-settings": {
+            "get": {
+                "tags": [
+                    "Content"
+                ],
+                "operationId": "b902af602c872e3a08f312c918ba2c5c",
+                "responses": {
+                    "200": {
+                        "description": "Payment settings"
+                    }
+                },
+                "security": [
+                    {
+                        "AppKey": []
+                    }
+                ]
+            }
+        },
+        "/v1/pay": {
+            "post": {
+                "tags": [
+                    "Payment"
+                ],
+                "operationId": "83fd19dea42d83ba003221521ebedb95",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "payment_type",
+                                    "amount",
+                                    "currency",
+                                    "order_id",
+                                    "customer",
+                                    "items"
+                                ],
+                                "properties": {
+                                    "payment_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "tabby",
+                                            "tamara",
+                                            "stripe",
+                                            "paypal"
+                                        ]
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "minimum": 0
+                                    },
+                                    "currency": {
+                                        "type": "string",
+                                        "maxLength": 3
+                                    },
+                                    "order_id": {
+                                        "type": "string"
+                                    },
+                                    "customer": {
+                                        "properties": {
+                                            "email": {
+                                                "type": "string",
+                                                "format": "email"
+                                            },
+                                            "phone": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "type": "object"
+                                    },
+                                    "items": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Payment processed successfully"
+                    },
+                    "401": {
+                        "description": "Missing X-App-Key header"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "AppKey": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "AppKey": {
+                "type": "apiKey",
+                "description": "App Key for tenant authentication",
+                "name": "X-App-Key",
+                "in": "header"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Content",
+            "description": "Content"
+        },
+        {
+            "name": "Payment",
+            "description": "Payment"
+        }
+    ]
+}
