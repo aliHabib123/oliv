@@ -6,9 +6,55 @@ use App\Http\Controllers\Controller;
 use App\Services\Shopify\ShopifyStorefrontService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use OpenApi\Attributes as OA;
 
 class PaymentController extends Controller
 {
+    #[OA\Post(
+        path: '/v1/pay',
+        tags: ['Payment'],
+        summary: 'Process payment with various payment providers',
+        security: [['XAppKey' => []]]
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['payment_type', 'amount', 'currency', 'order_id', 'customer', 'items'],
+            properties: [
+                new OA\Property(property: 'payment_type', type: 'string', enum: ['tabby', 'tamara', 'stripe', 'paypal']),
+                new OA\Property(property: 'amount', type: 'number', format: 'float'),
+                new OA\Property(property: 'currency', type: 'string', minLength: 3, maxLength: 3),
+                new OA\Property(property: 'order_id', type: 'string'),
+                new OA\Property(
+                    property: 'customer',
+                    type: 'object',
+                    required: ['email', 'phone'],
+                    properties: [
+                        new OA\Property(property: 'email', type: 'string', format: 'email'),
+                        new OA\Property(property: 'phone', type: 'string')
+                    ]
+                ),
+                new OA\Property(property: 'items', type: 'array', items: new OA\Items(type: 'object'))
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Payment processed successfully',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'success', type: 'boolean'),
+                new OA\Property(property: 'payment_type', type: 'string'),
+                new OA\Property(property: 'redirect_url', type: 'string', nullable: true),
+                new OA\Property(property: 'session_id', type: 'string', nullable: true),
+                new OA\Property(property: 'client_secret', type: 'string', nullable: true),
+                new OA\Property(property: 'order_id', type: 'string', nullable: true),
+                new OA\Property(property: 'currency', type: 'string')
+            ]
+        )
+    )]
+    #[OA\Response(response: 404, description: 'Tenant not found')]
+    #[OA\Response(response: 422, description: 'Validation error')]
     public function pay(Request $request)
     {
         $tenant = $request->attributes->get('tenant');
