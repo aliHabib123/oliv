@@ -1,0 +1,197 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Enums\PaymentGatewayType;
+use App\Filament\Resources\PaymentGatewayResource\Pages;
+use App\Models\PaymentGateway;
+use Filament\Actions;
+use Filament\Forms;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+
+class PaymentGatewayResource extends Resource
+{
+    protected static ?string $model = PaymentGateway::class;
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-credit-card';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
+
+    protected static ?int $navigationSort = 3;
+
+    public static function form(Schema $schema): Schema
+    {
+        $fields = [
+            Forms\Components\Select::make('gateway_type')
+                ->label('Payment Gateway')
+                ->options(PaymentGatewayType::options())
+                ->required()
+                ->live()
+                ->disabled(fn (?PaymentGateway $record) => $record !== null)
+                ->helperText('Cannot be changed after creation')
+                ->columnSpanFull(),
+
+            Forms\Components\TextInput::make('display_name')
+                ->label('Custom Display Name')
+                ->maxLength(255)
+                ->helperText('Optional. Leave empty to use default name.'),
+
+            Forms\Components\Toggle::make('is_enabled')
+                ->label('Enabled')
+                ->default(false)
+                ->helperText('Enable this payment gateway for customer checkout')
+                ->inline(false),
+
+            Forms\Components\Toggle::make('is_test_mode')
+                ->label('Test Mode (Sandbox)')
+                ->default(true)
+                ->helperText('Use sandbox/test environment for this gateway')
+                ->inline(false),
+
+            Forms\Components\TextInput::make('sort_order')
+                ->label('Display Order')
+                ->numeric()
+                ->default(0)
+                ->helperText('Lower numbers appear first'),
+
+            Forms\Components\Placeholder::make('credentials_divider')
+                ->label('API Credentials')
+                ->content('Configure your payment gateway credentials below')
+                ->columnSpanFull()
+                ->visible(fn ($get) => $get('gateway_type') !== null),
+        ];
+
+        // Generate credential fields for ALL gateway types with conditional visibility
+        foreach (PaymentGatewayType::cases() as $gatewayType) {
+            foreach ($gatewayType->getFieldDefinitions() as $fieldName => $definition) {
+                $field = $definition['type'] === 'password'
+                    ? Forms\Components\TextInput::make("config.{$fieldName}")
+                        ->password()
+                        ->revealable()
+                    : Forms\Components\TextInput::make("config.{$fieldName}");
+
+                $visibilityBadge = $definition['public']
+                    ? '🌐 Public (exposed in API)'
+                    : '🔒 Private (server-side only)';
+
+                $field = $field
+                    ->label($definition['label'])
+                    ->required(fn ($get) => $get('gateway_type') === $gatewayType->value && $definition['required'])
+                    ->helperText($definition['hint'] ?? null)
+                    ->hint($visibilityBadge)
+                    ->visible(fn ($get) => $get('gateway_type') === $gatewayType->value);
+
+                $fields[] = $field;
+            }
+        }
+
+        return $schema->schema($fields);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('gateway_type')
+                    ->label('Gateway')
+                    ->formatStateUsing(fn (string $state) => PaymentGatewayType::tryFrom($state)?->getLabel() ?? $state)
+                    ->sortable()
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('display_name')
+                    ->label('Display Name')
+                    ->default(fn (PaymentGateway $record) => PaymentGatewayType::tryFrom($record->gateway_type)?->getLabel() ?? '-')
+                    ->searchable(),
+
+                Tables\Columns\IconColumn::make('is_enabled')
+                    ->label('Enabled')
+                    ->boolean()
+                    ->sortable(),
+
+                Tables\Columns\IconColumn::make('is_test_mode')
+                    ->label('Test Mode')
+                    ->boolean()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('sort_order')
+                    ->label('Order')
+                    ->sortable(),
+
+                Tables\Columns\IconColumn::make('has_valid_config')
+                    ->label('Valid Config')
+                    ->boolean()
+                    ->getStateUsing(fn (PaymentGateway $record) => $record->hasValidConfig())
+                    ->tooltip(fn (PaymentGateway $record) => $record->hasValidConfig()
+                        ? 'All required fields configured'
+                        : 'Missing required credentials'),
+
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Last Updated')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->defaultSort('sort_order')
+            ->filters([
+                Tables\Filters\SelectFilter::make('gateway_type')
+                    ->label('Gateway Type')
+                    ->options(PaymentGatewayType::options()),
+
+                Tables\Filters\TernaryFilter::make('is_enabled')
+                    ->label('Enabled')
+                    ->boolean(),
+
+                Tables\Filters\TernaryFilter::make('is_test_mode')
+                    ->label('Test Mode')
+                    ->boolean(),
+            ])
+            ->actions([
+                Actions\EditAction::make(),
+                Actions\DeleteAction::make(),
+            ])
+            ->bulkActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListPaymentGateways::route('/'),
+            'create' => Pages\CreatePaymentGateway::route('/create'),
+            'edit' => Pages\EditPaymentGateway::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        $tenant = filament()->getTenant();
+        if ($tenant) {
+            $query->where('tenant_id', $tenant->id);
+        }
+
+        return $query;
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        $tenant = filament()->getTenant();
+        if (!$tenant) {
+            return null;
+        }
+
+        $enabledCount = PaymentGateway::where('tenant_id', $tenant->id)
+            ->where('is_enabled', true)
+            ->count();
+
+        return $enabledCount > 0 ? (string) $enabledCount : null;
+    }
+}

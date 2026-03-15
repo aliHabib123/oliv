@@ -51,4 +51,9 @@ class Tenant extends Model
     {
         return $this->hasMany(HomeLayout::class);
     }
+
+    public function paymentGateways()
+    {
+        return $this->hasMany(PaymentGateway::class);
+    }
 }

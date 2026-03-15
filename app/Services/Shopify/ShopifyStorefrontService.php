@@ -1118,9 +1118,9 @@ class ShopifyStorefrontService
             }
         GRAPHQL;
 
-        $response = $this->graphql($tenant, $query);
+        $data = $this->graphql($tenant, $query);
 
-        return $response['data']['shop']['paymentSettings'] ?? [];
+        return $data['shop']['paymentSettings'] ?? [];
     }
 
     /**
