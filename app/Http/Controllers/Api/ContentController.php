@@ -222,9 +222,34 @@ class ContentController extends Controller
 
         $cacheKey = "payment_settings:{$tenant->id}";
 
-        $paymentSettings = Cache::remember($cacheKey, 3600, function () use ($tenant) {
+        $paymentSettings = Cache::remember($cacheKey, 300, function () use ($tenant) {
+            // Get enabled payment gateways for this tenant
+            $gateways = $tenant->paymentGateways()
+                ->where('is_enabled', true)
+                ->orderBy('sort_order')
+                ->get();
+
+            // Get Shopify payment settings (currency, card brands, etc.)
             $shopifyService = new ShopifyStorefrontService();
-            return $shopifyService->getPaymentSettings($tenant);
+            $shopifySettings = $shopifyService->getPaymentSettings($tenant);
+
+            // Build payment methods array with only public fields
+            $paymentMethods = $gateways->map(function ($gateway) {
+                return [
+                    'type' => $gateway->gateway_type,
+                    'display_name' => $gateway->display_name ?: \App\Enums\PaymentGatewayType::from($gateway->gateway_type)->getLabel(),
+                    'is_test_mode' => $gateway->is_test_mode,
+                    'config' => $gateway->getPublicConfig(), // Only public fields
+                ];
+            })->values();
+
+            return [
+                'currency_code' => $shopifySettings['currencyCode'] ?? 'USD',
+                'country_code' => $shopifySettings['countryCode'] ?? 'US',
+                'accepted_card_brands' => $shopifySettings['acceptedCardBrands'] ?? [],
+                'supported_digital_wallets' => $shopifySettings['supportedDigitalWallets'] ?? [],
+                'payment_methods' => $paymentMethods,
+            ];
         });
 
         return response()->json([
