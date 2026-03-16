@@ -24,7 +24,8 @@ class TemplatesTable
                 TextColumn::make('industry')
                     ->searchable(),
                 TextColumn::make('style')
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 ImageColumn::make('preview_image'),
                 IconColumn::make('is_active')
                     ->boolean(),
