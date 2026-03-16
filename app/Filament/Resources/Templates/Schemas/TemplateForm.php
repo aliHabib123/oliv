@@ -45,7 +45,8 @@ class TemplateForm
                         'playful' => 'Playful',
                     ])
                     ->searchable()
-                    ->nullable(),
+                    ->nullable()
+                    ->hidden(),
 
                 FileUpload::make('preview_image')
                     ->label('Preview Image')
