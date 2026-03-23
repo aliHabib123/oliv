@@ -18,8 +18,10 @@ return new class extends Migration
         });
 
         // Update subscriptions table to add pending_payment status and stripe_subscription_id
-        // First, we need to modify the enum
-        DB::statement("ALTER TABLE subscriptions MODIFY COLUMN status ENUM('pending_payment', 'active', 'expired', 'cancelled') DEFAULT 'pending_payment'");
+        // SQLite doesn't support MODIFY COLUMN with ENUM
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE subscriptions MODIFY COLUMN status ENUM('pending_payment', 'active', 'expired', 'cancelled') DEFAULT 'pending_payment'");
+        }
 
         // Add stripe_subscription_id column if it doesn't exist
         if (!Schema::hasColumn('subscriptions', 'stripe_subscription_id')) {
@@ -45,6 +47,8 @@ return new class extends Migration
         });
 
         // Revert enum to original values
-        DB::statement("ALTER TABLE subscriptions MODIFY COLUMN status ENUM('active', 'expired', 'cancelled') DEFAULT 'active'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE subscriptions MODIFY COLUMN status ENUM('active', 'expired', 'cancelled') DEFAULT 'active'");
+        }
     }
 };
