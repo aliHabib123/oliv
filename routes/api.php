@@ -30,12 +30,20 @@ Route::middleware(ResolveTenantFromAppKey::class)->group(function () {
 
     // Checkout endpoints
     Route::post('v1/checkout/create', [App\Http\Controllers\Api\CheckoutController::class, 'create']);
+    Route::post('v1/checkout/session', [App\Http\Controllers\Api\CheckoutSessionController::class, 'create']);
+    Route::post('v1/checkout/confirm', [App\Http\Controllers\Api\CheckoutSessionController::class, 'confirm']);
 
     // Payment endpoints
     Route::post('v1/pay', [App\Http\Controllers\Api\PaymentController::class, 'pay']);
+    Route::post('v1/payments/tabby/initialize', [App\Http\Controllers\Api\TabbyController::class, 'initialize']);
+    Route::post('v1/payments/tamara/initialize', [App\Http\Controllers\Api\TamaraController::class, 'initialize']);
 
     // Shopify Webhooks
     Route::post('webhooks/shopify/checkouts/create', [App\Http\Controllers\Api\ShopifyWebhookController::class, 'checkoutCreate']);
     Route::post('webhooks/shopify/checkouts/update', [App\Http\Controllers\Api\ShopifyWebhookController::class, 'checkoutUpdate']);
     Route::post('webhooks/shopify/orders/create', [App\Http\Controllers\Api\ShopifyWebhookController::class, 'orderCreate']);
 });
+
+// PSP Webhook endpoints (no tenant middleware — resolved from payload)
+Route::post('webhooks/tabby', [App\Http\Controllers\Api\TabbyController::class, 'webhook']);
+Route::post('webhooks/tamara', [App\Http\Controllers\Api\TamaraController::class, 'webhook']);

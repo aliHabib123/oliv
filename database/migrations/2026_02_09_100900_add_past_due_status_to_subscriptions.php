@@ -11,7 +11,9 @@ return new class extends Migration
     public function up(): void
     {
         // Add 'past_due' status to subscriptions enum
-        DB::statement("ALTER TABLE subscriptions MODIFY COLUMN status ENUM('pending_payment', 'active', 'past_due', 'expired', 'cancelled') DEFAULT 'pending_payment'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE subscriptions MODIFY COLUMN status ENUM('pending_payment', 'active', 'past_due', 'expired', 'cancelled') DEFAULT 'pending_payment'");
+        }
     }
 
     /**
@@ -20,6 +22,8 @@ return new class extends Migration
     public function down(): void
     {
         // Remove 'past_due' status
-        DB::statement("ALTER TABLE subscriptions MODIFY COLUMN status ENUM('pending_payment', 'active', 'expired', 'cancelled') DEFAULT 'pending_payment'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE subscriptions MODIFY COLUMN status ENUM('pending_payment', 'active', 'expired', 'cancelled') DEFAULT 'pending_payment'");
+        }
     }
 };
