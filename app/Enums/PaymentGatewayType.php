@@ -60,7 +60,7 @@ enum PaymentGatewayType: string
                     'label' => 'API Token',
                     'type' => 'password',
                     'required' => true,
-                    'public' => false,
+                    'public' => true,
                     'hint' => 'Your Tamara API authentication token',
                 ],
                 'merchant_url' => [
@@ -172,20 +172,20 @@ enum PaymentGatewayType: string
     public function getApiUrl(bool $isTestMode): string
     {
         return match($this) {
-            self::TABBY => $isTestMode 
-                ? 'https://api.tabby.dev' 
+            self::TABBY => $isTestMode
+                ? 'https://api.tabby.dev'
                 : 'https://api.tabby.ai',
-            self::TAMARA => $isTestMode 
-                ? 'https://api-sandbox.tamara.co' 
+            self::TAMARA => $isTestMode
+                ? 'https://api-sandbox.tamara.co'
                 : 'https://api.tamara.co',
-            self::STRIPE => $isTestMode 
-                ? 'https://api.stripe.com' 
+            self::STRIPE => $isTestMode
+                ? 'https://api.stripe.com'
                 : 'https://api.stripe.com',
-            self::PAYPAL => $isTestMode 
-                ? 'https://api-m.sandbox.paypal.com' 
+            self::PAYPAL => $isTestMode
+                ? 'https://api-m.sandbox.paypal.com'
                 : 'https://api-m.paypal.com',
-            self::TELR => $isTestMode 
-                ? 'https://secure.telr.com' 
+            self::TELR => $isTestMode
+                ? 'https://secure.telr.com'
                 : 'https://secure.telr.com',
         };
     }
