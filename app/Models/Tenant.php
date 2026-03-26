@@ -20,6 +20,7 @@ class Tenant extends Model
         'app_key',
         'shopify_shop_domain',
         'shopify_storefront_token',
+        'shopify_admin_token',
         'status',
         'home_layout',
     ];

@@ -14,6 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->validateCsrfTokens(except: [
             '/webhooks/stripe',
+            'api/webhooks/tabby',
+            'api/webhooks/tamara',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

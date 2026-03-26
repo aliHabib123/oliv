@@ -375,6 +375,123 @@
                 ]
             }
         },
+        "/v1/checkout/session": {
+            "post": {
+                "tags": [
+                    "Checkout"
+                ],
+                "summary": "Create a checkout session",
+                "operationId": "780e187ca52941adecce5d943a8782df",
+                "parameters": [
+                    {
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "line_items",
+                                    "customer",
+                                    "shipping_address",
+                                    "amount",
+                                    "currency"
+                                ],
+                                "properties": {
+                                    "line_items": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "customer": {
+                                        "type": "object"
+                                    },
+                                    "shipping_address": {
+                                        "type": "object"
+                                    },
+                                    "amount": {
+                                        "type": "string"
+                                    },
+                                    "currency": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Session created"
+                    },
+                    "409": {
+                        "description": "Duplicate idempotency key"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "AppKey": []
+                    }
+                ]
+            }
+        },
+        "/v1/checkout/confirm": {
+            "post": {
+                "tags": [
+                    "Checkout"
+                ],
+                "summary": "Confirm checkout and create Shopify order",
+                "operationId": "63f0e6fd9bfee9fac03bf949e2b8b64f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "session_id"
+                                ],
+                                "properties": {
+                                    "session_id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Order created"
+                    },
+                    "402": {
+                        "description": "Payment not authorized"
+                    },
+                    "409": {
+                        "description": "Already confirmed"
+                    }
+                },
+                "security": [
+                    {
+                        "AppKey": []
+                    }
+                ]
+            }
+        },
         "/v1/ping": {
             "get": {
                 "tags": [
@@ -597,11 +714,11 @@
                                     },
                                     "provider": {
                                         "type": "string",
-                                        "nullable": true,
                                         "enum": [
                                             "onesignal",
                                             "firebase"
-                                        ]
+                                        ],
+                                        "nullable": true
                                     },
                                     "device_type": {
                                         "type": "string",
@@ -609,11 +726,11 @@
                                     },
                                     "platform": {
                                         "type": "string",
-                                        "nullable": true,
                                         "enum": [
                                             "ios",
                                             "android"
-                                        ]
+                                        ],
+                                        "nullable": true
                                     },
                                     "app_version": {
                                         "type": "string",
@@ -869,6 +986,128 @@
                     }
                 ]
             }
+        },
+        "/v1/payments/tabby/initialize": {
+            "post": {
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Initialize Tabby payment for a checkout session",
+                "operationId": "e4a3ef0dbedd4d0f316977693fb70a3b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "session_id"
+                                ],
+                                "properties": {
+                                    "session_id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tabby session created"
+                    },
+                    "409": {
+                        "description": "Session not in pending state"
+                    },
+                    "502": {
+                        "description": "Tabby API error"
+                    }
+                },
+                "security": [
+                    {
+                        "AppKey": []
+                    }
+                ]
+            }
+        },
+        "/webhooks/tabby": {
+            "post": {
+                "tags": [
+                    "Webhooks"
+                ],
+                "summary": "Tabby payment webhook",
+                "operationId": "67c8b0b1555066a6d1615e77dbd37986",
+                "responses": {
+                    "200": {
+                        "description": "Webhook processed"
+                    },
+                    "401": {
+                        "description": "Invalid signature"
+                    }
+                }
+            }
+        },
+        "/v1/payments/tamara/initialize": {
+            "post": {
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Initialize Tamara payment for a checkout session",
+                "operationId": "600b5ecf92fb4ef34f1145512846263f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "session_id"
+                                ],
+                                "properties": {
+                                    "session_id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tamara order created"
+                    },
+                    "409": {
+                        "description": "Session not in pending state"
+                    },
+                    "502": {
+                        "description": "Tamara API error"
+                    }
+                },
+                "security": [
+                    {
+                        "AppKey": []
+                    }
+                ]
+            }
+        },
+        "/webhooks/tamara": {
+            "post": {
+                "tags": [
+                    "Webhooks"
+                ],
+                "summary": "Tamara payment webhook",
+                "operationId": "bbd9af4e857e96c23dbd9e1811a806e5",
+                "responses": {
+                    "200": {
+                        "description": "Webhook processed"
+                    },
+                    "401": {
+                        "description": "Invalid signature"
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -909,6 +1148,10 @@
         {
             "name": "Products",
             "description": "Products"
+        },
+        {
+            "name": "Webhooks",
+            "description": "Webhooks"
         }
     ]
 }
