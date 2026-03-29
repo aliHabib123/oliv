@@ -233,21 +233,69 @@ class ContentController extends Controller
             $shopifyService = new ShopifyStorefrontService();
             $shopifySettings = $shopifyService->getPaymentSettings($tenant);
 
+            // Get card brands from database
+            $cardBrands = \App\Models\CardBrand::where('tenant_id', $tenant->id)
+                ->where('is_enabled', true)
+                ->orderBy('sort_order')
+                ->get()
+                ->map(fn ($brand) => [
+                    'slug' => $brand->slug,
+                    'name' => $brand->name,
+                    'image_url' => $brand->image_url,
+                ])
+                ->values()
+                ->toArray();
+
+            // Build digital wallet mappings from enabled gateways
+            $digitalWallets = [];
+            foreach ($gateways as $gateway) {
+                if ($gateway->apple_pay_enabled) {
+                    $digitalWallets['apple_pay'] = $gateway->gateway_type;
+                }
+                if ($gateway->google_pay_enabled) {
+                    $digitalWallets['google_pay'] = $gateway->gateway_type;
+                }
+            }
+
             // Build payment methods array with only public fields
             $paymentMethods = $gateways->map(function ($gateway) {
-                return [
+                $method = [
                     'type' => $gateway->gateway_type,
                     'display_name' => $gateway->display_name ?: \App\Enums\PaymentGatewayType::from($gateway->gateway_type)->getLabel(),
                     'is_test_mode' => $gateway->is_test_mode,
-                    'config' => $gateway->getPublicConfig(), // Only public fields
+                    'config' => $gateway->getPublicConfig(),
+                    'supports_apple_pay' => $gateway->apple_pay_enabled,
+                    'supports_google_pay' => $gateway->google_pay_enabled,
                 ];
+
+                // Include Apple Pay config for enabled gateways
+                if ($gateway->apple_pay_enabled && $gateway->wallet_config) {
+                    $walletConfig = $gateway->wallet_config;
+                    $method['apple_pay_config'] = [
+                        'merchant_id' => $walletConfig['apple_pay_merchant_id'] ?? null,
+                        'supported_networks' => ['visa', 'masterCard', 'amex', 'mada'],
+                        'merchant_capabilities' => ['supports3DS'],
+                        'country_code' => $walletConfig['apple_pay_country_code'] ?? 'AE',
+                    ];
+                }
+
+                // Include Google Pay config for enabled gateways
+                if ($gateway->google_pay_enabled && $gateway->wallet_config) {
+                    $walletConfig = $gateway->wallet_config;
+                    $method['google_pay_config'] = [
+                        'merchant_id' => $walletConfig['google_pay_merchant_id'] ?? null,
+                        'merchant_name' => $walletConfig['google_pay_merchant_name'] ?? null,
+                    ];
+                }
+
+                return $method;
             })->values();
 
             return [
                 'currency_code' => $shopifySettings['currencyCode'] ?? 'USD',
                 'country_code' => $shopifySettings['countryCode'] ?? 'US',
-                'accepted_card_brands' => $shopifySettings['acceptedCardBrands'] ?? [],
-                'supported_digital_wallets' => $shopifySettings['supportedDigitalWallets'] ?? [],
+                'accepted_card_brands' => ! empty($cardBrands) ? $cardBrands : ($shopifySettings['acceptedCardBrands'] ?? []),
+                'supported_digital_wallets' => ! empty($digitalWallets) ? $digitalWallets : ($shopifySettings['supportedDigitalWallets'] ?? []),
                 'payment_methods' => $paymentMethods,
             ];
         });

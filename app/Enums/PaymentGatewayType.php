@@ -9,6 +9,8 @@ enum PaymentGatewayType: string
     case STRIPE = 'stripe';
     case PAYPAL = 'paypal';
     case TELR = 'telr';
+    case AMAZON_PAYMENT_SERVICES = 'amazon_payment_services';
+    case TAP = 'tap';
 
     /**
      * Get human-readable label for this gateway.
@@ -21,6 +23,8 @@ enum PaymentGatewayType: string
             self::STRIPE => 'Stripe',
             self::PAYPAL => 'PayPal',
             self::TELR => 'Telr',
+            self::AMAZON_PAYMENT_SERVICES => 'Amazon Payment Services',
+            self::TAP => 'Tap Payments',
         };
     }
 
@@ -136,6 +140,68 @@ enum PaymentGatewayType: string
                     'hint' => 'Your Telr authentication key',
                 ],
             ],
+
+            self::AMAZON_PAYMENT_SERVICES => [
+                'merchant_identifier' => [
+                    'label' => 'Merchant Identifier',
+                    'type' => 'text',
+                    'required' => true,
+                    'public' => true,
+                    'hint' => 'Your APS merchant identifier',
+                ],
+                'access_code' => [
+                    'label' => 'Access Code',
+                    'type' => 'password',
+                    'required' => true,
+                    'public' => false,
+                    'hint' => 'Your APS access code',
+                ],
+                'sha_request_phrase' => [
+                    'label' => 'SHA Request Phrase',
+                    'type' => 'password',
+                    'required' => true,
+                    'public' => false,
+                    'hint' => 'SHA request phrase for signature generation',
+                ],
+                'sha_response_phrase' => [
+                    'label' => 'SHA Response Phrase',
+                    'type' => 'password',
+                    'required' => true,
+                    'public' => false,
+                    'hint' => 'SHA response phrase for signature verification',
+                ],
+                'sha_type' => [
+                    'label' => 'SHA Type',
+                    'type' => 'text',
+                    'required' => false,
+                    'public' => false,
+                    'hint' => 'SHA type: SHA-256 or SHA-512 (default: SHA-256)',
+                ],
+            ],
+
+            self::TAP => [
+                'public_key' => [
+                    'label' => 'Public Key',
+                    'type' => 'text',
+                    'required' => true,
+                    'public' => true,
+                    'hint' => 'Your Tap publishable API key (starts with pk_)',
+                ],
+                'secret_key' => [
+                    'label' => 'Secret Key',
+                    'type' => 'password',
+                    'required' => true,
+                    'public' => false,
+                    'hint' => 'Your Tap secret API key (starts with sk_)',
+                ],
+                'merchant_id' => [
+                    'label' => 'Merchant ID',
+                    'type' => 'text',
+                    'required' => false,
+                    'public' => true,
+                    'hint' => 'Optional merchant identifier',
+                ],
+            ],
         };
     }
 
@@ -187,6 +253,12 @@ enum PaymentGatewayType: string
             self::TELR => $isTestMode
                 ? 'https://secure.telr.com'
                 : 'https://secure.telr.com',
+            self::AMAZON_PAYMENT_SERVICES => $isTestMode
+                ? 'https://sbcheckout.payfort.com'
+                : 'https://checkout.payfort.com',
+            self::TAP => $isTestMode
+                ? 'https://api.tap.company'
+                : 'https://api.tap.company',
         };
     }
 
@@ -198,5 +270,132 @@ enum PaymentGatewayType: string
         return collect(self::cases())
             ->mapWithKeys(fn(self $type) => [$type->value => $type->getLabel()])
             ->all();
+    }
+
+    /**
+     * Check if this gateway supports Apple Pay.
+     */
+    public function supportsApplePay(): bool
+    {
+        return match($this) {
+            self::AMAZON_PAYMENT_SERVICES, self::TAP, self::STRIPE => true,
+            default => false,
+        };
+    }
+
+    /**
+     * Check if this gateway supports Google Pay.
+     */
+    public function supportsGooglePay(): bool
+    {
+        return match($this) {
+            self::AMAZON_PAYMENT_SERVICES, self::TAP, self::STRIPE => true,
+            default => false,
+        };
+    }
+
+    /**
+     * Get Apple Pay configuration fields for this gateway.
+     */
+    public function getApplePayFields(): array
+    {
+        if (! $this->supportsApplePay()) {
+            return [];
+        }
+
+        return match($this) {
+            self::AMAZON_PAYMENT_SERVICES => [
+                'apple_pay_merchant_id' => [
+                    'label' => 'Apple Pay Merchant ID',
+                    'type' => 'text',
+                    'required' => true,
+                    'hint' => 'Your Apple Developer Merchant ID',
+                ],
+                'apple_pay_certificate' => [
+                    'label' => 'Apple Pay Certificate',
+                    'type' => 'textarea',
+                    'required' => true,
+                    'hint' => 'PEM-encoded merchant identity certificate',
+                ],
+                'apple_pay_key' => [
+                    'label' => 'Apple Pay Private Key',
+                    'type' => 'textarea',
+                    'required' => true,
+                    'hint' => 'PEM-encoded private key for the certificate',
+                ],
+                'apple_pay_domain' => [
+                    'label' => 'Verified Domain',
+                    'type' => 'text',
+                    'required' => true,
+                    'hint' => 'Domain verified with Apple Pay',
+                ],
+            ],
+
+            self::TAP => [
+                'apple_pay_merchant_id' => [
+                    'label' => 'Apple Pay Merchant ID',
+                    'type' => 'text',
+                    'required' => true,
+                    'hint' => 'Your Apple Developer Merchant ID (provided by Tap)',
+                ],
+                'apple_pay_domain' => [
+                    'label' => 'Verified Domain',
+                    'type' => 'text',
+                    'required' => true,
+                    'hint' => 'Domain verified with Apple Pay via Tap',
+                ],
+            ],
+
+            self::STRIPE => [
+                'apple_pay_domain' => [
+                    'label' => 'Verified Domain',
+                    'type' => 'text',
+                    'required' => true,
+                    'hint' => 'Domain registered in Stripe Dashboard for Apple Pay',
+                ],
+            ],
+
+            default => [],
+        };
+    }
+
+    /**
+     * Get Google Pay configuration fields for this gateway.
+     */
+    public function getGooglePayFields(): array
+    {
+        if (! $this->supportsGooglePay()) {
+            return [];
+        }
+
+        return match($this) {
+            self::AMAZON_PAYMENT_SERVICES => [
+                'google_pay_merchant_id' => [
+                    'label' => 'Google Pay Merchant ID',
+                    'type' => 'text',
+                    'required' => true,
+                    'hint' => 'Your Google Pay Merchant ID',
+                ],
+                'google_pay_merchant_name' => [
+                    'label' => 'Merchant Display Name',
+                    'type' => 'text',
+                    'required' => true,
+                    'hint' => 'Name displayed to customers during payment',
+                ],
+            ],
+
+            self::TAP => [
+                'google_pay_merchant_id' => [
+                    'label' => 'Google Pay Merchant ID',
+                    'type' => 'text',
+                    'required' => false,
+                    'hint' => 'Optional: Tap handles Google Pay integration',
+                ],
+            ],
+
+            self::STRIPE => [],
+
+            default => [],
+        };
     }
 }
