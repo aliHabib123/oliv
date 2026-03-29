@@ -206,6 +206,88 @@
                 ]
             }
         },
+        "/v1/payments/aps/apple-pay": {
+            "post": {
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Process Apple Pay payment via Amazon Payment Services",
+                "operationId": "512d888615cab0b38437d99350668ee9",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "session_id",
+                                    "apple_pay_data"
+                                ],
+                                "properties": {
+                                    "session_id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "apple_pay_data": {
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Apple Pay charge processed"
+                    },
+                    "502": {
+                        "description": "APS API error"
+                    }
+                },
+                "security": [
+                    {
+                        "AppKey": []
+                    }
+                ]
+            }
+        },
+        "/v1/payments/aps/apple-pay/session": {
+            "post": {
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Create Apple Pay merchant session for domain validation",
+                "operationId": "89412412136b373840cfdb7db48fd15c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "validation_url"
+                                ],
+                                "properties": {
+                                    "validation_url": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Apple Pay session created"
+                    }
+                },
+                "security": [
+                    {
+                        "AppKey": []
+                    }
+                ]
+            }
+        },
         "/v1/cart/add": {
             "post": {
                 "tags": [
@@ -1350,6 +1432,51 @@
                 "responses": {
                     "200": {
                         "description": "Refund created"
+                    },
+                    "502": {
+                        "description": "Tap API error"
+                    }
+                },
+                "security": [
+                    {
+                        "AppKey": []
+                    }
+                ]
+            }
+        },
+        "/v1/payments/tap/apple-pay": {
+            "post": {
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Process Apple Pay payment via Tap",
+                "operationId": "8fc10a8452b0c843a2e865a65478471c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "session_id",
+                                    "apple_pay_token"
+                                ],
+                                "properties": {
+                                    "session_id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "apple_pay_token": {
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Apple Pay charge processed"
                     },
                     "502": {
                         "description": "Tap API error"
