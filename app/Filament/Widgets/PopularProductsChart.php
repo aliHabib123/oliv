@@ -16,7 +16,7 @@ class PopularProductsChart extends ChartWidget
 
     protected int | string | array $columnSpan = 'full';
 
-    protected ?string $maxHeight = '400px';
+    protected ?string $maxHeight = '450px';
 
     protected function getData(): array
     {
@@ -93,7 +93,6 @@ class PopularProductsChart extends ChartWidget
     {
         return [
             'indexAxis' => 'y',
-            'barThickness' => 25,
             'scales' => [
                 'x' => [
                     'beginAtZero' => true,
@@ -104,21 +103,12 @@ class PopularProductsChart extends ChartWidget
                 'y' => [
                     'ticks' => [
                         'autoSkip' => false,
-                        'font' => [
-                            'size' => 12,
-                        ],
                     ],
                 ],
             ],
             'plugins' => [
                 'legend' => [
                     'display' => false,
-                ],
-                'tooltip' => [
-                    'enabled' => true,
-                    'callbacks' => [
-                        'title' => null,
-                    ],
                 ],
             ],
             'maintainAspectRatio' => false,
