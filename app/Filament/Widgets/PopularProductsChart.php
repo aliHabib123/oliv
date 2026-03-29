@@ -3,7 +3,9 @@
 namespace App\Filament\Widgets;
 
 use App\Models\CartEvent;
+use App\Services\Shopify\ShopifyStorefrontService;
 use Filament\Widgets\ChartWidget;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class PopularProductsChart extends ChartWidget
@@ -13,6 +15,8 @@ class PopularProductsChart extends ChartWidget
     protected static ?int $sort = 2;
 
     protected int | string | array $columnSpan = 'full';
+
+    protected ?string $maxHeight = '250px';
 
     protected function getData(): array
     {
@@ -45,10 +49,23 @@ class PopularProductsChart extends ChartWidget
             ->limit(10)
             ->get();
 
-        $labels = $topProducts->map(function ($item) {
-            // Extract product ID from GID
-            $parts = explode('/', $item->product_id);
-            return 'Product ' . end($parts);
+        // Fetch product titles from Shopify (with caching)
+        $shopifyService = app(ShopifyStorefrontService::class);
+        $labels = $topProducts->map(function ($item) use ($tenant, $shopifyService) {
+            $productId = $item->product_id;
+
+            // Cache product title for 1 hour
+            return Cache::remember("product_title_{$tenant->id}_{$productId}", 3600, function () use ($tenant, $shopifyService, $productId) {
+                $product = $shopifyService->getProductById($tenant, $productId);
+                if ($product && !empty($product['title'])) {
+                    // Truncate long titles
+                    $title = $product['title'];
+                    return strlen($title) > 25 ? substr($title, 0, 22) . '...' : $title;
+                }
+                // Fallback to short ID
+                $parts = explode('/', $productId);
+                return 'Product #' . substr(end($parts), -6);
+            });
         })->toArray();
 
         $data = $topProducts->pluck('total_quantity')->toArray();
@@ -58,18 +75,9 @@ class PopularProductsChart extends ChartWidget
                 [
                     'label' => 'Quantity Added',
                     'data' => $data,
-                    'backgroundColor' => [
-                        'rgba(59, 130, 246, 0.5)',
-                        'rgba(16, 185, 129, 0.5)',
-                        'rgba(245, 158, 11, 0.5)',
-                        'rgba(239, 68, 68, 0.5)',
-                        'rgba(139, 92, 246, 0.5)',
-                        'rgba(236, 72, 153, 0.5)',
-                        'rgba(20, 184, 166, 0.5)',
-                        'rgba(251, 146, 60, 0.5)',
-                        'rgba(148, 163, 184, 0.5)',
-                        'rgba(14, 165, 233, 0.5)',
-                    ],
+                    'backgroundColor' => 'rgba(132, 117, 78, 0.7)',
+                    'borderColor' => 'rgb(132, 117, 78)',
+                    'borderWidth' => 1,
                 ],
             ],
             'labels' => $labels,
@@ -79,5 +87,31 @@ class PopularProductsChart extends ChartWidget
     protected function getType(): string
     {
         return 'bar';
+    }
+
+    protected function getOptions(): array
+    {
+        return [
+            'scales' => [
+                'y' => [
+                    'beginAtZero' => true,
+                    'ticks' => [
+                        'stepSize' => 1,
+                    ],
+                ],
+                'x' => [
+                    'ticks' => [
+                        'maxRotation' => 45,
+                        'minRotation' => 45,
+                    ],
+                ],
+            ],
+            'plugins' => [
+                'legend' => [
+                    'display' => false,
+                ],
+            ],
+            'maintainAspectRatio' => false,
+        ];
     }
 }
