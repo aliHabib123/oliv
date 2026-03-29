@@ -8,6 +8,7 @@ use App\Models\PaymentGateway;
 use Filament\Actions;
 use Filament\Forms;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -26,46 +27,49 @@ class PaymentGatewayResource extends Resource
     public static function form(Schema $schema): Schema
     {
         $fields = [
-            Forms\Components\Select::make('gateway_type')
-                ->label('Payment Gateway')
-                ->options(PaymentGatewayType::options())
-                ->required()
-                ->live()
-                ->disabled(fn (?PaymentGateway $record) => $record !== null)
-                ->helperText('Cannot be changed after creation')
+            Section::make('Gateway Settings')
+                ->description('Configure basic gateway settings')
+                ->icon('heroicon-o-cog-6-tooth')
+                ->schema([
+                    Forms\Components\Select::make('gateway_type')
+                        ->label('Payment Gateway')
+                        ->options(PaymentGatewayType::options())
+                        ->required()
+                        ->live()
+                        ->disabled(fn (?PaymentGateway $record) => $record !== null)
+                        ->helperText('Cannot be changed after creation')
+                        ->columnSpanFull(),
+
+                    Forms\Components\TextInput::make('display_name')
+                        ->label('Custom Display Name')
+                        ->maxLength(255)
+                        ->helperText('Optional. Leave empty to use default name.'),
+
+                    Forms\Components\TextInput::make('sort_order')
+                        ->label('Display Order')
+                        ->numeric()
+                        ->default(0)
+                        ->helperText('Lower numbers appear first'),
+
+                    Forms\Components\Toggle::make('is_enabled')
+                        ->label('Enabled')
+                        ->default(false)
+                        ->helperText('Enable this payment gateway for customer checkout')
+                        ->inline(false),
+
+                    Forms\Components\Toggle::make('is_test_mode')
+                        ->label('Test Mode (Sandbox)')
+                        ->default(true)
+                        ->helperText('Use sandbox/test environment for this gateway')
+                        ->inline(false),
+                ])
+                ->columns(2)
+                ->collapsible()
                 ->columnSpanFull(),
-
-            Forms\Components\TextInput::make('display_name')
-                ->label('Custom Display Name')
-                ->maxLength(255)
-                ->helperText('Optional. Leave empty to use default name.'),
-
-            Forms\Components\Toggle::make('is_enabled')
-                ->label('Enabled')
-                ->default(false)
-                ->helperText('Enable this payment gateway for customer checkout')
-                ->inline(false),
-
-            Forms\Components\Toggle::make('is_test_mode')
-                ->label('Test Mode (Sandbox)')
-                ->default(true)
-                ->helperText('Use sandbox/test environment for this gateway')
-                ->inline(false),
-
-            Forms\Components\TextInput::make('sort_order')
-                ->label('Display Order')
-                ->numeric()
-                ->default(0)
-                ->helperText('Lower numbers appear first'),
-
-            Forms\Components\Placeholder::make('credentials_divider')
-                ->label('API Credentials')
-                ->content('Configure your payment gateway credentials below')
-                ->columnSpanFull()
-                ->visible(fn ($get) => $get('gateway_type') !== null),
         ];
 
-        // Generate credential fields for ALL gateway types with conditional visibility
+        // Build API credentials fields for the section
+        $credentialFields = [];
         foreach (PaymentGatewayType::cases() as $gatewayType) {
             foreach ($gatewayType->getFieldDefinitions() as $fieldName => $definition) {
                 $field = $definition['type'] === 'password'
@@ -85,29 +89,31 @@ class PaymentGatewayResource extends Resource
                     ->hint($visibilityBadge)
                     ->visible(fn ($get) => $get('gateway_type') === $gatewayType->value);
 
-                $fields[] = $field;
+                $credentialFields[] = $field;
             }
         }
 
-        // Digital Wallets Section
-        $fields[] = Forms\Components\Placeholder::make('wallets_divider')
-            ->label('Digital Wallets')
-            ->content('Configure Apple Pay and Google Pay support')
+        // API Credentials Section
+        $fields[] = Section::make('API Credentials')
+            ->description('Configure your payment gateway credentials')
+            ->icon('heroicon-o-key')
+            ->schema($credentialFields)
+            ->columns(2)
+            ->collapsible()
             ->columnSpanFull()
-            ->visible(fn ($get) => $get('gateway_type') !== null &&
-                (PaymentGatewayType::tryFrom($get('gateway_type'))?->supportsApplePay() ||
-                 PaymentGatewayType::tryFrom($get('gateway_type'))?->supportsGooglePay()));
+            ->visible(fn ($get) => $get('gateway_type') !== null);
 
-        // Apple Pay toggle and fields
-        $fields[] = Forms\Components\Toggle::make('apple_pay_enabled')
-            ->label('Enable Apple Pay')
-            ->default(false)
-            ->live()
-            ->helperText('Allow customers to pay with Apple Pay')
-            ->inline(false)
-            ->visible(fn ($get) => PaymentGatewayType::tryFrom($get('gateway_type'))?->supportsApplePay() ?? false);
+        // Apple Pay Section
+        $applePayFields = [
+            Forms\Components\Toggle::make('apple_pay_enabled')
+                ->label('Enable Apple Pay')
+                ->default(false)
+                ->live()
+                ->helperText('Allow customers to pay with Apple Pay')
+                ->inline(false)
+                ->columnSpanFull(),
+        ];
 
-        // Apple Pay configuration fields per gateway
         foreach (PaymentGatewayType::cases() as $gatewayType) {
             foreach ($gatewayType->getApplePayFields() as $fieldName => $definition) {
                 $field = $definition['type'] === 'textarea'
@@ -122,20 +128,30 @@ class PaymentGatewayResource extends Resource
                     ->helperText($definition['hint'] ?? null)
                     ->visible(fn ($get) => $get('gateway_type') === $gatewayType->value && $get('apple_pay_enabled'));
 
-                $fields[] = $field;
+                $applePayFields[] = $field;
             }
         }
 
-        // Google Pay toggle and fields
-        $fields[] = Forms\Components\Toggle::make('google_pay_enabled')
-            ->label('Enable Google Pay')
-            ->default(false)
-            ->live()
-            ->helperText('Allow customers to pay with Google Pay')
-            ->inline(false)
-            ->visible(fn ($get) => PaymentGatewayType::tryFrom($get('gateway_type'))?->supportsGooglePay() ?? false);
+        $fields[] = Section::make('Apple Pay')
+            ->description('Configure Apple Pay for this gateway')
+            ->icon('heroicon-o-device-phone-mobile')
+            ->schema($applePayFields)
+            ->columns(2)
+            ->collapsible()
+            ->columnSpanFull()
+            ->visible(fn ($get) => PaymentGatewayType::tryFrom($get('gateway_type'))?->supportsApplePay() ?? false);
 
-        // Google Pay configuration fields per gateway
+        // Google Pay Section
+        $googlePayFields = [
+            Forms\Components\Toggle::make('google_pay_enabled')
+                ->label('Enable Google Pay')
+                ->default(false)
+                ->live()
+                ->helperText('Allow customers to pay with Google Pay')
+                ->inline(false)
+                ->columnSpanFull(),
+        ];
+
         foreach (PaymentGatewayType::cases() as $gatewayType) {
             foreach ($gatewayType->getGooglePayFields() as $fieldName => $definition) {
                 $field = Forms\Components\TextInput::make("wallet_config.{$fieldName}")
@@ -145,9 +161,18 @@ class PaymentGatewayResource extends Resource
                     ->helperText($definition['hint'] ?? null)
                     ->visible(fn ($get) => $get('gateway_type') === $gatewayType->value && $get('google_pay_enabled'));
 
-                $fields[] = $field;
+                $googlePayFields[] = $field;
             }
         }
+
+        $fields[] = Section::make('Google Pay')
+            ->description('Configure Google Pay for this gateway')
+            ->icon('heroicon-o-device-phone-mobile')
+            ->schema($googlePayFields)
+            ->columns(2)
+            ->collapsible()
+            ->columnSpanFull()
+            ->visible(fn ($get) => PaymentGatewayType::tryFrom($get('gateway_type'))?->supportsGooglePay() ?? false);
 
         return $schema->schema($fields);
     }
