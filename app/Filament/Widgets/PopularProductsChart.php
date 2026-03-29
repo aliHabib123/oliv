@@ -16,7 +16,7 @@ class PopularProductsChart extends ChartWidget
 
     protected int | string | array $columnSpan = 'full';
 
-    protected ?string $maxHeight = '350px';
+    protected ?string $maxHeight = '400px';
 
     protected function getData(): array
     {
@@ -58,7 +58,9 @@ class PopularProductsChart extends ChartWidget
             return Cache::remember("product_title_{$tenant->id}_{$productId}", 3600, function () use ($tenant, $shopifyService, $productId) {
                 $product = $shopifyService->getProductById($tenant, $productId);
                 if ($product && !empty($product['title'])) {
-                    return $product['title'];
+                    // Truncate for display, full title shown in tooltip
+                    $title = $product['title'];
+                    return strlen($title) > 30 ? substr($title, 0, 27) . '...' : $title;
                 }
                 // Fallback to short ID
                 $parts = explode('/', $productId);
@@ -91,6 +93,7 @@ class PopularProductsChart extends ChartWidget
     {
         return [
             'indexAxis' => 'y',
+            'barThickness' => 25,
             'scales' => [
                 'x' => [
                     'beginAtZero' => true,
@@ -101,6 +104,9 @@ class PopularProductsChart extends ChartWidget
                 'y' => [
                     'ticks' => [
                         'autoSkip' => false,
+                        'font' => [
+                            'size' => 12,
+                        ],
                     ],
                 ],
             ],
@@ -110,6 +116,9 @@ class PopularProductsChart extends ChartWidget
                 ],
                 'tooltip' => [
                     'enabled' => true,
+                    'callbacks' => [
+                        'title' => null,
+                    ],
                 ],
             ],
             'maintainAspectRatio' => false,
