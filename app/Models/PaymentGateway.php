@@ -15,6 +15,11 @@ class PaymentGateway extends Model
         'display_name',
         'sort_order',
         'is_test_mode',
+        'supports_apple_pay',
+        'supports_google_pay',
+        'apple_pay_enabled',
+        'google_pay_enabled',
+        'wallet_config',
     ];
 
     protected $casts = [
@@ -22,12 +27,21 @@ class PaymentGateway extends Model
         'is_test_mode' => 'boolean',
         'config' => 'encrypted:array',
         'sort_order' => 'integer',
+        'supports_apple_pay' => 'boolean',
+        'supports_google_pay' => 'boolean',
+        'apple_pay_enabled' => 'boolean',
+        'google_pay_enabled' => 'boolean',
+        'wallet_config' => 'encrypted:array',
     ];
 
     protected $attributes = [
         'is_enabled' => false,
         'is_test_mode' => true,
         'sort_order' => 0,
+        'supports_apple_pay' => false,
+        'supports_google_pay' => false,
+        'apple_pay_enabled' => false,
+        'google_pay_enabled' => false,
     ];
 
     public function tenant(): BelongsTo
@@ -42,14 +56,14 @@ class PaymentGateway extends Model
     public function getPublicConfig(): array
     {
         $gatewayType = \App\Enums\PaymentGatewayType::tryFrom($this->gateway_type);
-        
+
         if (!$gatewayType) {
             return [];
         }
 
         $config = $this->config ?? [];
         $publicFields = $gatewayType->getPublicFields();
-        
+
         return array_intersect_key($config, array_flip($publicFields));
     }
 
@@ -68,20 +82,20 @@ class PaymentGateway extends Model
     public function hasValidConfig(): bool
     {
         $gatewayType = \App\Enums\PaymentGatewayType::tryFrom($this->gateway_type);
-        
+
         if (!$gatewayType) {
             return false;
         }
 
         $config = $this->config ?? [];
         $requiredFields = $gatewayType->getRequiredFields();
-        
+
         foreach ($requiredFields as $field) {
             if (empty($config[$field])) {
                 return false;
             }
         }
-        
+
         return true;
     }
 }

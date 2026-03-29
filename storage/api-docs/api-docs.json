@@ -78,6 +78,134 @@
                 ]
             }
         },
+        "/v1/payments/aps/initialize": {
+            "post": {
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Initialize Amazon Payment Services (PayFort) payment for a checkout session",
+                "operationId": "ce45ae0eeabf9372513f08c2c58cc4a1",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "session_id"
+                                ],
+                                "properties": {
+                                    "session_id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "APS payment session created"
+                    },
+                    "409": {
+                        "description": "Session not in pending state"
+                    },
+                    "502": {
+                        "description": "APS API error"
+                    }
+                },
+                "security": [
+                    {
+                        "AppKey": []
+                    }
+                ]
+            }
+        },
+        "/v1/payments/aps/charge": {
+            "post": {
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Create a charge with Amazon Payment Services using token",
+                "operationId": "ad1ee468de7a198bf7274e99f37360b3",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "session_id",
+                                    "token_name"
+                                ],
+                                "properties": {
+                                    "session_id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "token_name": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "APS charge created"
+                    },
+                    "502": {
+                        "description": "APS API error"
+                    }
+                },
+                "security": [
+                    {
+                        "AppKey": []
+                    }
+                ]
+            }
+        },
+        "/v1/payments/aps/callback": {
+            "post": {
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Amazon Payment Services payment callback/webhook",
+                "operationId": "ad090ec3dd430f215031eb8a705755eb",
+                "responses": {
+                    "200": {
+                        "description": "Callback processed"
+                    },
+                    "401": {
+                        "description": "Invalid signature"
+                    }
+                }
+            }
+        },
+        "/v1/payments/aps/verify/{fort_id}": {
+            "post": {
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Verify Amazon Payment Services payment status",
+                "operationId": "47595ec880bc07d7e123e50d21d3bad7",
+                "responses": {
+                    "200": {
+                        "description": "Payment status verified"
+                    },
+                    "404": {
+                        "description": "Transaction not found"
+                    }
+                },
+                "security": [
+                    {
+                        "AppKey": []
+                    }
+                ]
+            }
+        },
         "/v1/cart/add": {
             "post": {
                 "tags": [
@@ -1108,6 +1236,131 @@
                     }
                 }
             }
+        },
+        "/v1/payments/tap/initialize": {
+            "post": {
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Initialize Tap payment for a checkout session",
+                "operationId": "5f91a0eb197ace62fc36819b905710cf",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "session_id"
+                                ],
+                                "properties": {
+                                    "session_id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tap charge created"
+                    },
+                    "409": {
+                        "description": "Session not in pending state"
+                    },
+                    "502": {
+                        "description": "Tap API error"
+                    }
+                },
+                "security": [
+                    {
+                        "AppKey": []
+                    }
+                ]
+            }
+        },
+        "/v1/payments/tap/callback": {
+            "post": {
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Tap payment callback/webhook",
+                "operationId": "32bf713015844ea6da6430c6bd7aee66",
+                "responses": {
+                    "200": {
+                        "description": "Callback processed"
+                    }
+                }
+            }
+        },
+        "/v1/payments/tap/verify/{charge_id}": {
+            "post": {
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Verify Tap payment status",
+                "operationId": "e3bccfb84830c7aa3ebce2fb47a06506",
+                "responses": {
+                    "200": {
+                        "description": "Payment status verified"
+                    },
+                    "404": {
+                        "description": "Transaction not found"
+                    }
+                },
+                "security": [
+                    {
+                        "AppKey": []
+                    }
+                ]
+            }
+        },
+        "/v1/payments/tap/refund": {
+            "post": {
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Create a refund for a Tap charge",
+                "operationId": "e8049d2e75f4e29c53a544cbbb7760a0",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "charge_id",
+                                    "amount"
+                                ],
+                                "properties": {
+                                    "charge_id": {
+                                        "type": "string"
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Refund created"
+                    },
+                    "502": {
+                        "description": "Tap API error"
+                    }
+                },
+                "security": [
+                    {
+                        "AppKey": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -1126,6 +1379,10 @@
             "description": "Addons"
         },
         {
+            "name": "Payment",
+            "description": "Payment"
+        },
+        {
             "name": "Cart",
             "description": "Cart"
         },
@@ -1136,10 +1393,6 @@
         {
             "name": "Content",
             "description": "Content"
-        },
-        {
-            "name": "Payment",
-            "description": "Payment"
         },
         {
             "name": "Device Tokens",

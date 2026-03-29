@@ -89,6 +89,66 @@ class PaymentGatewayResource extends Resource
             }
         }
 
+        // Digital Wallets Section
+        $fields[] = Forms\Components\Placeholder::make('wallets_divider')
+            ->label('Digital Wallets')
+            ->content('Configure Apple Pay and Google Pay support')
+            ->columnSpanFull()
+            ->visible(fn ($get) => $get('gateway_type') !== null &&
+                (PaymentGatewayType::tryFrom($get('gateway_type'))?->supportsApplePay() ||
+                 PaymentGatewayType::tryFrom($get('gateway_type'))?->supportsGooglePay()));
+
+        // Apple Pay toggle and fields
+        $fields[] = Forms\Components\Toggle::make('apple_pay_enabled')
+            ->label('Enable Apple Pay')
+            ->default(false)
+            ->live()
+            ->helperText('Allow customers to pay with Apple Pay')
+            ->inline(false)
+            ->visible(fn ($get) => PaymentGatewayType::tryFrom($get('gateway_type'))?->supportsApplePay() ?? false);
+
+        // Apple Pay configuration fields per gateway
+        foreach (PaymentGatewayType::cases() as $gatewayType) {
+            foreach ($gatewayType->getApplePayFields() as $fieldName => $definition) {
+                $field = $definition['type'] === 'textarea'
+                    ? Forms\Components\Textarea::make("wallet_config.{$fieldName}")
+                        ->rows(4)
+                    : Forms\Components\TextInput::make("wallet_config.{$fieldName}");
+
+                $field = $field
+                    ->label($definition['label'])
+                    ->required(fn ($get) => $get('gateway_type') === $gatewayType->value &&
+                        $get('apple_pay_enabled') && $definition['required'])
+                    ->helperText($definition['hint'] ?? null)
+                    ->visible(fn ($get) => $get('gateway_type') === $gatewayType->value && $get('apple_pay_enabled'));
+
+                $fields[] = $field;
+            }
+        }
+
+        // Google Pay toggle and fields
+        $fields[] = Forms\Components\Toggle::make('google_pay_enabled')
+            ->label('Enable Google Pay')
+            ->default(false)
+            ->live()
+            ->helperText('Allow customers to pay with Google Pay')
+            ->inline(false)
+            ->visible(fn ($get) => PaymentGatewayType::tryFrom($get('gateway_type'))?->supportsGooglePay() ?? false);
+
+        // Google Pay configuration fields per gateway
+        foreach (PaymentGatewayType::cases() as $gatewayType) {
+            foreach ($gatewayType->getGooglePayFields() as $fieldName => $definition) {
+                $field = Forms\Components\TextInput::make("wallet_config.{$fieldName}")
+                    ->label($definition['label'])
+                    ->required(fn ($get) => $get('gateway_type') === $gatewayType->value &&
+                        $get('google_pay_enabled') && $definition['required'])
+                    ->helperText($definition['hint'] ?? null)
+                    ->visible(fn ($get) => $get('gateway_type') === $gatewayType->value && $get('google_pay_enabled'));
+
+                $fields[] = $field;
+            }
+        }
+
         return $schema->schema($fields);
     }
 

@@ -38,6 +38,21 @@ Route::middleware(ResolveTenantFromAppKey::class)->group(function () {
     Route::post('v1/payments/tabby/initialize', [App\Http\Controllers\Api\TabbyController::class, 'initialize']);
     Route::post('v1/payments/tamara/initialize', [App\Http\Controllers\Api\TamaraController::class, 'initialize']);
 
+    // Amazon Payment Services (PayFort) endpoints
+    Route::post('v1/payments/aps/initialize', [App\Http\Controllers\Api\AmazonPaymentController::class, 'initialize']);
+    Route::post('v1/payments/aps/charge', [App\Http\Controllers\Api\AmazonPaymentController::class, 'charge']);
+    Route::post('v1/payments/aps/callback', [App\Http\Controllers\Api\AmazonPaymentController::class, 'callback']);
+    Route::post('v1/payments/aps/verify/{fort_id}', [App\Http\Controllers\Api\AmazonPaymentController::class, 'verify']);
+    Route::post('v1/payments/aps/apple-pay', [App\Http\Controllers\Api\AmazonPaymentController::class, 'applePay']);
+    Route::post('v1/payments/aps/apple-pay/session', [App\Http\Controllers\Api\AmazonPaymentController::class, 'applePaySession']);
+
+    // Tap Payments endpoints
+    Route::post('v1/payments/tap/initialize', [App\Http\Controllers\Api\TapController::class, 'initialize']);
+    Route::post('v1/payments/tap/callback', [App\Http\Controllers\Api\TapController::class, 'callback']);
+    Route::post('v1/payments/tap/verify/{charge_id}', [App\Http\Controllers\Api\TapController::class, 'verify']);
+    Route::post('v1/payments/tap/refund', [App\Http\Controllers\Api\TapController::class, 'refund']);
+    Route::post('v1/payments/tap/apple-pay', [App\Http\Controllers\Api\TapController::class, 'applePay']);
+
     // Shopify Webhooks
     Route::post('webhooks/shopify/checkouts/create', [App\Http\Controllers\Api\ShopifyWebhookController::class, 'checkoutCreate']);
     Route::post('webhooks/shopify/checkouts/update', [App\Http\Controllers\Api\ShopifyWebhookController::class, 'checkoutUpdate']);
