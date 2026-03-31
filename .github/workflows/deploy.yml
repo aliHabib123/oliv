@@ -44,14 +44,11 @@ jobs:
           # Reset to the latest commit on the release branch
           git reset --hard origin/release
 
-          # Install ALL dependencies (including dev) for swagger generation
-          composer install --optimize-autoloader --ignore-platform-reqs
+          # Install dependencies (l5-swagger is now in require, not require-dev)
+          composer install --no-dev --optimize-autoloader --ignore-platform-reqs
 
           # Generate API documentation
           php artisan l5-swagger:generate
-
-          # Remove dev dependencies for production
-          composer install --no-dev --optimize-autoloader --ignore-platform-reqs
 
           # Run migrations
           php artisan migrate --force
