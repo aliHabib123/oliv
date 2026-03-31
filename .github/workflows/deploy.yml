@@ -44,7 +44,13 @@ jobs:
           # Reset to the latest commit on the release branch
           git reset --hard origin/release
 
-          # Install dependencies
+          # Install ALL dependencies (including dev) for swagger generation
+          composer install --optimize-autoloader --ignore-platform-reqs
+
+          # Generate API documentation
+          php artisan l5-swagger:generate
+
+          # Remove dev dependencies for production
           composer install --no-dev --optimize-autoloader --ignore-platform-reqs
 
           # Run migrations
