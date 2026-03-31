@@ -75,6 +75,10 @@ class CheckoutSessionController extends Controller
             return response()->json(['ok' => false, 'error' => 'Idempotency-Key header is required'], 422);
         }
 
+        if (! \Illuminate\Support\Str::isUuid($idempotencyKey)) {
+            return response()->json(['ok' => false, 'error' => 'Idempotency-Key must be a valid UUID'], 422);
+        }
+
         $session = $this->sessionService->createSession(
             tenant: $tenant,
             lineItems: $validated['line_items'],
