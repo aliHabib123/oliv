@@ -10,7 +10,7 @@ use App\Services\Checkout\CheckoutSessionService;
 use App\Services\Payment\TabbyService;
 use App\Services\Payment\TamaraService;
 use App\Services\Payment\TapService;
-use App\Services\Payment\ApsService;
+use App\Services\Payment\AmazonPaymentService;
 use Illuminate\Support\Str;
 use App\Services\Shopify\ShopifyAdminService;
 use Illuminate\Http\JsonResponse;
@@ -26,7 +26,7 @@ class CheckoutSessionController extends Controller
         private TabbyService $tabbyService,
         private TamaraService $tamaraService,
         private TapService $tapService,
-        private ApsService $apsService,
+        private AmazonPaymentService $apsService,
     ) {}
 
     #[OA\Post(
