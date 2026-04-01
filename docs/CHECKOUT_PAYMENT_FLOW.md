@@ -15,7 +15,7 @@ The system supports a **SDK-based checkout flow** where the mobile app handles p
 2. Mobile SDK processes payment
    → Returns charge_id/fort_id from PSP
    
-3. POST /v1/checkout/record-payment (NEW - to be implemented)
+3. POST /v1/checkout/record-payment
    → Records PaymentTransaction with psp_transaction_id
    
 4. POST /v1/checkout/confirm
@@ -76,7 +76,7 @@ The system supports a **SDK-based checkout flow** where the mobile app handles p
 
 ---
 
-### 2. Record Payment (TO BE IMPLEMENTED)
+### 2. Record Payment
 
 **Endpoint:** `POST /v1/checkout/record-payment`
 
@@ -91,11 +91,17 @@ The system supports a **SDK-based checkout flow** where the mobile app handles p
 }
 ```
 
+**Parameters:**
+- `session_id` - The checkout session UUID
+- `psp_type` - Either `tap` or `aps`
+- `psp_transaction_id` - The charge_id (Tap) or fort_id (APS) from the SDK
+
 **Response:**
 ```json
 {
   "ok": true,
-  "transaction_id": "uuid"
+  "transaction_id": 123,
+  "status": "pending"
 }
 ```
 
@@ -165,8 +171,8 @@ payment_initiated → expired (terminal)
 
 ## TODO Items
 
-- [ ] Implement `/v1/checkout/record-payment` endpoint
-- [ ] Add Tap/APS verification to `verifyWithPsp()`
+- [x] Implement `/v1/checkout/record-payment` endpoint
+- [x] Add Tap/APS verification to `verifyWithPsp()`
 - [ ] Add cart clearing after order creation in `confirm()`
 - [ ] Add Google Pay support
 

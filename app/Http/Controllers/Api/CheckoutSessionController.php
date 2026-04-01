@@ -9,6 +9,9 @@ use App\Models\ShopifyOrderMapping;
 use App\Services\Checkout\CheckoutSessionService;
 use App\Services\Payment\TabbyService;
 use App\Services\Payment\TamaraService;
+use App\Services\Payment\TapService;
+use App\Services\Payment\ApsService;
+use Illuminate\Support\Str;
 use App\Services\Shopify\ShopifyAdminService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,6 +25,8 @@ class CheckoutSessionController extends Controller
         private ShopifyAdminService $shopifyAdmin,
         private TabbyService $tabbyService,
         private TamaraService $tamaraService,
+        private TapService $tapService,
+        private ApsService $apsService,
     ) {}
 
     #[OA\Post(
@@ -92,6 +97,95 @@ class CheckoutSessionController extends Controller
             'currency' => $session->currency,
             'expires_at' => $session->expires_at?->toIso8601String(),
         ], 201);
+    }
+
+    #[OA\Post(
+        path: '/v1/checkout/record-payment',
+        tags: ['Checkout'],
+        summary: 'Record a payment transaction from mobile SDK',
+        description: 'Records a payment transaction after the mobile SDK has processed the payment. This links the PSP transaction to the checkout session.',
+        security: [['AppKey' => []]]
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['session_id', 'psp_type', 'psp_transaction_id'],
+            properties: [
+                new OA\Property(property: 'session_id', type: 'string', format: 'uuid', description: 'The checkout session ID'),
+                new OA\Property(property: 'psp_type', type: 'string', enum: ['tap', 'aps'], description: 'Payment service provider'),
+                new OA\Property(property: 'psp_transaction_id', type: 'string', description: 'Transaction ID from PSP (charge_id for Tap, fort_id for APS)'),
+            ]
+        )
+    )]
+    #[OA\Response(response: 200, description: 'Payment recorded successfully')]
+    #[OA\Response(response: 404, description: 'Session not found')]
+    #[OA\Response(response: 409, description: 'Session not in valid state')]
+    #[OA\Response(response: 422, description: 'Validation error')]
+    public function recordPayment(Request $request): JsonResponse
+    {
+        $tenant = $request->attributes->get('tenant');
+        if (! $tenant) {
+            return response()->json(['ok' => false, 'error' => 'Tenant not found'], 404);
+        }
+
+        $validated = $request->validate([
+            'session_id' => 'required|string',
+            'psp_type' => 'required|string|in:tap,aps',
+            'psp_transaction_id' => 'required|string',
+        ]);
+
+        $session = $this->sessionService->findByUuid($tenant, $validated['session_id']);
+        if (! $session) {
+            return response()->json(['ok' => false, 'error' => 'Session not found'], 404);
+        }
+
+        // Check if session is in a valid state (pending or payment_initiated)
+        if (! $session->isInState(CheckoutSession::STATUS_PENDING) &&
+            ! $session->isInState(CheckoutSession::STATUS_PAYMENT_INITIATED)) {
+            return response()->json([
+                'ok' => false,
+                'error' => 'Session is not in a valid state for recording payment',
+                'current_status' => $session->status,
+            ], 409);
+        }
+
+        // Check if transaction already exists (idempotent)
+        $existingTransaction = $session->paymentTransactions()
+            ->where('psp_transaction_id', $validated['psp_transaction_id'])
+            ->first();
+
+        if ($existingTransaction) {
+            return response()->json([
+                'ok' => true,
+                'transaction_id' => $existingTransaction->id,
+                'status' => $existingTransaction->status,
+                'message' => 'Transaction already recorded',
+            ]);
+        }
+
+        // Create payment transaction record
+        $transaction = PaymentTransaction::create([
+            'tenant_id' => $tenant->id,
+            'checkout_session_id' => $session->id,
+            'psp_type' => $validated['psp_type'],
+            'psp_transaction_id' => $validated['psp_transaction_id'],
+            'status' => PaymentTransaction::STATUS_PENDING,
+            'amount' => $session->amount,
+            'currency' => $session->currency,
+            'idempotency_key' => Str::uuid()->toString(),
+        ]);
+
+        // Update session state and psp_type
+        if ($session->isInState(CheckoutSession::STATUS_PENDING)) {
+            $this->sessionService->transition($session, CheckoutSession::STATUS_PAYMENT_INITIATED);
+        }
+        $session->update(['psp_type' => $validated['psp_type']]);
+
+        return response()->json([
+            'ok' => true,
+            'transaction_id' => $transaction->id,
+            'status' => $transaction->status,
+        ]);
     }
 
     #[OA\Post(
@@ -220,6 +314,8 @@ class CheckoutSessionController extends Controller
         return match ($session->psp_type) {
             'tabby' => $this->tabbyService->verifyPayment($transaction->psp_transaction_id, $gateway),
             'tamara' => $this->tamaraService->verifyPayment($transaction->psp_transaction_id, $gateway),
+            'tap' => $this->tapService->verifyPayment($transaction->psp_transaction_id, $gateway),
+            'aps' => $this->apsService->verifyPayment($transaction->psp_transaction_id, $gateway),
             default => 'failed',
         };
     }

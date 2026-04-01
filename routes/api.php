@@ -31,6 +31,7 @@ Route::middleware(ResolveTenantFromAppKey::class)->group(function () {
     // Checkout endpoints
     Route::post('v1/checkout/create', [App\Http\Controllers\Api\CheckoutController::class, 'create']);
     Route::post('v1/checkout/session', [App\Http\Controllers\Api\CheckoutSessionController::class, 'create']);
+    Route::post('v1/checkout/record-payment', [App\Http\Controllers\Api\CheckoutSessionController::class, 'recordPayment']);
     Route::post('v1/checkout/confirm', [App\Http\Controllers\Api\CheckoutSessionController::class, 'confirm']);
 
     // Payment endpoints
