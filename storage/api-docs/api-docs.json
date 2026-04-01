@@ -658,6 +658,69 @@
                 ]
             }
         },
+        "/v1/checkout/record-payment": {
+            "post": {
+                "tags": [
+                    "Checkout"
+                ],
+                "summary": "Record a payment transaction from mobile SDK",
+                "description": "Records a payment transaction after the mobile SDK has processed the payment. This links the PSP transaction to the checkout session.",
+                "operationId": "82477fc7ef4aca0bff2b4d8c241e14fd",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "session_id",
+                                    "psp_type",
+                                    "psp_transaction_id"
+                                ],
+                                "properties": {
+                                    "session_id": {
+                                        "description": "The checkout session ID",
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "psp_type": {
+                                        "description": "Payment service provider",
+                                        "type": "string",
+                                        "enum": [
+                                            "tap",
+                                            "aps"
+                                        ]
+                                    },
+                                    "psp_transaction_id": {
+                                        "description": "Transaction ID from PSP (charge_id for Tap, fort_id for APS)",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Payment recorded successfully"
+                    },
+                    "404": {
+                        "description": "Session not found"
+                    },
+                    "409": {
+                        "description": "Session not in valid state"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "AppKey": []
+                    }
+                ]
+            }
+        },
         "/v1/checkout/confirm": {
             "post": {
                 "tags": [
