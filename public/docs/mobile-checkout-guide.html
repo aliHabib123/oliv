@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile SDK Checkout Integration Guide</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --code-bg: #1e293b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 3rem 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+        }
+        
+        h2 {
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        h3 {
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--text);
+        }
+        
+        h4 {
+            font-size: 1rem;
+            margin: 1rem 0 0.5rem;
+            color: var(--text-muted);
+        }
+        
+        p {
+            margin-bottom: 1rem;
+        }
+        
+        pre {
+            background: var(--code-bg);
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+        
+        code {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        }
+        
+        .inline-code {
+            background: #f1f5f9;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: var(--primary-dark);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        th {
+            background: #f1f5f9;
+            font-weight: 600;
+        }
+        
+        .flow-diagram {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1.5rem;
+            background: #f1f5f9;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .flow-step {
+            background: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            text-align: center;
+            min-width: 200px;
+        }
+        
+        .flow-arrow {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+        }
+        
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            font-weight: bold;
+            margin-right: 0.75rem;
+        }
+        
+        .endpoint {
+            background: #f1f5f9;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-family: monospace;
+            display: inline-block;
+            margin: 0.5rem 0;
+        }
+        
+        .method {
+            background: var(--success);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+        
+        .highlight-box {
+            background: #fef3c7;
+            border-left: 4px solid var(--warning);
+            padding: 1rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1rem 0;
+        }
+        
+        .highlight-box.info {
+            background: #dbeafe;
+            border-left-color: var(--primary);
+        }
+        
+        .highlight-box.success {
+            background: #d1fae5;
+            border-left-color: var(--success);
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: -1px;
+        }
+        
+        .tab {
+            padding: 0.5rem 1rem;
+            background: #f1f5f9;
+            border: 1px solid var(--border);
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .tab.active {
+            background: var(--code-bg);
+            color: white;
+        }
+        
+        ul {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+        
+        li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .badge-tap { background: #dbeafe; color: #1e40af; }
+        .badge-aps { background: #fce7f3; color: #9d174d; }
+        
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Mobile SDK Checkout Guide</h1>
+            <p>Integration documentation for native payment SDK checkout flow</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Flow Overview -->
+        <div class="card">
+            <h2>Checkout Flow Overview</h2>
+            <div class="flow-diagram">
+                <div class="flow-step"><strong>1.</strong> Create Checkout Session</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step"><strong>2.</strong> SDK Processes Payment</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step"><strong>3.</strong> Record Payment Transaction</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step"><strong>4.</strong> Confirm & Create Order</div>
+            </div>
+        </div>
+
+        <!-- Step 1 -->
+        <div class="card">
+            <h2><span class="step-number">1</span>Create Checkout Session</h2>
+            
+            <div class="endpoint">
+                <span class="method">POST</span> /v1/checkout/session
+            </div>
+            
+            <h4>Headers</h4>
+            <pre><code>X-App-Key: your_app_key
+Content-Type: application/json
+Idempotency-Key: &lt;client-generated-uuid&gt;</code></pre>
+
+            <h4>Request Body</h4>
+            <pre><code>{
+  "line_items": [
+    {
+      "variant_id": "gid://shopify/ProductVariant/123456",
+      "quantity": 2
+    }
+  ],
+  "customer": {
+    "email": "customer@example.com",
+    "phone": "+971501234567"
+  },
+  "shipping_address": {
+    "first_name": "John",
+    "last_name": "Doe",
+    "address1": "123 Main St",
+    "city": "Dubai",
+    "country_code": "AE",
+    "zip": "12345"
+  },
+  "amount": "150.00",
+  "currency": "AED"
+}</code></pre>
+
+            <h4>Response</h4>
+            <pre><code>{
+  "ok": true,
+  "session_id": "550e8400-e29b-41d4-a716-446655440000",
+  "amount": "150.00",
+  "currency": "AED",
+  "expires_at": "2026-04-01T15:00:00+00:00"
+}</code></pre>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="card">
+            <h2><span class="step-number">2</span>Process Payment with SDK</h2>
+            
+            <p>After receiving the <code class="inline-code">session_id</code>, use the PSP's mobile SDK to process the payment.</p>
+            
+            <h3><span class="badge badge-tap">TAP</span> Tap Payments SDK</h3>
+            <pre><code>// iOS Swift Example
+let charge = TapCharge()
+charge.amount = 150.00
+charge.currency = "AED"
+// ... configure charge
+// On success, you'll receive a charge_id (e.g., "chg_xxxxxxxx")</code></pre>
+
+            <h3><span class="badge badge-aps">APS</span> Amazon Payment Services SDK</h3>
+            <pre><code>// iOS Swift Example
+let fortRequest = FORTRequest()
+fortRequest.amount = "15000" // in fils
+fortRequest.currency = "AED"
+// ... configure request
+// On success, you'll receive a fort_id (e.g., "FT123456789")</code></pre>
+
+            <div class="highlight-box">
+                <strong>Important:</strong> Save the transaction ID returned by the SDK:
+                <ul>
+                    <li><strong>Tap:</strong> <code class="inline-code">charge_id</code> (e.g., <code class="inline-code">chg_xxxxxxxx</code>)</li>
+                    <li><strong>APS:</strong> <code class="inline-code">fort_id</code> (e.g., <code class="inline-code">FT123456789</code>)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="card">
+            <h2><span class="step-number">3</span>Record Payment Transaction</h2>
+            
+            <div class="endpoint">
+                <span class="method">POST</span> /v1/checkout/record-payment
+            </div>
+            
+            <h4>Headers</h4>
+            <pre><code>X-App-Key: your_app_key
+Content-Type: application/json</code></pre>
+
+            <h4>Request Body (Tap)</h4>
+            <pre><code>{
+  "session_id": "550e8400-e29b-41d4-a716-446655440000",
+  "psp_type": "tap",
+  "psp_transaction_id": "chg_xxxxxxxx"
+}</code></pre>
+
+            <h4>Request Body (APS)</h4>
+            <pre><code>{
+  "session_id": "550e8400-e29b-41d4-a716-446655440000",
+  "psp_type": "aps",
+  "psp_transaction_id": "FT123456789"
+}</code></pre>
+
+            <h4>Response</h4>
+            <pre><code>{
+  "ok": true,
+  "transaction_id": 123,
+  "status": "pending"
+}</code></pre>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="card">
+            <h2><span class="step-number">4</span>Confirm Checkout</h2>
+            
+            <div class="endpoint">
+                <span class="method">POST</span> /v1/checkout/confirm
+            </div>
+            
+            <h4>Headers</h4>
+            <pre><code>X-App-Key: your_app_key
+Content-Type: application/json</code></pre>
+
+            <h4>Request Body</h4>
+            <pre><code>{
+  "session_id": "550e8400-e29b-41d4-a716-446655440000"
+}</code></pre>
+
+            <h4>Response</h4>
+            <pre><code>{
+  "ok": true,
+  "shopify_order_id": "gid://shopify/Order/123456",
+  "shopify_order_name": "#1001",
+  "status": "order_created"
+}</code></pre>
+        </div>
+
+        <!-- Idempotency Key -->
+        <div class="card">
+            <h2>Idempotency Key</h2>
+            
+            <h3>What is it?</h3>
+            <p>A unique identifier (UUID) sent by the client to ensure the same request isn't processed twice. If the same idempotency key is sent again, the server returns the original response instead of creating a duplicate.</p>
+            
+            <h3>Why it matters</h3>
+            <p>Prevents duplicate charges/orders if a network error causes the client to retry.</p>
+            
+            <div class="highlight-box info">
+                <strong>Who generates it?</strong> The client (mobile app) generates it before making the API call.
+            </div>
+            
+            <h3>Implementation</h3>
+            
+            <h4>Swift (iOS)</h4>
+            <pre><code>let idempotencyKey = UUID().uuidString
+request.addValue(idempotencyKey, forHTTPHeaderField: "Idempotency-Key")</code></pre>
+
+            <h4>Kotlin (Android)</h4>
+            <pre><code>val idempotencyKey = UUID.randomUUID().toString()
+request.addHeader("Idempotency-Key", idempotencyKey)</code></pre>
+
+            <h3>Flow Diagram</h3>
+            <pre><code>[Mobile App]                           [Server]
+     |                                    |
+     |-- Generate UUID locally            |
+     |                                    |
+     |-- POST /v1/checkout/session ------>|
+     |   Header: Idempotency-Key: abc123  |
+     |                                    |-- Store idempotency_key: abc123
+     |<-- 201 { session_id: xyz }         |
+     |                                    |
+     |-- [Network fails, retry] --------->|
+     |   Header: Idempotency-Key: abc123  |
+     |                                    |-- Find existing session with abc123
+     |<-- 200 { session_id: xyz }         |-- Return existing (no duplicate)</code></pre>
+
+            <div class="highlight-box success">
+                <strong>Best Practice:</strong>
+                <ul>
+                    <li>Generate a <strong>new UUID</strong> for each new checkout attempt</li>
+                    <li><strong>Reuse the same UUID</strong> only when retrying a failed request</li>
+                    <li>Store the UUID locally until the checkout is complete</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Error Handling -->
+        <div class="card">
+            <h2>Error Handling</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>HTTP Code</th>
+                        <th>Meaning</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>200/201</strong></td>
+                        <td>Success</td>
+                        <td>Continue to next step</td>
+                    </tr>
+                    <tr>
+                        <td><strong>400</strong></td>
+                        <td>Bad request</td>
+                        <td>Check request body format</td>
+                    </tr>
+                    <tr>
+                        <td><strong>404</strong></td>
+                        <td>Session not found</td>
+                        <td>Create a new session</td>
+                    </tr>
+                    <tr>
+                        <td><strong>409</strong></td>
+                        <td>Session state conflict</td>
+                        <td>Check session status</td>
+                    </tr>
+                    <tr>
+                        <td><strong>422</strong></td>
+                        <td>Validation error</td>
+                        <td>Fix request parameters</td>
+                    </tr>
+                    <tr>
+                        <td><strong>402</strong></td>
+                        <td>Payment not authorized</td>
+                        <td>Payment failed, show error to user</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Complete Example -->
+        <div class="card">
+            <h2>Complete Flow Example (Swift)</h2>
+            <pre><code>// iOS Swift Example
+
+// 1. Create session
+let idempotencyKey = UUID().uuidString
+let sessionResponse = await api.createCheckoutSession(
+    lineItems: cart.items,
+    customer: customerInfo,
+    shippingAddress: address,
+    amount: cart.total,
+    currency: "AED",
+    idempotencyKey: idempotencyKey
+)
+
+// 2. Process payment with Tap SDK
+let chargeId = await TapSDK.processPayment(amount: cart.total)
+
+// 3. Record the payment
+let recordResponse = await api.recordPayment(
+    sessionId: sessionResponse.sessionId,
+    pspType: "tap",
+    pspTransactionId: chargeId
+)
+
+// 4. Confirm and create order
+let confirmResponse = await api.confirmCheckout(
+    sessionId: sessionResponse.sessionId
+)
+
+// 5. Show success
+showOrderConfirmation(orderName: confirmResponse.shopifyOrderName)</code></pre>
+        </div>
+    </div>
+
+    <footer>
+        <p>Mobile SDK Checkout Integration Guide • Last updated: April 2026</p>
+    </footer>
+</body>
+</html>
