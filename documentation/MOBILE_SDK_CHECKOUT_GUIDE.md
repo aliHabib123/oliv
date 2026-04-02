@@ -125,12 +125,53 @@ charge.currency = "AED"
 ```
 
 ### APS (PayFort) SDK
+
+**Step 2a: Get SDK Token (required for APS)**
+
+Before initializing the APS SDK, you must request an SDK token from the server.
+
+**Endpoint:** `POST /v1/payments/aps/sdk-token`
+
+**Request:**
+```json
+{
+  "session_id": "550e8400-e29b-41d4-a716-446655440000",
+  "device_id": "unique-device-identifier"
+}
+```
+
+**Response:**
+```json
+{
+  "ok": true,
+  "sdk_token": "token-from-aps",
+  "merchant_identifier": "merchant_id",
+  "access_code": "access_code"
+}
+```
+
+**Step 2b: Initialize APS SDK with token**
+
 ```swift
 // iOS Example
 let fortRequest = FORTRequest()
+fortRequest.sdkToken = sdkTokenResponse.sdkToken
+fortRequest.merchantIdentifier = sdkTokenResponse.merchantIdentifier
+fortRequest.accessCode = sdkTokenResponse.accessCode
 fortRequest.amount = "15000" // in fils
 fortRequest.currency = "AED"
 // ... configure request
+// On success, you'll receive a fort_id
+```
+
+```kotlin
+// Android Example
+val fortRequest = FortRequest()
+fortRequest.sdkToken = sdkTokenResponse.sdkToken
+fortRequest.merchantIdentifier = sdkTokenResponse.merchantIdentifier
+fortRequest.accessCode = sdkTokenResponse.accessCode
+fortRequest.amount = "15000"
+fortRequest.currency = "AED"
 // On success, you'll receive a fort_id
 ```
 
