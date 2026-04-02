@@ -144,6 +144,69 @@ class AmazonPaymentService
     }
 
     /**
+     * Generate an SDK token for mobile SDK integration.
+     *
+     * @return array{sdk_token: string, merchant_identifier: string, access_code: string}
+     * @throws PspApiException
+     */
+    public function generateSdkToken(CheckoutSession $session, PaymentGateway $gateway, string $deviceId): array
+    {
+        $config = $gateway->getServerConfig();
+        $merchantIdentifier = $config['merchant_identifier'] ?? null;
+        $accessCode = $config['access_code'] ?? null;
+        $shaRequestPhrase = $config['sha_request_phrase'] ?? null;
+
+        if (! $merchantIdentifier || ! $accessCode || ! $shaRequestPhrase) {
+            throw new PspApiException('amazon_payment_services', 'Missing required credentials in gateway config');
+        }
+
+        $baseUrl = PaymentGatewayType::AMAZON_PAYMENT_SERVICES->getApiUrl($gateway->is_test_mode);
+
+        $payload = [
+            'service_command' => 'SDK_TOKEN',
+            'merchant_identifier' => $merchantIdentifier,
+            'access_code' => $accessCode,
+            'device_id' => $deviceId,
+            'language' => 'en',
+        ];
+
+        $payload['signature'] = $this->generateSignature($payload, $shaRequestPhrase, $config['sha_type'] ?? 'SHA-256');
+
+        try {
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+            ])
+                ->timeout(30)
+                ->post("{$baseUrl}/FortAPI/paymentApi", $payload);
+        } catch (\Throwable $e) {
+            Log::error('APS SDK token API connection error', [
+                'session_uuid' => $session->session_uuid,
+                'error' => $e->getMessage(),
+            ]);
+            throw new PspApiException('amazon_payment_services', 'Connection error: ' . $e->getMessage(), null, 0, $e);
+        }
+
+        $data = $response->json();
+        $responseCode = $data['response_code'] ?? '';
+
+        if ($responseCode !== '18000') {
+            Log::error('APS SDK token error response', [
+                'session_uuid' => $session->session_uuid,
+                'response_code' => $responseCode,
+                'response_message' => $data['response_message'] ?? '',
+                'body' => $data,
+            ]);
+            throw new PspApiException('amazon_payment_services', $data['response_message'] ?? 'Failed to generate SDK token', $data);
+        }
+
+        return [
+            'sdk_token' => $data['sdk_token'] ?? '',
+            'merchant_identifier' => $merchantIdentifier,
+            'access_code' => $accessCode,
+        ];
+    }
+
+    /**
      * Verify the response signature from APS.
      */
     public function verifyResponseSignature(array $response, PaymentGateway $gateway): bool
