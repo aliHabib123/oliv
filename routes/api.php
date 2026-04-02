@@ -41,6 +41,7 @@ Route::middleware(ResolveTenantFromAppKey::class)->group(function () {
 
     // Amazon Payment Services (PayFort) endpoints
     Route::post('v1/payments/aps/initialize', [App\Http\Controllers\Api\AmazonPaymentController::class, 'initialize']);
+    Route::post('v1/payments/aps/sdk-token', [App\Http\Controllers\Api\AmazonPaymentController::class, 'sdkToken']);
     Route::post('v1/payments/aps/charge', [App\Http\Controllers\Api\AmazonPaymentController::class, 'charge']);
     Route::post('v1/payments/aps/callback', [App\Http\Controllers\Api\AmazonPaymentController::class, 'callback']);
     Route::post('v1/payments/aps/verify/{fort_id}', [App\Http\Controllers\Api\AmazonPaymentController::class, 'verify']);

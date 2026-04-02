@@ -122,6 +122,83 @@
                 ]
             }
         },
+        "/v1/payments/aps/sdk-token": {
+            "post": {
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Generate SDK token for APS mobile SDK integration",
+                "description": "Generates a signed SDK token that the mobile app uses to initialize the APS payment SDK. The SDK handles card input UI natively and returns a token for completing the payment.",
+                "operationId": "43674aa20b722dc46af083824de6ca20",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "session_id",
+                                    "device_id"
+                                ],
+                                "properties": {
+                                    "session_id": {
+                                        "description": "Checkout session UUID",
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "device_id": {
+                                        "description": "Unique device identifier from the mobile app",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "SDK token generated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ok": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "sdk_token": {
+                                            "description": "Token to initialize APS mobile SDK",
+                                            "type": "string"
+                                        },
+                                        "merchant_identifier": {
+                                            "type": "string"
+                                        },
+                                        "access_code": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Session not found"
+                    },
+                    "409": {
+                        "description": "Session not in valid state"
+                    },
+                    "502": {
+                        "description": "APS API error"
+                    }
+                },
+                "security": [
+                    {
+                        "AppKey": []
+                    }
+                ]
+            }
+        },
         "/v1/payments/aps/charge": {
             "post": {
                 "tags": [

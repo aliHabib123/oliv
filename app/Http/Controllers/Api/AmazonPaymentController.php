@@ -120,6 +120,105 @@ class AmazonPaymentController extends Controller
     }
 
     #[OA\Post(
+        path: '/v1/payments/aps/sdk-token',
+        tags: ['Payment'],
+        summary: 'Generate SDK token for APS mobile SDK integration',
+        description: 'Generates a signed SDK token that the mobile app uses to initialize the APS payment SDK. The SDK handles card input UI natively and returns a token for completing the payment.',
+        security: [['AppKey' => []]]
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['session_id', 'device_id'],
+            properties: [
+                new OA\Property(property: 'session_id', type: 'string', format: 'uuid', description: 'Checkout session UUID'),
+                new OA\Property(property: 'device_id', type: 'string', description: 'Unique device identifier from the mobile app'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'SDK token generated successfully',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'ok', type: 'boolean', example: true),
+                new OA\Property(property: 'sdk_token', type: 'string', description: 'Token to initialize APS mobile SDK'),
+                new OA\Property(property: 'merchant_identifier', type: 'string'),
+                new OA\Property(property: 'access_code', type: 'string'),
+            ]
+        )
+    )]
+    #[OA\Response(response: 404, description: 'Session not found')]
+    #[OA\Response(response: 409, description: 'Session not in valid state')]
+    #[OA\Response(response: 502, description: 'APS API error')]
+    public function sdkToken(Request $request): JsonResponse
+    {
+        $tenant = $request->attributes->get('tenant');
+        if (! $tenant) {
+            return response()->json(['ok' => false, 'error' => 'Tenant not found'], 404);
+        }
+
+        $validated = $request->validate([
+            'session_id' => 'required|string',
+            'device_id' => 'required|string',
+        ]);
+
+        $session = $this->sessionService->findByUuid($tenant, $validated['session_id']);
+        if (! $session) {
+            return response()->json(['ok' => false, 'error' => 'Session not found'], 404);
+        }
+
+        if (! $session->isInState([CheckoutSession::STATUS_PENDING, CheckoutSession::STATUS_PAYMENT_INITIATED])) {
+            return response()->json([
+                'ok' => false,
+                'error' => 'Session is not in valid state for SDK token generation',
+                'current_status' => $session->status,
+            ], 409);
+        }
+
+        $gateway = $tenant->paymentGateways()
+            ->where('gateway_type', 'amazon_payment_services')
+            ->where('is_enabled', true)
+            ->first();
+
+        if (! $gateway) {
+            return response()->json([
+                'ok' => false,
+                'error' => 'Amazon Payment Services not configured for this tenant',
+                'fallback_checkout_url' => $session->fallback_url,
+            ], 400);
+        }
+
+        try {
+            $result = $this->apsService->generateSdkToken($session, $gateway, $validated['device_id']);
+
+            // Transition to payment_initiated if still pending
+            if ($session->isInState(CheckoutSession::STATUS_PENDING)) {
+                $this->sessionService->transition($session, CheckoutSession::STATUS_PAYMENT_INITIATED);
+                $session->update(['psp_type' => 'amazon_payment_services']);
+            }
+
+            return response()->json([
+                'ok' => true,
+                'sdk_token' => $result['sdk_token'],
+                'merchant_identifier' => $result['merchant_identifier'],
+                'access_code' => $result['access_code'],
+            ]);
+        } catch (PspApiException $e) {
+            Log::error('APS SDK token generation failed', [
+                'session_uuid' => $session->session_uuid,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'ok' => false,
+                'error' => 'Failed to generate SDK token',
+                'fallback_checkout_url' => $session->fallback_url,
+            ], 502);
+        }
+    }
+
+    #[OA\Post(
         path: '/v1/payments/aps/charge',
         tags: ['Payment'],
         summary: 'Create a charge with Amazon Payment Services using token',
