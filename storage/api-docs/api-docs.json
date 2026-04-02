@@ -987,11 +987,11 @@
                                     },
                                     "provider": {
                                         "type": "string",
+                                        "nullable": true,
                                         "enum": [
                                             "onesignal",
                                             "firebase"
-                                        ],
-                                        "nullable": true
+                                        ]
                                     },
                                     "device_type": {
                                         "type": "string",
@@ -999,11 +999,11 @@
                                     },
                                     "platform": {
                                         "type": "string",
+                                        "nullable": true,
                                         "enum": [
                                             "ios",
                                             "android"
-                                        ],
-                                        "nullable": true
+                                        ]
                                     },
                                     "app_version": {
                                         "type": "string",
