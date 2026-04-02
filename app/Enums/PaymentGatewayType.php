@@ -153,7 +153,7 @@ enum PaymentGatewayType: string
                     'label' => 'Access Code',
                     'type' => 'password',
                     'required' => true,
-                    'public' => false,
+                    'public' => true,
                     'hint' => 'Your APS access code',
                 ],
                 'sha_request_phrase' => [
