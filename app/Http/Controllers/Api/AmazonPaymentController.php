@@ -27,7 +27,7 @@ class AmazonPaymentController extends Controller
         path: '/v1/payments/aps/initialize',
         tags: ['Payment'],
         summary: 'Initialize Amazon Payment Services (PayFort) payment for a checkout session',
-        security: [['AppKey' => []]]
+        security: [['XAppKey' => []]]
     )]
     #[OA\RequestBody(
         required: true,
@@ -124,7 +124,7 @@ class AmazonPaymentController extends Controller
         tags: ['Payment'],
         summary: 'Generate SDK token for APS mobile SDK integration',
         description: 'Generates a signed SDK token that the mobile app uses to initialize the APS payment SDK. The SDK handles card input UI natively and returns a token for completing the payment.',
-        security: [['AppKey' => []]]
+        security: [['XAppKey' => []]]
     )]
     #[OA\RequestBody(
         required: true,
@@ -222,7 +222,7 @@ class AmazonPaymentController extends Controller
         path: '/v1/payments/aps/charge',
         tags: ['Payment'],
         summary: 'Create a charge with Amazon Payment Services using token',
-        security: [['AppKey' => []]]
+        security: [['XAppKey' => []]]
     )]
     #[OA\RequestBody(
         required: true,
@@ -402,7 +402,7 @@ class AmazonPaymentController extends Controller
         path: '/v1/payments/aps/verify/{fort_id}',
         tags: ['Payment'],
         summary: 'Verify Amazon Payment Services payment status',
-        security: [['AppKey' => []]]
+        security: [['XAppKey' => []]]
     )]
     #[OA\Response(response: 200, description: 'Payment status verified')]
     #[OA\Response(response: 404, description: 'Transaction not found')]
@@ -455,7 +455,7 @@ class AmazonPaymentController extends Controller
         path: '/v1/payments/aps/apple-pay',
         tags: ['Payment'],
         summary: 'Process Apple Pay payment via Amazon Payment Services',
-        security: [['AppKey' => []]]
+        security: [['XAppKey' => []]]
     )]
     #[OA\RequestBody(
         required: true,
@@ -556,7 +556,7 @@ class AmazonPaymentController extends Controller
         path: '/v1/payments/aps/apple-pay/session',
         tags: ['Payment'],
         summary: 'Create Apple Pay merchant session for domain validation',
-        security: [['AppKey' => []]]
+        security: [['XAppKey' => []]]
     )]
     #[OA\RequestBody(
         required: true,
