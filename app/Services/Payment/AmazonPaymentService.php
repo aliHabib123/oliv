@@ -189,7 +189,7 @@ class AmazonPaymentService
         $data = $response->json();
         $responseCode = $data['response_code'] ?? '';
 
-        if ($responseCode !== '18000') {
+        if ($responseCode !== '22000') {
             Log::error('APS SDK token error response', [
                 'session_uuid' => $session->session_uuid,
                 'response_code' => $responseCode,
