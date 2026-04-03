@@ -168,7 +168,7 @@ class AmazonPaymentController extends Controller
             return response()->json(['ok' => false, 'error' => 'Session not found'], 404);
         }
 
-        if (! $session->isInState([CheckoutSession::STATUS_PENDING, CheckoutSession::STATUS_PAYMENT_INITIATED])) {
+        if (! $session->isInState(CheckoutSession::STATUS_PENDING) && ! $session->isInState(CheckoutSession::STATUS_PAYMENT_INITIATED)) {
             return response()->json([
                 'ok' => false,
                 'error' => 'Session is not in valid state for SDK token generation',
