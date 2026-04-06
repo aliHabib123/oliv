@@ -239,6 +239,17 @@ class CheckoutSessionController extends Controller
 
             // Try to verify with PSP first
             $transaction = $session->paymentTransactions()->latest()->first();
+
+            Log::info('Confirm: checking transaction', [
+                'session_uuid' => $session->session_uuid,
+                'session_status' => $session->status,
+                'psp_type' => $session->psp_type,
+                'has_transaction' => (bool) $transaction,
+                'transaction_id' => $transaction?->id,
+                'transaction_status' => $transaction?->status,
+                'is_terminal' => $transaction ? $transaction->isTerminal() : null,
+            ]);
+
             if ($transaction && ! $transaction->isTerminal()) {
                 $pspStatus = $this->verifyWithPsp($session, $transaction);
                 if ($pspStatus === 'authorized') {
