@@ -116,7 +116,7 @@ class AmazonPaymentService
 
         $payload['signature'] = $this->generateSignature($payload, $config['sha_request_phrase'], $config['sha_type'] ?? 'SHA-256');
 
-        Log::info('APS CHECK_STATUS request', ['fort_id' => $fortId, 'payload' => $payload]);
+        Log::channel('aps')->info('CHECK_STATUS request', ['fort_id' => $fortId, 'payload' => $payload]);
 
         try {
             $response = Http::withHeaders([
@@ -133,7 +133,7 @@ class AmazonPaymentService
         $transactionStatus = strtolower($data['transaction_status'] ?? '');
         $responseCode = $data['response_code'] ?? '';
 
-        Log::info('APS CHECK_STATUS response', [
+        Log::channel('aps')->info('CHECK_STATUS response', [
             'fort_id' => $fortId,
             'response_code' => $responseCode,
             'transaction_status' => $transactionStatus,
