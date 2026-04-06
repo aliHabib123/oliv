@@ -313,10 +313,23 @@ class CheckoutSessionController extends Controller
 
     private function verifyWithPsp(CheckoutSession $session, PaymentTransaction $transaction): string
     {
+        // Map psp_type to gateway_type
+        $gatewayType = match ($session->psp_type) {
+            'aps' => 'amazon_payment_services',
+            default => $session->psp_type,
+        };
+
         $gateway = $session->tenant->paymentGateways()
-            ->where('gateway_type', $session->psp_type)
+            ->where('gateway_type', $gatewayType)
             ->where('is_enabled', true)
             ->first();
+
+        Log::info('verifyWithPsp: gateway lookup', [
+            'session_uuid' => $session->session_uuid,
+            'psp_type' => $session->psp_type,
+            'gateway_type' => $gatewayType,
+            'gateway_found' => (bool) $gateway,
+        ]);
 
         if (! $gateway) {
             return 'failed';
