@@ -20,7 +20,7 @@ class ApsLogs extends Page
 
     protected static ?int $navigationSort = 99;
 
-    protected static string $view = 'filament.pages.aps-logs';
+    protected string $view = 'filament.pages.aps-logs';
 
     public string $logContent = '';
 
