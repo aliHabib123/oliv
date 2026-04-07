@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\Cart\CartService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
 
 class CartController extends Controller
@@ -227,10 +228,21 @@ class CartController extends Controller
                 'x-device-id' => $request->header('X-Device-ID'),
             ]);
 
+            Log::info('GET /cart request', [
+                'tenant_id' => $tenant->id,
+                'customer_info' => $customerInfo,
+            ]);
+
             $cart = $this->cartService->getCart(
                 tenant: $tenant,
                 customerInfo: $customerInfo
             );
+
+            Log::info('GET /cart response', [
+                'tenant_id' => $tenant->id,
+                'cart_id' => $cart['id'] ?? null,
+                'line_count' => count($cart['lines']['edges'] ?? []),
+            ]);
 
             return response()->json([
                 'ok' => true,

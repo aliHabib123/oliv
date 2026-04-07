@@ -787,13 +787,28 @@ class ShopifyStorefrontService
      */
     public function clearCart(Tenant $tenant, string $cartId, ?string $customerToken = null): bool
     {
+        Log::info('clearCart: fetching cart', ['cart_id' => $cartId]);
+
         $cart = $this->getCart($tenant, $cartId, $customerToken);
+
+        Log::info('clearCart: cart fetched', [
+            'cart_id' => $cartId,
+            'cart_response_id' => $cart['id'] ?? null,
+            'lines_count' => count($cart['lines']['edges'] ?? []),
+        ]);
+
         $lineIds = collect($cart['lines']['edges'] ?? [])
             ->pluck('node.id')
             ->filter()
             ->toArray();
 
+        Log::info('clearCart: line IDs to remove', [
+            'cart_id' => $cartId,
+            'line_ids' => $lineIds,
+        ]);
+
         if (empty($lineIds)) {
+            Log::info('clearCart: no lines to remove', ['cart_id' => $cartId]);
             return true;
         }
 
@@ -817,6 +832,12 @@ class ShopifyStorefrontService
         ], $customerToken);
 
         $userErrors = Arr::get($data, 'cartLinesRemove.userErrors', []);
+
+        Log::info('clearCart: remove result', [
+            'cart_id' => $cartId,
+            'user_errors' => $userErrors,
+            'success' => empty($userErrors),
+        ]);
 
         return empty($userErrors);
     }
