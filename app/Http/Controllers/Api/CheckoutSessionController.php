@@ -271,6 +271,36 @@ class CheckoutSessionController extends Controller
             }
         }
 
+        // Clear the cart after payment authorized (before order creation)
+        Log::info('Cart clearing check', [
+            'session_uuid' => $session->session_uuid,
+            'shopify_cart_id' => $session->shopify_cart_id,
+            'has_cart_id' => !empty($session->shopify_cart_id),
+        ]);
+
+        if ($session->shopify_cart_id) {
+            try {
+                Log::info('Attempting to clear cart', [
+                    'cart_id' => $session->shopify_cart_id,
+                ]);
+                $result = $this->shopifyStorefront->clearCart($tenant, $session->shopify_cart_id);
+                Log::info('Cart clear result', [
+                    'cart_id' => $session->shopify_cart_id,
+                    'success' => $result,
+                ]);
+            } catch (\Throwable $e) {
+                Log::warning('Failed to clear cart', [
+                    'session_uuid' => $session->session_uuid,
+                    'cart_id' => $session->shopify_cart_id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        } else {
+            Log::info('No cart ID to clear', [
+                'session_uuid' => $session->session_uuid,
+            ]);
+        }
+
         // Create Shopify order
         try {
             $transaction = $session->paymentTransactions()->latest()->first();
@@ -289,36 +319,6 @@ class CheckoutSessionController extends Controller
 
             $this->sessionService->transition($session->fresh(), CheckoutSession::STATUS_CAPTURED);
             $this->sessionService->transition($session->fresh(), CheckoutSession::STATUS_ORDER_CREATED);
-
-            // Clear the cart after successful order
-            Log::info('Cart clearing check', [
-                'session_uuid' => $session->session_uuid,
-                'shopify_cart_id' => $session->shopify_cart_id,
-                'has_cart_id' => !empty($session->shopify_cart_id),
-            ]);
-
-            if ($session->shopify_cart_id) {
-                try {
-                    Log::info('Attempting to clear cart', [
-                        'cart_id' => $session->shopify_cart_id,
-                    ]);
-                    $result = $this->shopifyStorefront->clearCart($tenant, $session->shopify_cart_id);
-                    Log::info('Cart clear result', [
-                        'cart_id' => $session->shopify_cart_id,
-                        'success' => $result,
-                    ]);
-                } catch (\Throwable $e) {
-                    Log::warning('Failed to clear cart after order', [
-                        'session_uuid' => $session->session_uuid,
-                        'cart_id' => $session->shopify_cart_id,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
-            } else {
-                Log::info('No cart ID to clear', [
-                    'session_uuid' => $session->session_uuid,
-                ]);
-            }
 
             return response()->json([
                 'ok' => true,
