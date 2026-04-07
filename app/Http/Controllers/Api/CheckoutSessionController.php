@@ -41,13 +41,14 @@ class CheckoutSessionController extends Controller
     #[OA\RequestBody(
         required: true,
         content: new OA\JsonContent(
-            required: ['line_items', 'customer', 'shipping_address', 'amount', 'currency'],
+            required: ['customer', 'shipping_address', 'amount', 'currency'],
             properties: [
-                new OA\Property(property: 'line_items', type: 'array', items: new OA\Items(type: 'object')),
+                new OA\Property(property: 'line_items', type: 'array', items: new OA\Items(type: 'object'), nullable: true, description: 'Line items (optional if cart_id provided)'),
                 new OA\Property(property: 'customer', type: 'object'),
                 new OA\Property(property: 'shipping_address', type: 'object'),
                 new OA\Property(property: 'amount', type: 'string'),
                 new OA\Property(property: 'currency', type: 'string'),
+                new OA\Property(property: 'cart_id', type: 'string', nullable: true, description: 'Shopify cart ID - if provided without line_items, items are fetched from cart. Cart is cleared after successful payment.'),
             ]
         )
     )]
@@ -62,9 +63,9 @@ class CheckoutSessionController extends Controller
         }
 
         $validated = $request->validate([
-            'line_items' => 'required|array|min:1',
-            'line_items.*.variant_id' => 'required|string',
-            'line_items.*.quantity' => 'required|integer|min:1',
+            'line_items' => 'nullable|array|min:1',
+            'line_items.*.variant_id' => 'required_with:line_items|string',
+            'line_items.*.quantity' => 'required_with:line_items|integer|min:1',
             'customer.email' => 'required|email',
             'customer.phone' => 'required|string',
             'shipping_address.first_name' => 'required|string',
@@ -75,21 +76,42 @@ class CheckoutSessionController extends Controller
             'shipping_address.zip' => 'required|string',
             'amount' => 'required|numeric|min:0.01',
             'currency' => 'required|string|size:3',
+            'cart_id' => 'nullable|string',
         ]);
+
+        // Either line_items or cart_id must be provided
+        if (empty($validated['line_items']) && empty($validated['cart_id'])) {
+            return response()->json(['ok' => false, 'error' => 'Either line_items or cart_id is required'], 422);
+        }
 
         $idempotencyKey = $request->header('Idempotency-Key');
         if (! $idempotencyKey) {
             return response()->json(['ok' => false, 'error' => 'Idempotency-Key header is required'], 422);
         }
 
+        // If cart_id provided but no line_items, fetch from cart
+        $lineItems = $validated['line_items'] ?? [];
+        if (empty($lineItems) && !empty($validated['cart_id'])) {
+            $cart = $this->shopifyStorefront->getCart($tenant, $validated['cart_id']);
+            if (empty($cart) || empty($cart['lines']['edges'])) {
+                return response()->json(['ok' => false, 'error' => 'Cart is empty or not found'], 422);
+            }
+
+            $lineItems = collect($cart['lines']['edges'])->map(fn($edge) => [
+                'variant_id' => $edge['node']['merchandise']['id'],
+                'quantity' => $edge['node']['quantity'],
+            ])->toArray();
+        }
+
         $session = $this->sessionService->createSession(
             tenant: $tenant,
-            lineItems: $validated['line_items'],
+            lineItems: $lineItems,
             customer: $validated['customer'],
             shippingAddress: $validated['shipping_address'],
             idempotencyKey: $idempotencyKey,
             currency: $validated['currency'],
             amount: $validated['amount'],
+            shopifyCartId: $validated['cart_id'] ?? null,
         );
 
         return response()->json([
