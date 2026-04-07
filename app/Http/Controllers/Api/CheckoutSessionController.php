@@ -13,6 +13,7 @@ use App\Services\Payment\TapService;
 use App\Services\Payment\AmazonPaymentService;
 use Illuminate\Support\Str;
 use App\Services\Shopify\ShopifyAdminService;
+use App\Services\Shopify\ShopifyStorefrontService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -23,6 +24,7 @@ class CheckoutSessionController extends Controller
     public function __construct(
         private CheckoutSessionService $sessionService,
         private ShopifyAdminService $shopifyAdmin,
+        private ShopifyStorefrontService $shopifyStorefront,
         private TabbyService $tabbyService,
         private TamaraService $tamaraService,
         private TapService $tapService,
@@ -287,6 +289,19 @@ class CheckoutSessionController extends Controller
 
             $this->sessionService->transition($session->fresh(), CheckoutSession::STATUS_CAPTURED);
             $this->sessionService->transition($session->fresh(), CheckoutSession::STATUS_ORDER_CREATED);
+
+            // Clear the cart after successful order
+            if ($session->shopify_cart_id) {
+                try {
+                    $this->shopifyStorefront->clearCart($tenant, $session->shopify_cart_id);
+                } catch (\Throwable $e) {
+                    Log::warning('Failed to clear cart after order', [
+                        'session_uuid' => $session->session_uuid,
+                        'cart_id' => $session->shopify_cart_id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
 
             return response()->json([
                 'ok' => true,

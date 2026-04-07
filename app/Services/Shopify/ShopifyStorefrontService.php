@@ -783,6 +783,45 @@ class ShopifyStorefrontService
     }
 
     /**
+     * Clear all items from a cart.
+     */
+    public function clearCart(Tenant $tenant, string $cartId, ?string $customerToken = null): bool
+    {
+        $cart = $this->getCart($tenant, $cartId, $customerToken);
+        $lineIds = collect($cart['lines']['edges'] ?? [])
+            ->pluck('node.id')
+            ->filter()
+            ->toArray();
+
+        if (empty($lineIds)) {
+            return true;
+        }
+
+        $query = <<<'GRAPHQL'
+            mutation cartLinesRemove($cartId: ID!, $lineIds: [ID!]!) {
+                cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {
+                    cart {
+                        id
+                    }
+                    userErrors {
+                        field
+                        message
+                    }
+                }
+            }
+        GRAPHQL;
+
+        $data = $this->graphql($tenant, $query, [
+            'cartId' => $cartId,
+            'lineIds' => $lineIds,
+        ], $customerToken);
+
+        $userErrors = Arr::get($data, 'cartLinesRemove.userErrors', []);
+
+        return empty($userErrors);
+    }
+
+    /**
      * Get cart by ID.
      *
      * @return array<string, mixed>
