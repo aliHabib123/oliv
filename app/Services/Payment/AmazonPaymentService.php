@@ -141,8 +141,8 @@ class AmazonPaymentService
             'body' => $data,
         ]);
 
-        // Response codes: 14000 = success
-        if ($responseCode === '14000') {
+        // Response codes: 12000 = CHECK_STATUS success, 14000 = transaction success
+        if (in_array($responseCode, ['12000', '14000'])) {
             return match ($transactionStatus) {
                 '02', 'authorized' => 'authorized',
                 '04', 'captured', 'purchase' => 'captured',
