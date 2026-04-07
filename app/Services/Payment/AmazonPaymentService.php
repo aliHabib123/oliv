@@ -110,7 +110,7 @@ class AmazonPaymentService
             'query_command' => 'CHECK_STATUS',
             'merchant_identifier' => $config['merchant_identifier'],
             'access_code' => $config['access_code'],
-            'merchant_reference' => $fortId,
+            'fort_id' => $fortId,
             'language' => 'en',
         ];
 
