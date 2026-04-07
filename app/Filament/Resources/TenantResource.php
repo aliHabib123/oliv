@@ -42,6 +42,11 @@ class TenantResource extends Resource
                 ->label('Shopify Storefront API token')
                 ->columnSpanFull(),
 
+            Forms\Components\Textarea::make('shopify_admin_token')
+                ->label('Shopify Admin API token')
+                ->helperText('Required for order creation. Get from Shopify Admin → Settings → Apps → Develop apps')
+                ->columnSpanFull(),
+
             Forms\Components\Select::make('status')
                 ->options([
                     'active' => 'Active',
