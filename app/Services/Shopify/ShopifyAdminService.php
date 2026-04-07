@@ -38,7 +38,6 @@ class ShopifyAdminService
                         totalPriceSet {
                             shopMoney { amount currencyCode }
                         }
-                        financialStatus
                     }
                     userErrors { field message }
                 }
@@ -95,7 +94,7 @@ class ShopifyAdminService
         $mutation = <<<'GRAPHQL'
             mutation orderMarkAsPaid($input: OrderMarkAsPaidInput!) {
                 orderMarkAsPaid(input: $input) {
-                    order { id financialStatus }
+                    order { id }
                     userErrors { field message }
                 }
             }

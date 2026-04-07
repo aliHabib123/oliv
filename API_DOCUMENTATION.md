@@ -586,7 +586,187 @@ X-Device-ID: required
 
 ---
 
-## 🔧 Helper APIs
+## � Native Checkout API (Mobile SDK)
+
+Native checkout flow for in-app payments using PSPs like APS (Amazon Payment Services) and Tap.
+
+### Create Checkout Session
+
+Create a checkout session for native mobile payment processing.
+
+**Endpoint:** `POST /v1/checkout/session`
+
+**Headers:**
+```
+X-App-Key: required
+Idempotency-Key: required (UUID)
+```
+
+**Request Body (Option 1 - with cart_id, recommended):**
+```json
+{
+  "cart_id": "gid://shopify/Cart/abc123?key=xyz",
+  "customer": {
+    "email": "customer@example.com",
+    "phone": "+971501234567"
+  },
+  "shipping_address": {
+    "first_name": "John",
+    "last_name": "Doe",
+    "address1": "123 Main Street",
+    "city": "Dubai",
+    "country_code": "AE",
+    "zip": "12345"
+  },
+  "amount": 240.00,
+  "currency": "AED"
+}
+```
+
+**Request Body (Option 2 - with line_items):**
+```json
+{
+  "line_items": [
+    {
+      "variant_id": "gid://shopify/ProductVariant/42617526059051",
+      "quantity": 2
+    }
+  ],
+  "customer": {
+    "email": "customer@example.com",
+    "phone": "+971501234567"
+  },
+  "shipping_address": {
+    "first_name": "John",
+    "last_name": "Doe",
+    "address1": "123 Main Street",
+    "city": "Dubai",
+    "country_code": "AE",
+    "zip": "12345"
+  },
+  "amount": 240.00,
+  "currency": "AED",
+  "cart_id": "gid://shopify/Cart/abc123?key=xyz"
+}
+```
+
+**Parameters:**
+- `cart_id` (optional): Shopify cart ID - **if provided without line_items, items are fetched from cart automatically. Cart is cleared after successful payment.**
+- `line_items` (optional): Array of items to purchase - **required if cart_id not provided**
+- `customer` (required): Customer email and phone
+- `shipping_address` (required): Shipping address details
+- `amount` (required): Total order amount
+- `currency` (required): 3-letter currency code (e.g., AED, USD)
+
+**Note:** Either `cart_id` or `line_items` must be provided. Using `cart_id` alone is recommended as it automatically fetches items and enables cart clearing.
+
+**Response:**
+```json
+{
+  "ok": true,
+  "session_id": "550e8400-e29b-41d4-a716-446655440000",
+  "amount": "240.00",
+  "currency": "AED",
+  "expires_at": "2026-01-15T12:30:00+00:00"
+}
+```
+
+---
+
+### Record Payment Transaction
+
+Record a payment transaction from the mobile SDK after processing payment.
+
+**Endpoint:** `POST /v1/checkout/record-payment`
+
+**Headers:**
+```
+X-App-Key: required
+```
+
+**Request Body:**
+```json
+{
+  "session_id": "550e8400-e29b-41d4-a716-446655440000",
+  "psp_type": "aps",
+  "psp_transaction_id": "169996200030488818"
+}
+```
+
+**Parameters:**
+- `session_id` (required): The checkout session UUID
+- `psp_type` (required): Payment provider - `tap` or `aps`
+- `psp_transaction_id` (required): Transaction ID from PSP (charge_id for Tap, fort_id for APS)
+
+**Response:**
+```json
+{
+  "ok": true,
+  "transaction_id": 123,
+  "status": "pending"
+}
+```
+
+---
+
+### Confirm Checkout
+
+Confirm the checkout after payment is processed. This verifies the payment with the PSP and creates the Shopify order.
+
+**Endpoint:** `POST /v1/checkout/confirm`
+
+**Headers:**
+```
+X-App-Key: required
+```
+
+**Request Body:**
+```json
+{
+  "session_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+**Success Response:**
+```json
+{
+  "ok": true,
+  "shopify_order_id": "gid://shopify/Order/5678901234567",
+  "shopify_order_name": "#1001",
+  "status": "order_created"
+}
+```
+
+**Payment Not Authorized Response (402):**
+```json
+{
+  "ok": false,
+  "error": "Payment not authorized",
+  "psp_status": "failed"
+}
+```
+
+**Order Processing Response (202):**
+```json
+{
+  "ok": true,
+  "status": "processing",
+  "message": "Order creation queued for retry"
+}
+```
+
+---
+
+### Native Checkout Flow
+
+1. **Create Session** → `POST /v1/checkout/session` with cart_id
+2. **Process Payment** → Use mobile SDK (APS/Tap) with session details
+3. **Record Payment** → `POST /v1/checkout/record-payment` with PSP transaction ID
+4. **Confirm Order** → `POST /v1/checkout/confirm` - verifies payment, creates order, clears cart
+
+---
+
+## �� Helper APIs
 
 ### 9. Get Default Variant
 
