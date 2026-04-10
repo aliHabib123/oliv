@@ -21,6 +21,9 @@ class Tenant extends Model
         'shopify_shop_domain',
         'shopify_storefront_token',
         'shopify_admin_token',
+        'shopify_client_id',
+        'shopify_client_secret',
+        'shopify_admin_token_expires_at',
         'status',
         'home_layout',
     ];
@@ -28,6 +31,7 @@ class Tenant extends Model
     protected $casts = [
         'home_layout' => 'array',
         'intro_config' => 'array',
+        'shopify_admin_token_expires_at' => 'datetime',
     ];
 
     protected static function booted(): void

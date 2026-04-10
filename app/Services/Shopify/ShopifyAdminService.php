@@ -12,6 +12,10 @@ class ShopifyAdminService
 {
     private const API_VERSION = '2025-10';
 
+    public function __construct(
+        private ShopifyAdminTokenService $tokenService
+    ) {}
+
     /**
      * Create a Shopify order from a checkout session.
      *
@@ -127,10 +131,16 @@ class ShopifyAdminService
     protected function adminGraphql(Tenant $tenant, string $query, array $variables = []): array
     {
         $domain = $tenant->shopify_shop_domain;
-        $token = $tenant->shopify_admin_token;
 
-        if (! $domain || ! $token) {
-            throw new \RuntimeException('Missing Shopify Admin API credentials for tenant ' . $tenant->id);
+        if (! $domain) {
+            throw new \RuntimeException('Missing Shopify shop domain for tenant ' . $tenant->id);
+        }
+
+        // Get valid token (auto-refreshes if needed)
+        $token = $this->tokenService->getValidToken($tenant);
+
+        if (! $token) {
+            throw new \RuntimeException('Unable to get valid Shopify Admin API token for tenant ' . $tenant->id);
         }
 
         $endpoint = sprintf('https://%s/admin/api/%s/graphql.json', $domain, self::API_VERSION);
