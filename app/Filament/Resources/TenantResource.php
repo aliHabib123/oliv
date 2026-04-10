@@ -43,8 +43,20 @@ class TenantResource extends Resource
                 ->columnSpanFull(),
 
             Forms\Components\Textarea::make('shopify_admin_token')
-                ->label('Shopify Admin API token')
-                ->helperText('Required for order creation. Get from Shopify Admin → Settings → Apps → Develop apps')
+                ->label('Shopify Admin API token (auto-managed)')
+                ->helperText('Auto-refreshed using client credentials. Leave empty if using OAuth.')
+                ->columnSpanFull()
+                ->disabled(),
+
+            Forms\Components\TextInput::make('shopify_client_id')
+                ->label('Shopify App Client ID')
+                ->helperText('From your Shopify app credentials')
+                ->columnSpanFull(),
+
+            Forms\Components\TextInput::make('shopify_client_secret')
+                ->label('Shopify App Client Secret')
+                ->helperText('From your Shopify app credentials')
+                ->password()
                 ->columnSpanFull(),
 
             Forms\Components\Select::make('status')
