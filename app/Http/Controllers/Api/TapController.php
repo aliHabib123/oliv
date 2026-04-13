@@ -95,6 +95,59 @@ class TapController extends Controller
         }
     }
 
+    #[OA\Get(
+        path: '/v1/payments/tap/status/{charge_id}',
+        tags: ['Payment'],
+        summary: '[DEBUG] Check Tap payment status by charge ID',
+        security: [['AppKey' => []]]
+    )]
+    #[OA\Parameter(name: 'charge_id', in: 'path', required: true, schema: new OA\Schema(type: 'string'))]
+    #[OA\Response(response: 200, description: 'Payment status retrieved')]
+    #[OA\Response(response: 400, description: 'Gateway not configured')]
+    public function status(Request $request, string $chargeId): JsonResponse
+    {
+        $tenant = $request->attributes->get('tenant');
+        if (! $tenant) {
+            return response()->json(['ok' => false, 'error' => 'Tenant not found'], 404);
+        }
+
+        $gateway = $tenant->paymentGateways()
+            ->where('gateway_type', 'tap')
+            ->where('is_enabled', true)
+            ->first();
+
+        if (! $gateway) {
+            return response()->json([
+                'ok' => false,
+                'error' => 'Tap payment not configured for this tenant',
+            ], 400);
+        }
+
+        $config = $gateway->getServerConfig();
+        $secretKey = $config['secret_key'] ?? null;
+        $baseUrl = PaymentGatewayType::TAP->getApiUrl($gateway->is_test_mode);
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::withHeaders([
+                'Authorization' => "Bearer {$secretKey}",
+            ])
+                ->timeout(30)
+                ->get("{$baseUrl}/v2/charges/{$chargeId}");
+
+            return response()->json([
+                'ok' => true,
+                'charge_id' => $chargeId,
+                'http_status' => $response->status(),
+                'tap_response' => $response->json(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'ok' => false,
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     #[OA\Post(
         path: '/v1/payments/tap/initialize',
         tags: ['Payment'],
