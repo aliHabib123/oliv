@@ -35,7 +35,7 @@ class TapService
                 'Content-Type' => 'application/json',
             ])
                 ->timeout(30)
-                ->post("{$baseUrl}/charges", $payload);
+                ->post("{$baseUrl}/v2/charges", $payload);
         } catch (\Throwable $e) {
             Log::error('Tap API connection error', [
                 'session_uuid' => $session->session_uuid,
@@ -79,16 +79,28 @@ class TapService
         $secretKey = $config['secret_key'] ?? null;
         $baseUrl = PaymentGatewayType::TAP->getApiUrl($gateway->is_test_mode);
 
+        Log::info('Tap verify payment request', [
+            'charge_id' => $chargeId,
+            'is_test_mode' => $gateway->is_test_mode,
+            'url' => "{$baseUrl}/v2/charges/{$chargeId}",
+        ]);
+
         try {
             $response = Http::withHeaders([
                 'Authorization' => "Bearer {$secretKey}",
             ])
                 ->timeout(30)
-                ->get("{$baseUrl}/charges/{$chargeId}");
+                ->get("{$baseUrl}/v2/charges/{$chargeId}");
         } catch (\Throwable $e) {
             Log::error('Tap verify connection error', ['charge_id' => $chargeId, 'error' => $e->getMessage()]);
             throw new PspApiException('tap', 'Verification connection error', null, 0, $e);
         }
+
+        Log::info('Tap verify payment response', [
+            'charge_id' => $chargeId,
+            'status' => $response->status(),
+            'body' => $response->json(),
+        ]);
 
         if (! $response->successful()) {
             throw new PspApiException('tap', 'Verification failed with status ' . $response->status(), $response->json());
@@ -135,7 +147,7 @@ class TapService
                 'Content-Type' => 'application/json',
             ])
                 ->timeout(30)
-                ->post("{$baseUrl}/refunds", $payload);
+                ->post("{$baseUrl}/v2/refunds", $payload);
         } catch (\Throwable $e) {
             Log::error('Tap refund connection error', ['charge_id' => $chargeId, 'error' => $e->getMessage()]);
             throw new PspApiException('tap', 'Refund connection error', null, 0, $e);
@@ -254,7 +266,7 @@ class TapService
                 'Content-Type' => 'application/json',
             ])
                 ->timeout(30)
-                ->post("{$baseUrl}/charges", $payload);
+                ->post("{$baseUrl}/v2/charges", $payload);
         } catch (\Throwable $e) {
             Log::error('Tap Apple Pay API connection error', [
                 'session_uuid' => $session->session_uuid,
