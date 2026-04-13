@@ -290,10 +290,19 @@ class TapService
     /**
      * Generate HMAC-SHA256 hash for Tap SDK authentication.
      *
-     * @return string The generated hash
+     * @param string $amount Formatted to 2 decimal places (e.g. "118.00")
+     * @param string $currency ISO currency code uppercase (e.g. "AED")
+     * @param string $transactionReference Unique ref from the app (e.g. "oliv_1776077904637")
+     * @param string $postUrl Webhook URL or empty string
+     * @return string HMAC-SHA256 hex digest
      */
-    public function generateHash(string $sessionId, string $amount, string $currency, PaymentGateway $gateway): string
-    {
+    public function generateHash(
+        string $amount,
+        string $currency,
+        string $transactionReference,
+        string $postUrl,
+        PaymentGateway $gateway
+    ): string {
         $config = $gateway->getServerConfig();
         $secretKey = $config['secret_key'] ?? null;
 
@@ -301,22 +310,18 @@ class TapService
             throw new PspApiException('tap', 'Missing secret_key in gateway config');
         }
 
-        // Build the hash string in the format Tap expects
-        // Format: x_publickey<public_key>x_amount<amount>x_currency<currency>x_transaction<session_id>x_post<post_url>
         $publicKey = $config['public_key'] ?? '';
-        $postUrl = config('app.url') . '/api/v1/payments/tap/callback?session=' . $sessionId;
 
-        $hashString = sprintf(
-            'x_publickey%sx_amount%sx_currency%sx_transaction%sx_post%s',
-            $publicKey,
-            $amount,
-            $currency,
-            $sessionId,
-            $postUrl
-        );
+        // Build the hash string in the format Tap expects
+        // Format: x_publickey<public_key>x_amount<amount>x_currency<currency>x_transaction<transaction_ref>x_post<post_url>
+        $hashString = 'x_publickey' . $publicKey
+            . 'x_amount' . number_format((float) $amount, 2, '.', '')
+            . 'x_currency' . strtoupper($currency)
+            . 'x_transaction' . $transactionReference
+            . 'x_post' . $postUrl;
 
         Log::info('Tap hash generation', [
-            'session_id' => $sessionId,
+            'transaction_reference' => $transactionReference,
             'hash_string' => $hashString,
         ]);
 

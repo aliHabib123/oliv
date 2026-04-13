@@ -32,11 +32,12 @@ class TapController extends Controller
     #[OA\RequestBody(
         required: true,
         content: new OA\JsonContent(
-            required: ['session_id', 'amount', 'currency'],
+            required: ['amount', 'currency'],
             properties: [
-                new OA\Property(property: 'session_id', type: 'string', format: 'uuid'),
-                new OA\Property(property: 'amount', type: 'string', example: '118.00'),
-                new OA\Property(property: 'currency', type: 'string', example: 'AED'),
+                new OA\Property(property: 'amount', type: 'string', example: '118.00', description: 'Payment amount (formatted to 2 decimal places)'),
+                new OA\Property(property: 'currency', type: 'string', example: 'AED', description: 'ISO currency code (3 letters)'),
+                new OA\Property(property: 'transaction_reference', type: 'string', example: 'oliv_1776077904637', description: 'Unique transaction reference from the app'),
+                new OA\Property(property: 'post_url', type: 'string', example: '', description: 'Webhook URL or empty string'),
             ]
         )
     )]
@@ -50,9 +51,10 @@ class TapController extends Controller
         }
 
         $validated = $request->validate([
-            'session_id' => 'required|string',
             'amount' => 'required|string',
             'currency' => 'required|string|size:3',
+            'transaction_reference' => 'nullable|string',
+            'post_url' => 'nullable|string',
         ]);
 
         $gateway = $tenant->paymentGateways()
@@ -69,10 +71,11 @@ class TapController extends Controller
 
         try {
             $hash = $this->tapService->generateHash(
-                $validated['session_id'],
-                $validated['amount'],
-                $validated['currency'],
-                $gateway
+                amount: $validated['amount'],
+                currency: $validated['currency'],
+                transactionReference: $validated['transaction_reference'] ?? '',
+                postUrl: $validated['post_url'] ?? '',
+                gateway: $gateway
             );
 
             return response()->json([
@@ -81,7 +84,7 @@ class TapController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('Tap hash generation failed', [
-                'session_id' => $validated['session_id'],
+                'transaction_reference' => $validated['transaction_reference'] ?? '',
                 'error' => $e->getMessage(),
             ]);
 
