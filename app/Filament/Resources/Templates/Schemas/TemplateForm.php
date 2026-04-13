@@ -21,16 +21,22 @@ class TemplateForm
 
                 Select::make('industry')
                     ->options([
-                        'restaurant' => 'Restaurant',
-                        'retail' => 'Retail',
-                        'healthcare' => 'Healthcare',
-                        'education' => 'Education',
-                        'real_estate' => 'Real Estate',
-                        'technology' => 'Technology',
                         'fashion' => 'Fashion',
-                        'automotive' => 'Automotive',
-                        'sports' => 'Sports',
-                        'other' => 'Other',
+                        'jewellery' => 'Jewellery',
+                        'beauty' => 'Beauty',
+                        'perfume' => 'Perfume',
+                        'watches_accessories' => 'Watches & Accessories',
+                        'home_furniture' => 'Home & Furniture',
+                        'sportswear_fitness' => 'Sportswear & Fitness',
+                        'kids_baby' => 'Kids & Baby',
+                        'health_wellness' => 'Health & Wellness / Supplements',
+                        'modest_fashion' => 'Modest Fashion / Abayas',
+                        'luggage_travel' => 'Luggage & Travel Accessories',
+                        'food_grocery' => 'Food & Grocery (specialty)',
+                        'pet_products' => 'Pet Products',
+                        'optical_eyewear' => 'Optical / Eyewear',
+                        'stationery_lifestyle' => 'Stationery & Lifestyle',
+                        'electronics' => 'Electronics',
                     ])
                     ->searchable()
                     ->nullable(),
