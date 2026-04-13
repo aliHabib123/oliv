@@ -49,6 +49,7 @@ Route::middleware(ResolveTenantFromAppKey::class)->group(function () {
     Route::post('v1/payments/aps/apple-pay/session', [App\Http\Controllers\Api\AmazonPaymentController::class, 'applePaySession']);
 
     // Tap Payments endpoints
+    Route::post('v1/payments/tap/hash', [App\Http\Controllers\Api\TapController::class, 'hash']);
     Route::post('v1/payments/tap/initialize', [App\Http\Controllers\Api\TapController::class, 'initialize']);
     Route::post('v1/payments/tap/callback', [App\Http\Controllers\Api\TapController::class, 'callback']);
     Route::post('v1/payments/tap/verify/{charge_id}', [App\Http\Controllers\Api\TapController::class, 'verify']);

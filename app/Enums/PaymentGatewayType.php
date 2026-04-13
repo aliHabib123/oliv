@@ -198,7 +198,7 @@ enum PaymentGatewayType: string
                     'label' => 'Merchant ID',
                     'type' => 'text',
                     'required' => false,
-                    'public' => true,
+                    'public' => false,
                     'hint' => 'Optional merchant identifier',
                 ],
             ],

@@ -24,6 +24,75 @@ class TapController extends Controller
     ) {}
 
     #[OA\Post(
+        path: '/v1/payments/tap/hash',
+        tags: ['Payment'],
+        summary: 'Generate HMAC-SHA256 hash for Tap SDK authentication',
+        security: [['AppKey' => []]]
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['session_id', 'amount', 'currency'],
+            properties: [
+                new OA\Property(property: 'session_id', type: 'string', format: 'uuid'),
+                new OA\Property(property: 'amount', type: 'string', example: '118.00'),
+                new OA\Property(property: 'currency', type: 'string', example: 'AED'),
+            ]
+        )
+    )]
+    #[OA\Response(response: 200, description: 'Hash generated successfully')]
+    #[OA\Response(response: 400, description: 'Gateway not configured')]
+    public function hash(Request $request): JsonResponse
+    {
+        $tenant = $request->attributes->get('tenant');
+        if (! $tenant) {
+            return response()->json(['ok' => false, 'error' => 'Tenant not found'], 404);
+        }
+
+        $validated = $request->validate([
+            'session_id' => 'required|string',
+            'amount' => 'required|string',
+            'currency' => 'required|string|size:3',
+        ]);
+
+        $gateway = $tenant->paymentGateways()
+            ->where('gateway_type', 'tap')
+            ->where('is_enabled', true)
+            ->first();
+
+        if (! $gateway) {
+            return response()->json([
+                'ok' => false,
+                'error' => 'Tap payment not configured for this tenant',
+            ], 400);
+        }
+
+        try {
+            $hash = $this->tapService->generateHash(
+                $validated['session_id'],
+                $validated['amount'],
+                $validated['currency'],
+                $gateway
+            );
+
+            return response()->json([
+                'ok' => true,
+                'hash' => $hash,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Tap hash generation failed', [
+                'session_id' => $validated['session_id'],
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'ok' => false,
+                'error' => 'Hash generation failed',
+            ], 500);
+        }
+    }
+
+    #[OA\Post(
         path: '/v1/payments/tap/initialize',
         tags: ['Payment'],
         summary: 'Initialize Tap payment for a checkout session',

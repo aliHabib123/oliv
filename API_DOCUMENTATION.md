@@ -766,7 +766,158 @@ X-App-Key: required
 
 ---
 
-## �� Helper APIs
+## 💳 Tap Payment Integration
+
+Tap Payments integration for card payments, Apple Pay, and Google Pay.
+
+### Generate Hash for Tap SDK
+
+Generate an HMAC-SHA256 hash required for Tap SDK authentication. The hash is computed server-side using the secret key.
+
+**Endpoint:** `POST /v1/payments/tap/hash`
+
+**Headers:**
+```
+X-App-Key: required
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "session_id": "a8636002-dfc4-4822-b287-46613b3d5c56",
+  "amount": "118.00",
+  "currency": "AED"
+}
+```
+
+**Parameters:**
+- `session_id` (required): The checkout session UUID
+- `amount` (required): Payment amount as string (e.g., "118.00")
+- `currency` (required): 3-letter currency code (e.g., AED, USD)
+
+**Response:**
+```json
+{
+  "ok": true,
+  "hash": "a1b2c3d4e5f6..."
+}
+```
+
+**Error Response:**
+```json
+{
+  "ok": false,
+  "error": "Tap payment not configured for this tenant"
+}
+```
+
+---
+
+### Initialize Tap Payment
+
+Initialize a Tap payment session and get a payment URL for redirect-based checkout.
+
+**Endpoint:** `POST /v1/payments/tap/initialize`
+
+**Headers:**
+```
+X-App-Key: required
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "session_id": "a8636002-dfc4-4822-b287-46613b3d5c56"
+}
+```
+
+**Response:**
+```json
+{
+  "ok": true,
+  "charge_id": "chg_TS01A1234567890",
+  "payment_url": "https://checkout.tap.company/...",
+  "psp_type": "tap"
+}
+```
+
+---
+
+### Verify Tap Payment
+
+Verify the status of a Tap payment.
+
+**Endpoint:** `POST /v1/payments/tap/verify/{charge_id}`
+
+**Headers:**
+```
+X-App-Key: required
+```
+
+**Response:**
+```json
+{
+  "ok": true,
+  "status": "authorized",
+  "charge_id": "chg_TS01A1234567890"
+}
+```
+
+**Status values:** `authorized`, `captured`, `failed`, `pending`
+
+---
+
+### Process Apple Pay with Tap
+
+Process an Apple Pay payment through Tap.
+
+**Endpoint:** `POST /v1/payments/tap/apple-pay`
+
+**Headers:**
+```
+X-App-Key: required
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "session_id": "a8636002-dfc4-4822-b287-46613b3d5c56",
+  "apple_pay_token": {
+    "paymentData": "...",
+    "paymentMethod": { "..." },
+    "transactionIdentifier": "..."
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "ok": true,
+  "charge_id": "chg_TS01A1234567890",
+  "status": "captured",
+  "psp_type": "tap"
+}
+```
+
+---
+
+### Tap Payment Flow (Mobile SDK)
+
+1. **Create Session** → `POST /v1/checkout/session`
+2. **Get Public Key** → From `/v1/payment-settings` response
+3. **Generate Hash** → `POST /v1/payments/tap/hash` with session_id, amount, currency
+4. **Initialize Tap SDK** → Use public_key and hash from backend
+5. **Process Payment** → Tap SDK handles card entry / Apple Pay / Google Pay
+6. **Record Payment** → `POST /v1/checkout/record-payment` with `psp_type: "tap"` and `charge_id`
+7. **Confirm Order** → `POST /v1/checkout/confirm`
+
+---
+
+## 🔧 Helper APIs
 
 ### 9. Get Default Variant
 
