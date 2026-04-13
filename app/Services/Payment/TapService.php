@@ -287,6 +287,42 @@ class TapService
         ];
     }
 
+    /**
+     * Generate HMAC-SHA256 hash for Tap SDK authentication.
+     *
+     * @return string The generated hash
+     */
+    public function generateHash(string $sessionId, string $amount, string $currency, PaymentGateway $gateway): string
+    {
+        $config = $gateway->getServerConfig();
+        $secretKey = $config['secret_key'] ?? null;
+
+        if (! $secretKey) {
+            throw new PspApiException('tap', 'Missing secret_key in gateway config');
+        }
+
+        // Build the hash string in the format Tap expects
+        // Format: x_publickey<public_key>x_amount<amount>x_currency<currency>x_transaction<session_id>x_post<post_url>
+        $publicKey = $config['public_key'] ?? '';
+        $postUrl = config('app.url') . '/api/v1/payments/tap/callback?session=' . $sessionId;
+
+        $hashString = sprintf(
+            'x_publickey%sx_amount%sx_currency%sx_transaction%sx_post%s',
+            $publicKey,
+            $amount,
+            $currency,
+            $sessionId,
+            $postUrl
+        );
+
+        Log::info('Tap hash generation', [
+            'session_id' => $sessionId,
+            'hash_string' => $hashString,
+        ]);
+
+        return hash_hmac('sha256', $hashString, $secretKey);
+    }
+
     private function buildApplePayChargePayload(CheckoutSession $session, array $config, array $applePayToken): array
     {
         return [
