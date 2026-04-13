@@ -785,16 +785,18 @@ Content-Type: application/json
 **Request Body:**
 ```json
 {
-  "session_id": "a8636002-dfc4-4822-b287-46613b3d5c56",
   "amount": "118.00",
-  "currency": "AED"
+  "currency": "AED",
+  "transaction_reference": "oliv_1776077904637",
+  "post_url": ""
 }
 ```
 
 **Parameters:**
-- `session_id` (required): The checkout session UUID
-- `amount` (required): Payment amount as string (e.g., "118.00")
-- `currency` (required): 3-letter currency code (e.g., AED, USD)
+- `amount` (required): Payment amount formatted to 2 decimal places (e.g., "118.00")
+- `currency` (required): 3-letter ISO currency code uppercase (e.g., "AED")
+- `transaction_reference` (optional): Unique transaction reference from the app (e.g., "oliv_1776077904637")
+- `post_url` (optional): Webhook URL or empty string
 
 **Response:**
 ```json
