@@ -8,7 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CheckoutSession;
 use App\Models\PaymentGateway;
 use App\Models\PaymentTransaction;
-use App\Services\CheckoutSessionService;
+use App\Services\Checkout\CheckoutSessionService;
 use App\Services\Payment\TapService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
