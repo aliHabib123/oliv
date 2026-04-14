@@ -62,7 +62,20 @@ class ShopifyAdminService
             ],
         ];
 
+        Log::info('Shopify orderCreate request', [
+            'session_uuid' => $session->session_uuid,
+            'tenant_id' => $tenant->id,
+            'line_items_count' => count($lineItems),
+            'currency' => $session->currency,
+            'customer_email' => $session->customer_email,
+        ]);
+
         $data = $this->adminGraphql($tenant, $mutation, $variables);
+
+        Log::info('Shopify orderCreate response', [
+            'session_uuid' => $session->session_uuid,
+            'response' => $data,
+        ]);
 
         $errors = $data['orderCreate']['userErrors'] ?? [];
         if (! empty($errors)) {
@@ -140,10 +153,20 @@ class ShopifyAdminService
         $token = $this->tokenService->getValidToken($tenant);
 
         if (! $token) {
+            Log::error('Shopify Admin API: no valid token available', [
+                'tenant_id' => $tenant->id,
+            ]);
             throw new \RuntimeException('Unable to get valid Shopify Admin API token for tenant ' . $tenant->id);
         }
 
         $endpoint = sprintf('https://%s/admin/api/%s/graphql.json', $domain, self::API_VERSION);
+
+        Log::info('Shopify Admin API request', [
+            'tenant_id' => $tenant->id,
+            'endpoint' => $endpoint,
+            'has_token' => !empty($token),
+            'token_preview' => substr($token, 0, 10) . '...',
+        ]);
 
         try {
             $response = Http::withHeaders([
