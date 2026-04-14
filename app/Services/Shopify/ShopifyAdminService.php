@@ -48,15 +48,24 @@ class ShopifyAdminService
             }
         GRAPHQL;
 
+        // Format phone for Shopify (E.164 format required)
+        $phone = $this->formatPhoneForShopify($session->customer_phone);
+
+        $orderInput = [
+            'lineItems' => $lineItems,
+            'shippingAddress' => $shippingAddress,
+            'email' => $session->customer_email,
+            'currency' => $session->currency,
+            'note' => "Native checkout session: {$session->session_uuid}",
+        ];
+
+        // Only include phone if valid
+        if ($phone) {
+            $orderInput['phone'] = $phone;
+        }
+
         $variables = [
-            'order' => [
-                'lineItems' => $lineItems,
-                'shippingAddress' => $shippingAddress,
-                'email' => $session->customer_email,
-                'phone' => $session->customer_phone,
-                'currency' => $session->currency,
-                'note' => "Native checkout session: {$session->session_uuid}",
-            ],
+            'order' => $orderInput,
             'options' => [
                 'inventoryBehaviour' => 'DECREMENT_OBEYING_POLICY',
             ],
@@ -221,5 +230,48 @@ class ShopifyAdminService
             'zip' => $address['zip'] ?? '',
             'phone' => $address['phone'] ?? '',
         ];
+    }
+
+    /**
+     * Format phone number for Shopify E.164 format.
+     * Returns null if phone is empty or invalid.
+     */
+    private function formatPhoneForShopify(?string $phone): ?string
+    {
+        if (empty($phone)) {
+            return null;
+        }
+
+        // Remove all non-digit characters except leading +
+        $cleaned = preg_replace('/[^\d+]/', '', $phone);
+
+        // If it starts with +, keep it
+        if (str_starts_with($cleaned, '+')) {
+            return $cleaned;
+        }
+
+        // If it's just digits, assume it needs a + prefix
+        // For UAE numbers starting with 971, add +
+        if (str_starts_with($cleaned, '971')) {
+            return '+' . $cleaned;
+        }
+
+        // For numbers starting with 0, assume local UAE number
+        if (str_starts_with($cleaned, '0')) {
+            return '+971' . substr($cleaned, 1);
+        }
+
+        // For 9-digit numbers (UAE mobile without country code), add +971
+        if (strlen($cleaned) === 9 && str_starts_with($cleaned, '5')) {
+            return '+971' . $cleaned;
+        }
+
+        // If we have a reasonable length number, prefix with +
+        if (strlen($cleaned) >= 10) {
+            return '+' . $cleaned;
+        }
+
+        // Invalid phone - return null to skip it
+        return null;
     }
 }
