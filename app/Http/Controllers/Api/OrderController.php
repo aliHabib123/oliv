@@ -49,30 +49,23 @@ class OrderController extends Controller
             return response()->json(['ok' => false, 'error' => 'Tenant not found'], 404);
         }
 
-        // If order_id starts with #, look it up by order name
-        if (str_starts_with($orderId, '#')) {
-            $mapping = ShopifyOrderMapping::where('tenant_id', $tenant->id)
-                ->where('shopify_order_name', $orderId)
-                ->first();
-
-            if (! $mapping) {
-                return response()->json(['ok' => false, 'error' => 'Order not found'], 404);
-            }
-
-            $orderId = $mapping->shopify_order_id;
-        }
-
-        // If it's not a GID, try to find it in our mappings
+        // Convert to GID format if needed
         if (! str_starts_with($orderId, 'gid://')) {
-            $mapping = ShopifyOrderMapping::where('tenant_id', $tenant->id)
-                ->where('shopify_order_id', 'like', "%{$orderId}%")
-                ->first();
+            // Check if it's an order name (e.g., #1142 or 1142)
+            // Order names are typically short numbers, GID numeric parts are longer
+            $cleanId = ltrim($orderId, '#');
 
-            if ($mapping) {
-                $orderId = $mapping->shopify_order_id;
+            // If it looks like an order name (short number), query Shopify
+            if (strlen($cleanId) <= 6 && is_numeric($cleanId)) {
+                $foundId = $this->shopifyAdmin->findOrderIdByName($tenant, $cleanId);
+                if ($foundId) {
+                    $orderId = $foundId;
+                } else {
+                    return response()->json(['ok' => false, 'error' => 'Order not found'], 404);
+                }
             } else {
-                // Assume it's just the numeric ID
-                $orderId = "gid://shopify/Order/{$orderId}";
+                // Assume it's a numeric order ID
+                $orderId = "gid://shopify/Order/{$cleanId}";
             }
         }
 
