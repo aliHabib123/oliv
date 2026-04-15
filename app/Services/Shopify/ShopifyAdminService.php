@@ -296,6 +296,37 @@ class ShopifyAdminService
     }
 
     /**
+     * Find order ID by order name (e.g., "#1142" or "1142").
+     */
+    public function findOrderIdByName(Tenant $tenant, string $orderName): ?string
+    {
+        // Ensure the name has # prefix for query
+        $orderName = ltrim($orderName, '#');
+
+        $query = <<<'GRAPHQL'
+            query findOrder($query: String!) {
+                orders(first: 1, query: $query) {
+                    edges {
+                        node {
+                            id
+                            name
+                        }
+                    }
+                }
+            }
+        GRAPHQL;
+
+        $data = $this->adminGraphql($tenant, $query, ['query' => "name:#{$orderName}"]);
+
+        $edges = $data['orders']['edges'] ?? [];
+        if (empty($edges)) {
+            return null;
+        }
+
+        return $edges[0]['node']['id'] ?? null;
+    }
+
+    /**
      * Execute a GraphQL mutation against the Shopify Admin API.
      */
     protected function adminGraphql(Tenant $tenant, string $query, array $variables = []): array
