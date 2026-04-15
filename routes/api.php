@@ -57,6 +57,9 @@ Route::middleware(ResolveTenantFromAppKey::class)->group(function () {
     Route::post('v1/payments/tap/refund', [App\Http\Controllers\Api\TapController::class, 'refund']);
     Route::post('v1/payments/tap/apple-pay', [App\Http\Controllers\Api\TapController::class, 'applePay']);
 
+    // Orders
+    Route::get('v1/orders/{order_id}/status', [App\Http\Controllers\Api\OrderController::class, 'status']);
+
     // Shopify Webhooks
     Route::post('webhooks/shopify/checkouts/create', [App\Http\Controllers\Api\ShopifyWebhookController::class, 'checkoutCreate']);
     Route::post('webhooks/shopify/checkouts/update', [App\Http\Controllers\Api\ShopifyWebhookController::class, 'checkoutUpdate']);

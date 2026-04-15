@@ -1120,7 +1120,114 @@ All cart and checkout operations are automatically logged for analytics:
 
 ---
 
-## 🐛 Error Handling
+## � Order APIs
+
+### 10. Get Order Status
+
+Get comprehensive order status including fulfillment, financial status, and tracking information.
+
+**Endpoint:** `GET /v1/orders/{order_id}/status`
+
+**Headers:**
+```
+X-App-Key: required
+```
+
+**Path Parameters:**
+- `order_id`: Can be one of:
+  - Full Shopify GID: `gid://shopify/Order/6348294619179`
+  - Order name: `#1142`
+  - Numeric ID: `6348294619179`
+
+**Response:**
+```json
+{
+  "ok": true,
+  "order_id": "gid://shopify/Order/6348294619179",
+  "order_name": "#1142",
+  "created_at": "2026-04-14T10:05:29Z",
+  "financial_status": "paid",
+  "fulfillment_status": "unfulfilled",
+  "cancelled_at": null,
+  "cancel_reason": null,
+  "total": {
+    "subtotal": "240.0",
+    "shipping": "0.0",
+    "tax": "0.0",
+    "total": "240.0",
+    "currency": "AED"
+  },
+  "customer": {
+    "email": "customer@example.com",
+    "phone": "+971501234567",
+    "firstName": "Ali",
+    "lastName": "Habib"
+  },
+  "shipping_address": {
+    "firstName": "Ali",
+    "lastName": "Habib",
+    "address1": "123 Main St",
+    "address2": "Apt 4",
+    "city": "Dubai",
+    "province": "Dubai",
+    "country": "United Arab Emirates",
+    "zip": "00000",
+    "phone": "+971501234567"
+  },
+  "line_items": [
+    {
+      "title": "Product Name",
+      "variant_title": "Size L",
+      "sku": "PROD-001",
+      "quantity": 1,
+      "total": "240.0"
+    }
+  ],
+  "fulfillments": [
+    {
+      "id": "gid://shopify/Fulfillment/123",
+      "status": "success",
+      "created_at": "2026-04-15T10:00:00Z",
+      "updated_at": "2026-04-15T12:00:00Z",
+      "delivered_at": null,
+      "estimated_delivery_at": "2026-04-18T00:00:00Z",
+      "tracking": [
+        {
+          "company": "DHL",
+          "number": "1234567890",
+          "url": "https://dhl.com/track/1234567890"
+        }
+      ],
+      "items": [
+        {
+          "title": "Product Name",
+          "quantity": 1
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Status Values:**
+
+| Field | Possible Values |
+|-------|-----------------|
+| `financial_status` | `pending`, `authorized`, `paid`, `partially_refunded`, `refunded`, `voided` |
+| `fulfillment_status` | `unfulfilled`, `partially_fulfilled`, `fulfilled`, `scheduled` |
+| `fulfillments[].status` | `pending`, `open`, `success`, `cancelled`, `failure` |
+
+**Error Response (404):**
+```json
+{
+  "ok": false,
+  "error": "Order not found: gid://shopify/Order/123"
+}
+```
+
+---
+
+## �🐛 Error Handling
 
 All endpoints return consistent error format:
 
