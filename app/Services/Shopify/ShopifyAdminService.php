@@ -148,6 +148,154 @@ class ShopifyAdminService
     }
 
     /**
+     * Get order status including fulfillment, financial, and tracking info.
+     *
+     * @return array{
+     *   order_id: string,
+     *   order_name: string,
+     *   created_at: string,
+     *   financial_status: string,
+     *   fulfillment_status: string,
+     *   fulfillments: array,
+     *   total: array,
+     *   customer: array
+     * }
+     */
+    public function getOrderStatus(Tenant $tenant, string $shopifyOrderId): array
+    {
+        $query = <<<'GRAPHQL'
+            query getOrder($id: ID!) {
+                order(id: $id) {
+                    id
+                    name
+                    createdAt
+                    displayFinancialStatus
+                    displayFulfillmentStatus
+                    cancelledAt
+                    cancelReason
+                    totalPriceSet {
+                        shopMoney { amount currencyCode }
+                    }
+                    subtotalPriceSet {
+                        shopMoney { amount currencyCode }
+                    }
+                    totalShippingPriceSet {
+                        shopMoney { amount currencyCode }
+                    }
+                    totalTaxSet {
+                        shopMoney { amount currencyCode }
+                    }
+                    customer {
+                        email
+                        phone
+                        firstName
+                        lastName
+                    }
+                    shippingAddress {
+                        firstName
+                        lastName
+                        address1
+                        address2
+                        city
+                        province
+                        country
+                        zip
+                        phone
+                    }
+                    fulfillments {
+                        id
+                        status
+                        createdAt
+                        updatedAt
+                        deliveredAt
+                        estimatedDeliveryAt
+                        trackingInfo {
+                            company
+                            number
+                            url
+                        }
+                        fulfillmentLineItems(first: 50) {
+                            edges {
+                                node {
+                                    lineItem {
+                                        title
+                                        quantity
+                                        variant {
+                                            title
+                                        }
+                                    }
+                                    quantity
+                                }
+                            }
+                        }
+                    }
+                    lineItems(first: 50) {
+                        edges {
+                            node {
+                                title
+                                quantity
+                                variant {
+                                    title
+                                    sku
+                                }
+                                originalTotalSet {
+                                    shopMoney { amount currencyCode }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        GRAPHQL;
+
+        $data = $this->adminGraphql($tenant, $query, ['id' => $shopifyOrderId]);
+
+        $order = $data['order'] ?? null;
+        if (! $order) {
+            throw new \RuntimeException('Order not found: ' . $shopifyOrderId);
+        }
+
+        return [
+            'order_id' => $order['id'],
+            'order_name' => $order['name'],
+            'created_at' => $order['createdAt'],
+            'financial_status' => strtolower($order['displayFinancialStatus'] ?? 'unknown'),
+            'fulfillment_status' => strtolower($order['displayFulfillmentStatus'] ?? 'unfulfilled'),
+            'cancelled_at' => $order['cancelledAt'],
+            'cancel_reason' => $order['cancelReason'],
+            'total' => [
+                'subtotal' => $order['subtotalPriceSet']['shopMoney']['amount'] ?? '0',
+                'shipping' => $order['totalShippingPriceSet']['shopMoney']['amount'] ?? '0',
+                'tax' => $order['totalTaxSet']['shopMoney']['amount'] ?? '0',
+                'total' => $order['totalPriceSet']['shopMoney']['amount'] ?? '0',
+                'currency' => $order['totalPriceSet']['shopMoney']['currencyCode'] ?? 'AED',
+            ],
+            'customer' => $order['customer'] ?? null,
+            'shipping_address' => $order['shippingAddress'] ?? null,
+            'line_items' => collect($order['lineItems']['edges'] ?? [])->map(fn($edge) => [
+                'title' => $edge['node']['title'],
+                'variant_title' => $edge['node']['variant']['title'] ?? null,
+                'sku' => $edge['node']['variant']['sku'] ?? null,
+                'quantity' => $edge['node']['quantity'],
+                'total' => $edge['node']['originalTotalSet']['shopMoney']['amount'] ?? '0',
+            ])->all(),
+            'fulfillments' => collect($order['fulfillments'] ?? [])->map(fn($f) => [
+                'id' => $f['id'],
+                'status' => strtolower($f['status']),
+                'created_at' => $f['createdAt'],
+                'updated_at' => $f['updatedAt'],
+                'delivered_at' => $f['deliveredAt'],
+                'estimated_delivery_at' => $f['estimatedDeliveryAt'],
+                'tracking' => $f['trackingInfo'] ?? [],
+                'items' => collect($f['fulfillmentLineItems']['edges'] ?? [])->map(fn($edge) => [
+                    'title' => $edge['node']['lineItem']['title'],
+                    'quantity' => $edge['node']['quantity'],
+                ])->all(),
+            ])->all(),
+        ];
+    }
+
+    /**
      * Execute a GraphQL mutation against the Shopify Admin API.
      */
     protected function adminGraphql(Tenant $tenant, string $query, array $variables = []): array
