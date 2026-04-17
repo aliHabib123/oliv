@@ -185,12 +185,7 @@ class ShopifyAdminService
                     totalTaxSet {
                         shopMoney { amount currencyCode }
                     }
-                    customer {
-                        email
-                        phone
-                        firstName
-                        lastName
-                    }
+                    email
                     shippingAddress {
                         firstName
                         lastName
@@ -220,9 +215,6 @@ class ShopifyAdminService
                                     lineItem {
                                         title
                                         quantity
-                                        variant {
-                                            title
-                                        }
                                     }
                                     quantity
                                 }
@@ -233,11 +225,9 @@ class ShopifyAdminService
                         edges {
                             node {
                                 title
+                                variantTitle
+                                sku
                                 quantity
-                                variant {
-                                    title
-                                    sku
-                                }
                                 originalTotalSet {
                                     shopMoney { amount currencyCode }
                                 }
@@ -270,12 +260,12 @@ class ShopifyAdminService
                 'total' => $order['totalPriceSet']['shopMoney']['amount'] ?? '0',
                 'currency' => $order['totalPriceSet']['shopMoney']['currencyCode'] ?? 'AED',
             ],
-            'customer' => $order['customer'] ?? null,
+            'email' => $order['email'] ?? null,
             'shipping_address' => $order['shippingAddress'] ?? null,
             'line_items' => collect($order['lineItems']['edges'] ?? [])->map(fn($edge) => [
                 'title' => $edge['node']['title'],
-                'variant_title' => $edge['node']['variant']['title'] ?? null,
-                'sku' => $edge['node']['variant']['sku'] ?? null,
+                'variant_title' => $edge['node']['variantTitle'] ?? null,
+                'sku' => $edge['node']['sku'] ?? null,
                 'quantity' => $edge['node']['quantity'],
                 'total' => $edge['node']['originalTotalSet']['shopMoney']['amount'] ?? '0',
             ])->all(),
