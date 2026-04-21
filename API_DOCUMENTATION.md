@@ -1120,7 +1120,7 @@ All cart and checkout operations are automatically logged for analytics:
 
 ---
 
-## � Order APIs
+## 📦 Order APIs
 
 ### 10. Get Order Status
 
@@ -1148,6 +1148,7 @@ X-App-Key: required
   "created_at": "2026-04-14T10:05:29Z",
   "financial_status": "paid",
   "fulfillment_status": "unfulfilled",
+  "tracking_status": "order_placed",
   "cancelled_at": null,
   "cancel_reason": null,
   "total": {
@@ -1157,12 +1158,7 @@ X-App-Key: required
     "total": "240.0",
     "currency": "AED"
   },
-  "customer": {
-    "email": "customer@example.com",
-    "phone": "+971501234567",
-    "firstName": "Ali",
-    "lastName": "Habib"
-  },
+  "email": "customer@example.com",
   "shipping_address": {
     "firstName": "Ali",
     "lastName": "Habib",
@@ -1215,7 +1211,13 @@ X-App-Key: required
 |-------|-----------------|
 | `financial_status` | `pending`, `authorized`, `paid`, `partially_refunded`, `refunded`, `voided` |
 | `fulfillment_status` | `unfulfilled`, `partially_fulfilled`, `fulfilled`, `scheduled` |
+| `tracking_status` | `order_placed`, `out_for_delivery`, `delivered` |
 | `fulfillments[].status` | `pending`, `open`, `success`, `cancelled`, `failure` |
+
+**Tracking status mapping used by API:**
+- `order_placed`: no fulfillment created yet
+- `out_for_delivery`: at least one fulfillment exists and none are delivered yet
+- `delivered`: at least one fulfillment has `delivered_at`
 
 **Error Response (404):**
 ```json
@@ -1227,7 +1229,7 @@ X-App-Key: required
 
 ---
 
-## �🐛 Error Handling
+## 🐛 Error Handling
 
 All endpoints return consistent error format:
 

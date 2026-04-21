@@ -156,9 +156,10 @@ class ShopifyAdminService
      *   created_at: string,
      *   financial_status: string,
      *   fulfillment_status: string,
+     *   tracking_status: string,
      *   fulfillments: array,
      *   total: array,
-     *   customer: array
+     *   email: ?string
      * }
      */
     public function getOrderStatus(Tenant $tenant, string $shopifyOrderId): array
@@ -245,12 +246,34 @@ class ShopifyAdminService
             throw new \RuntimeException('Order not found: ' . $shopifyOrderId);
         }
 
+        $fulfillments = collect($order['fulfillments'] ?? [])->map(fn($f) => [
+            'id' => $f['id'],
+            'status' => strtolower($f['status']),
+            'created_at' => $f['createdAt'],
+            'updated_at' => $f['updatedAt'],
+            'delivered_at' => $f['deliveredAt'],
+            'estimated_delivery_at' => $f['estimatedDeliveryAt'],
+            'tracking' => $f['trackingInfo'] ?? [],
+            'items' => collect($f['fulfillmentLineItems']['edges'] ?? [])->map(fn($edge) => [
+                'title' => $edge['node']['lineItem']['title'],
+                'quantity' => $edge['node']['quantity'],
+            ])->all(),
+        ])->all();
+
+        $trackingStatus = 'order_placed';
+        if (collect($fulfillments)->contains(fn($f) => !empty($f['delivered_at']))) {
+            $trackingStatus = 'delivered';
+        } elseif (! empty($fulfillments)) {
+            $trackingStatus = 'out_for_delivery';
+        }
+
         return [
             'order_id' => $order['id'],
             'order_name' => $order['name'],
             'created_at' => $order['createdAt'],
             'financial_status' => strtolower($order['displayFinancialStatus'] ?? 'unknown'),
             'fulfillment_status' => strtolower($order['displayFulfillmentStatus'] ?? 'unfulfilled'),
+            'tracking_status' => $trackingStatus,
             'cancelled_at' => $order['cancelledAt'],
             'cancel_reason' => $order['cancelReason'],
             'total' => [
@@ -269,19 +292,7 @@ class ShopifyAdminService
                 'quantity' => $edge['node']['quantity'],
                 'total' => $edge['node']['originalTotalSet']['shopMoney']['amount'] ?? '0',
             ])->all(),
-            'fulfillments' => collect($order['fulfillments'] ?? [])->map(fn($f) => [
-                'id' => $f['id'],
-                'status' => strtolower($f['status']),
-                'created_at' => $f['createdAt'],
-                'updated_at' => $f['updatedAt'],
-                'delivered_at' => $f['deliveredAt'],
-                'estimated_delivery_at' => $f['estimatedDeliveryAt'],
-                'tracking' => $f['trackingInfo'] ?? [],
-                'items' => collect($f['fulfillmentLineItems']['edges'] ?? [])->map(fn($edge) => [
-                    'title' => $edge['node']['lineItem']['title'],
-                    'quantity' => $edge['node']['quantity'],
-                ])->all(),
-            ])->all(),
+            'fulfillments' => $fulfillments,
         ];
     }
 
