@@ -37,6 +37,7 @@ class OrderController extends Controller
                 new OA\Property(property: 'order_name', type: 'string'),
                 new OA\Property(property: 'financial_status', type: 'string', enum: ['pending', 'authorized', 'paid', 'partially_refunded', 'refunded', 'voided']),
                 new OA\Property(property: 'fulfillment_status', type: 'string', enum: ['unfulfilled', 'partially_fulfilled', 'fulfilled', 'scheduled']),
+                new OA\Property(property: 'tracking_status', type: 'string', enum: ['order_placed', 'out_for_delivery', 'delivered']),
                 new OA\Property(property: 'fulfillments', type: 'array', items: new OA\Items(type: 'object')),
             ]
         )
