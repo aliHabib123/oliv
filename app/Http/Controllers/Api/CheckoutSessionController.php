@@ -139,7 +139,7 @@ class CheckoutSessionController extends Controller
             required: ['session_id', 'psp_type', 'psp_transaction_id'],
             properties: [
                 new OA\Property(property: 'session_id', type: 'string', format: 'uuid', description: 'The checkout session ID'),
-                new OA\Property(property: 'psp_type', type: 'string', enum: ['tap', 'aps'], description: 'Payment service provider'),
+                new OA\Property(property: 'psp_type', type: 'string', enum: ['tap', 'aps', 'tabby', 'tamara'], description: 'Payment service provider'),
                 new OA\Property(property: 'psp_transaction_id', type: 'string', description: 'Transaction ID from PSP (charge_id for Tap, fort_id for APS)'),
             ]
         )
@@ -157,7 +157,7 @@ class CheckoutSessionController extends Controller
 
         $validated = $request->validate([
             'session_id' => 'required|string',
-            'psp_type' => 'required|string|in:tap,aps',
+            'psp_type' => 'required|string|in:tap,aps,tabby,tamara',
             'psp_transaction_id' => 'required|string',
         ]);
 
