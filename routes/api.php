@@ -59,6 +59,7 @@ Route::middleware(ResolveTenantFromAppKey::class)->group(function () {
 
     // Orders
     Route::get('v1/orders/{order_id}/status', [App\Http\Controllers\Api\OrderController::class, 'status']);
+    Route::post('v1/orders/{order_id}/tracking-status', [App\Http\Controllers\Api\OrderController::class, 'overrideTrackingStatus']);
 
     // Shopify Webhooks
     Route::post('webhooks/shopify/checkouts/create', [App\Http\Controllers\Api\ShopifyWebhookController::class, 'checkoutCreate']);
