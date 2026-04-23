@@ -207,6 +207,42 @@ class CheckoutSessionController extends Controller
             $this->sessionService->transition($session, CheckoutSession::STATUS_PAYMENT_INITIATED);
         }
         $session->update(['psp_type' => $validated['psp_type']]);
+        $session->refresh();
+
+        // Verify payment status with PSP immediately
+        try {
+            $pspStatus = $this->verifyWithPsp($session, $transaction);
+
+            Log::info('record-payment: PSP verification result', [
+                'session_uuid' => $session->session_uuid,
+                'psp_type' => $validated['psp_type'],
+                'psp_transaction_id' => $validated['psp_transaction_id'],
+                'psp_status' => $pspStatus,
+            ]);
+
+            if ($pspStatus === 'authorized') {
+                $transaction->update(['status' => PaymentTransaction::STATUS_AUTHORIZED, 'authorized_at' => now()]);
+                $this->sessionService->transition($session, CheckoutSession::STATUS_AUTHORIZED);
+            } elseif ($pspStatus === 'captured') {
+                $transaction->update(['status' => PaymentTransaction::STATUS_CAPTURED, 'captured_at' => now()]);
+                $this->sessionService->transition($session, CheckoutSession::STATUS_AUTHORIZED);
+                $this->sessionService->transition($session->fresh(), CheckoutSession::STATUS_CAPTURED);
+            } elseif ($pspStatus === 'failed') {
+                $transaction->update(['status' => PaymentTransaction::STATUS_FAILED, 'failure_reason' => 'PSP verification failed']);
+                $this->sessionService->fail($session, 'PSP verification returned failed');
+            }
+            // If 'pending', leave as-is — confirm will re-verify later
+        } catch (\Throwable $e) {
+            // PSP verification failed — log but don't block the response.
+            // The confirm endpoint will re-verify as a fallback.
+            Log::warning('record-payment: PSP verification error (non-blocking)', [
+                'session_uuid' => $session->session_uuid,
+                'psp_type' => $validated['psp_type'],
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        $transaction->refresh();
 
         return response()->json([
             'ok' => true,
