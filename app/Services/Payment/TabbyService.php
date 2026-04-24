@@ -92,12 +92,25 @@ class TabbyService
             throw new PspApiException('tabby', 'Verification connection error', null, 0, $e);
         }
 
+        Log::info('Tabby verifyPayment response', [
+            'payment_id' => $paymentId,
+            'http_status' => $response->status(),
+            'body' => $response->json(),
+            'url' => "{$baseUrl}/api/v2/payments/{$paymentId}",
+        ]);
+
         if (! $response->successful()) {
             throw new PspApiException('tabby', 'Verification failed with status ' . $response->status(), $response->json());
         }
 
         $data = $response->json();
         $status = strtolower($data['status'] ?? '');
+
+        Log::info('Tabby verifyPayment mapped status', [
+            'payment_id' => $paymentId,
+            'raw_status' => $data['status'] ?? null,
+            'normalized_status' => $status,
+        ]);
 
         return match ($status) {
             'authorized', 'approved' => 'authorized',

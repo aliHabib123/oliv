@@ -90,12 +90,25 @@ class TamaraService
             throw new PspApiException('tamara', 'Verification connection error', null, 0, $e);
         }
 
+        Log::info('Tamara verifyPayment response', [
+            'order_id' => $orderId,
+            'http_status' => $response->status(),
+            'body' => $response->json(),
+            'url' => "{$baseUrl}/orders/{$orderId}",
+        ]);
+
         if (! $response->successful()) {
             throw new PspApiException('tamara', 'Verification failed with status ' . $response->status(), $response->json());
         }
 
         $data = $response->json();
         $status = strtolower($data['status'] ?? '');
+
+        Log::info('Tamara verifyPayment mapped status', [
+            'order_id' => $orderId,
+            'raw_status' => $data['status'] ?? null,
+            'normalized_status' => $status,
+        ]);
 
         return match ($status) {
             'approved', 'authorised', 'authorized' => 'authorized',
