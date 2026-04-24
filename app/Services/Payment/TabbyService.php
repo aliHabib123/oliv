@@ -95,7 +95,9 @@ class TabbyService
         Log::info('Tabby verifyPayment response', [
             'payment_id' => $paymentId,
             'http_status' => $response->status(),
-            'body' => $response->json(),
+            'raw_body' => $response->body(),
+            'json_body' => $response->json(),
+            'headers' => $response->headers(),
             'url' => "{$baseUrl}/api/v2/payments/{$paymentId}",
         ]);
 
