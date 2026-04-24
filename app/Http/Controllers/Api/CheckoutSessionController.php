@@ -163,12 +163,30 @@ class CheckoutSessionController extends Controller
 
         $session = $this->sessionService->findByUuid($tenant, $validated['session_id']);
         if (! $session) {
+            Log::warning('record-payment: session not found', [
+                'session_id' => $validated['session_id'],
+                'tenant_id' => $tenant->id,
+            ]);
             return response()->json(['ok' => false, 'error' => 'Session not found'], 404);
         }
+
+        Log::info('record-payment: incoming request', [
+            'session_uuid' => $session->session_uuid,
+            'session_status' => $session->status,
+            'psp_type' => $validated['psp_type'],
+            'psp_transaction_id' => $validated['psp_transaction_id'],
+            'session_amount' => $session->amount,
+            'session_currency' => $session->currency,
+            'existing_transactions' => $session->paymentTransactions()->count(),
+        ]);
 
         // Check if session is in a valid state (pending or payment_initiated)
         if (! $session->isInState(CheckoutSession::STATUS_PENDING) &&
             ! $session->isInState(CheckoutSession::STATUS_PAYMENT_INITIATED)) {
+            Log::warning('record-payment: invalid session state', [
+                'session_uuid' => $session->session_uuid,
+                'current_status' => $session->status,
+            ]);
             return response()->json([
                 'ok' => false,
                 'error' => 'Session is not in a valid state for recording payment',
@@ -182,6 +200,11 @@ class CheckoutSessionController extends Controller
             ->first();
 
         if ($existingTransaction) {
+            Log::info('record-payment: idempotent hit, transaction already exists', [
+                'session_uuid' => $session->session_uuid,
+                'transaction_id' => $existingTransaction->id,
+                'transaction_status' => $existingTransaction->status,
+            ]);
             return response()->json([
                 'ok' => true,
                 'transaction_id' => $existingTransaction->id,
@@ -238,16 +261,26 @@ class CheckoutSessionController extends Controller
             Log::warning('record-payment: PSP verification error (non-blocking)', [
                 'session_uuid' => $session->session_uuid,
                 'psp_type' => $validated['psp_type'],
+                'psp_transaction_id' => $validated['psp_transaction_id'],
                 'error' => $e->getMessage(),
             ]);
         }
 
         $transaction->refresh();
 
+        Log::info('record-payment: completed', [
+            'session_uuid' => $session->session_uuid,
+            'transaction_id' => $transaction->id,
+            'transaction_status' => $transaction->status,
+            'psp_status' => $pspStatus ?? null,
+            'session_status' => $session->fresh()->status,
+        ]);
+
         return response()->json([
             'ok' => true,
             'transaction_id' => $transaction->id,
             'status' => $transaction->status,
+            'psp_status' => $pspStatus ?? null,
         ]);
     }
 
@@ -282,8 +315,21 @@ class CheckoutSessionController extends Controller
 
         $session = $this->sessionService->findByUuid($tenant, $validated['session_id']);
         if (! $session) {
+            Log::warning('confirm: session not found', [
+                'session_id' => $validated['session_id'],
+                'tenant_id' => $tenant->id,
+            ]);
             return response()->json(['ok' => false, 'error' => 'Session not found'], 404);
         }
+
+        Log::info('confirm: incoming request', [
+            'session_uuid' => $session->session_uuid,
+            'session_status' => $session->status,
+            'psp_type' => $session->psp_type,
+            'transaction_count' => $session->paymentTransactions()->count(),
+            'latest_transaction_status' => $session->paymentTransactions()->latest()->first()?->status,
+            'latest_transaction_psp_id' => $session->paymentTransactions()->latest()->first()?->psp_transaction_id,
+        ]);
 
         // Already confirmed — return existing order (idempotent)
         if ($session->isInState(CheckoutSession::STATUS_ORDER_CREATED)) {
@@ -314,7 +360,30 @@ class CheckoutSessionController extends Controller
             ]);
 
             if ($transaction && ! $transaction->isTerminal()) {
-                $pspStatus = $this->verifyWithPsp($session, $transaction);
+                Log::info('confirm: re-verifying with PSP', [
+                    'session_uuid' => $session->session_uuid,
+                    'psp_type' => $session->psp_type,
+                    'transaction_id' => $transaction->id,
+                    'psp_transaction_id' => $transaction->psp_transaction_id,
+                ]);
+
+                try {
+                    $pspStatus = $this->verifyWithPsp($session, $transaction);
+                } catch (\Throwable $e) {
+                    Log::error('confirm: PSP verification threw exception', [
+                        'session_uuid' => $session->session_uuid,
+                        'psp_type' => $session->psp_type,
+                        'psp_transaction_id' => $transaction->psp_transaction_id,
+                        'error' => $e->getMessage(),
+                    ]);
+                    return response()->json(['ok' => false, 'error' => 'Payment verification failed: ' . $e->getMessage()], 402);
+                }
+
+                Log::info('confirm: PSP verification result', [
+                    'session_uuid' => $session->session_uuid,
+                    'psp_status' => $pspStatus,
+                ]);
+
                 if ($pspStatus === 'authorized') {
                     $transaction->update(['status' => PaymentTransaction::STATUS_AUTHORIZED, 'authorized_at' => now()]);
                     $this->sessionService->transition($session, CheckoutSession::STATUS_AUTHORIZED);
@@ -325,9 +394,22 @@ class CheckoutSessionController extends Controller
                     $this->sessionService->transition($session->fresh(), CheckoutSession::STATUS_CAPTURED);
                     $session->refresh();
                 } else {
+                    Log::warning('confirm: PSP returned non-authorized status', [
+                        'session_uuid' => $session->session_uuid,
+                        'psp_status' => $pspStatus,
+                        'psp_type' => $session->psp_type,
+                        'psp_transaction_id' => $transaction->psp_transaction_id,
+                    ]);
                     return response()->json(['ok' => false, 'error' => 'Payment not authorized', 'psp_status' => $pspStatus], 402);
                 }
             } else {
+                Log::warning('confirm: no valid transaction to verify', [
+                    'session_uuid' => $session->session_uuid,
+                    'session_status' => $session->status,
+                    'has_transaction' => (bool) $transaction,
+                    'transaction_terminal' => $transaction?->isTerminal(),
+                    'transaction_status' => $transaction?->status,
+                ]);
                 return response()->json(['ok' => false, 'error' => 'Payment not authorized'], 402);
             }
         }
@@ -425,8 +507,21 @@ class CheckoutSessionController extends Controller
         ]);
 
         if (! $gateway) {
+            Log::warning('verifyWithPsp: no gateway found', [
+                'session_uuid' => $session->session_uuid,
+                'psp_type' => $session->psp_type,
+                'gateway_type' => $gatewayType,
+            ]);
             return 'failed';
         }
+
+        Log::info('verifyWithPsp: calling PSP verify', [
+            'session_uuid' => $session->session_uuid,
+            'psp_type' => $session->psp_type,
+            'psp_transaction_id' => $transaction->psp_transaction_id,
+            'gateway_id' => $gateway->id,
+            'is_test_mode' => $gateway->is_test_mode,
+        ]);
 
         return match ($session->psp_type) {
             'tabby' => $this->tabbyService->verifyPayment($transaction->psp_transaction_id, $gateway),
