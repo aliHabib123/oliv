@@ -238,9 +238,7 @@ enum PaymentGatewayType: string
     public function getApiUrl(bool $isTestMode): string
     {
         return match($this) {
-            self::TABBY => $isTestMode
-                ? 'https://api.tabby.dev'
-                : 'https://api.tabby.ai',
+            self::TABBY => 'https://api.tabby.ai',
             self::TAMARA => $isTestMode
                 ? 'https://api-sandbox.tamara.co'
                 : 'https://api.tamara.co',
