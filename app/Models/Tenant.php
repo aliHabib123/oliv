@@ -11,6 +11,16 @@ class Tenant extends Model
     use HasFactory;
 
     /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var list<string>
+     */
+    protected $hidden = [
+        'shopify_admin_token',
+        'shopify_client_secret',
+    ];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>

@@ -153,6 +153,18 @@ class TenantResource extends Resource
                 //
             ])
             ->actions([
+                Actions\Action::make('viewConfig')
+                    ->label('See Config')
+                    ->icon('heroicon-o-cog-6-tooth')
+                    ->color('success')
+                    ->url(fn (Tenant $record): ?string => 
+                        \App\Models\AppConfig::where('tenant_id', $record->id)->exists()
+                            ? route('filament.admin.resources.tenants.config', $record)
+                            : null
+                    )
+                    ->visible(fn (Tenant $record): bool => 
+                        \App\Models\AppConfig::where('tenant_id', $record->id)->exists()
+                    ),
                 Actions\EditAction::make(),
             ])
             ->bulkActions([
@@ -168,6 +180,7 @@ class TenantResource extends Resource
             'index' => Pages\ListTenants::route('/'),
             'create' => Pages\CreateTenant::route('/create'),
             'edit' => Pages\EditTenant::route('/{record}/edit'),
+            'config' => Pages\ViewTenantConfig::route('/{record}/config'),
         ];
     }
 

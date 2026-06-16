@@ -19,9 +19,12 @@ Route::get('/subscriptions/payment/{tenant}/{subscription}', [SubscriptionContro
 Route::get('/subscriptions/success', [SubscriptionController::class, 'success'])->name('subscriptions.success');
 Route::post('/webhooks/stripe', [SubscriptionController::class, 'webhook'])->name('webhooks.stripe');
 
-// Tenant addon routes (requires authentication)
+// Authenticated routes
 Route::middleware('auth')->group(function () {
     Route::get('/tenant-addons', [TenantAddonController::class, 'index'])->name('tenant-addons.index');
     Route::post('/tenant-addons/{addon}/subscribe', [TenantAddonController::class, 'subscribe'])->name('tenant-addons.subscribe');
     Route::delete('/tenant-addons/{addon}/unsubscribe', [TenantAddonController::class, 'unsubscribe'])->name('tenant-addons.unsubscribe');
+
+    // Onboarding wizard
+    Route::get('/onboarding', \App\Livewire\OnboardingWizard::class)->name('onboarding.index');
 });
