@@ -22,86 +22,84 @@
         {{-- Editable Form (Branding + Theme & Build) --}}
         {{ $this->content(\Filament\Schemas\Schema::make($this)->key('content')) }}
 
-        {{-- Imported Store Data (separate read-only table below) --}}
-        @if ($onboardingSession && $onboardingSession->imported_data)
-            <div class="rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10 overflow-hidden">
-                <div class="px-6 py-4">
-                    <h3 class="text-base font-semibold leading-6 text-gray-950 dark:text-white">Imported Store Data</h3>
-                </div>
-                <div class="px-6 pb-6 space-y-5">
+        {{-- Imported Store Data (read-only, styled like Branding form) --}}
+        <div class="rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 dark:border-white/5">
+                <h3 class="text-base font-semibold leading-6 text-gray-950 dark:text-white">Imported Store Data</h3>
+            </div>
+            <div class="p-6 space-y-6">
+                @if ($onboardingSession && $onboardingSession->imported_data)
                     {{-- App Icon --}}
                     @if ($appConfig && $appConfig->app_icon_url)
                         <div>
-                            <p class="text-sm font-medium text-gray-950 dark:text-white mb-2">App Icon</p>
-                            <img src="{{ $appConfig->app_icon_url }}" alt="App Icon" style="width: 56px; height: 56px; object-fit: cover; border: 1px solid rgba(255,255,255,0.15);" class="rounded-xl bg-white">
+                            <p class="fi-fo-field-wrp-label text-sm font-medium leading-6 text-gray-950 dark:text-white">App Icon</p>
+                            <div class="mt-1">
+                                <img src="{{ $appConfig->app_icon_url }}" alt="App Icon" style="width: 48px; height: 48px; object-fit: cover;" class="rounded-xl">
+                            </div>
                         </div>
                     @endif
 
                     {{-- Store Name --}}
                     <div>
-                        <p class="text-sm font-medium text-gray-950 dark:text-white mb-1.5">Store Name</p>
-                        <div style="border: 1px solid rgba(255,255,255,0.15);" class="rounded-lg px-3 py-2 text-sm text-gray-950 dark:text-white">
-                            {{ $onboardingSession->imported_data['store_info']['name'] ?? '—' }}
+                        <p class="fi-fo-field-wrp-label text-sm font-medium leading-6 text-gray-950 dark:text-white">Store Name</p>
+                        <div class="mt-1">
+                            <input type="text" readonly value="{{ $onboardingSession->imported_data['store_info']['name'] ?? '—' }}" class="fi-input block w-full rounded-lg border-none py-1.5 px-3 text-base text-gray-950 outline-none dark:text-white sm:text-sm sm:leading-6 bg-white dark:bg-white/5 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/20 cursor-default" />
                         </div>
                     </div>
 
                     {{-- Domain --}}
                     <div>
-                        <p class="text-sm font-medium text-gray-950 dark:text-white mb-1.5">Domain</p>
-                        <div style="border: 1px solid rgba(255,255,255,0.15);" class="rounded-lg px-3 py-2 text-sm text-gray-950 dark:text-white">
-                            {{ $onboardingSession->shopify_domain }}
+                        <p class="fi-fo-field-wrp-label text-sm font-medium leading-6 text-gray-950 dark:text-white">Domain</p>
+                        <div class="mt-1">
+                            <input type="text" readonly value="{{ $onboardingSession->shopify_domain }}" class="fi-input block w-full rounded-lg border-none py-1.5 px-3 text-base text-gray-950 outline-none dark:text-white sm:text-sm sm:leading-6 bg-white dark:bg-white/5 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/20 cursor-default" />
                         </div>
                     </div>
 
                     {{-- Currency --}}
                     <div>
-                        <p class="text-sm font-medium text-gray-950 dark:text-white mb-1.5">Currency</p>
-                        <div style="border: 1px solid rgba(255,255,255,0.15);" class="rounded-lg px-3 py-2 text-sm text-gray-950 dark:text-white">
-                            {{ $onboardingSession->imported_data['store_info']['currency'] ?? '—' }}
+                        <p class="fi-fo-field-wrp-label text-sm font-medium leading-6 text-gray-950 dark:text-white">Currency</p>
+                        <div class="mt-1">
+                            <input type="text" readonly value="{{ $onboardingSession->imported_data['store_info']['currency'] ?? '—' }}" class="fi-input block w-full rounded-lg border-none py-1.5 px-3 text-base text-gray-950 outline-none dark:text-white sm:text-sm sm:leading-6 bg-white dark:bg-white/5 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/20 cursor-default" />
                         </div>
                     </div>
 
                     {{-- Country --}}
                     <div>
-                        <p class="text-sm font-medium text-gray-950 dark:text-white mb-1.5">Country</p>
-                        <div style="border: 1px solid rgba(255,255,255,0.15);" class="rounded-lg px-3 py-2 text-sm text-gray-950 dark:text-white">
-                            {{ $onboardingSession->imported_data['store_info']['country'] ?? '—' }}
+                        <p class="fi-fo-field-wrp-label text-sm font-medium leading-6 text-gray-950 dark:text-white">Country</p>
+                        <div class="mt-1">
+                            <input type="text" readonly value="{{ $onboardingSession->imported_data['store_info']['country'] ?? '—' }}" class="fi-input block w-full rounded-lg border-none py-1.5 px-3 text-base text-gray-950 outline-none dark:text-white sm:text-sm sm:leading-6 bg-white dark:bg-white/5 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/20 cursor-default" />
                         </div>
                     </div>
 
                     {{-- Products --}}
                     <div>
-                        <p class="text-sm font-medium text-gray-950 dark:text-white mb-1.5">Products</p>
-                        <div style="border: 1px solid rgba(255,255,255,0.15);" class="rounded-lg px-3 py-2 text-sm text-gray-950 dark:text-white">
-                            {{ number_format($onboardingSession->imported_data['catalog']['product_count'] ?? 0) }}
+                        <p class="fi-fo-field-wrp-label text-sm font-medium leading-6 text-gray-950 dark:text-white">Products</p>
+                        <div class="mt-1">
+                            <input type="text" readonly value="{{ number_format($onboardingSession->imported_data['catalog']['product_count'] ?? 0) }}" class="fi-input block w-full rounded-lg border-none py-1.5 px-3 text-base text-gray-950 outline-none dark:text-white sm:text-sm sm:leading-6 bg-white dark:bg-white/5 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/20 cursor-default" />
                         </div>
                     </div>
 
                     {{-- Collections --}}
                     <div>
-                        <p class="text-sm font-medium text-gray-950 dark:text-white mb-1.5">Collections</p>
-                        <div style="border: 1px solid rgba(255,255,255,0.15);" class="rounded-lg px-3 py-2 text-sm text-gray-950 dark:text-white">
-                            {{ number_format($onboardingSession->imported_data['catalog']['category_count'] ?? 0) }}
+                        <p class="fi-fo-field-wrp-label text-sm font-medium leading-6 text-gray-950 dark:text-white">Collections</p>
+                        <div class="mt-1">
+                            <input type="text" readonly value="{{ number_format($onboardingSession->imported_data['catalog']['category_count'] ?? 0) }}" class="fi-input block w-full rounded-lg border-none py-1.5 px-3 text-base text-gray-950 outline-none dark:text-white sm:text-sm sm:leading-6 bg-white dark:bg-white/5 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/20 cursor-default" />
                         </div>
                     </div>
 
                     {{-- Imported At --}}
                     <div>
-                        <p class="text-sm font-medium text-gray-950 dark:text-white mb-1.5">Imported At</p>
-                        <div style="border: 1px solid rgba(255,255,255,0.15);" class="rounded-lg px-3 py-2 text-sm text-gray-950 dark:text-white">
-                            @if (!empty($onboardingSession->imported_data['imported_at']))
-                                {{ \Carbon\Carbon::parse($onboardingSession->imported_data['imported_at'])->format('M d, Y H:i') }}
-                            @else
-                                —
-                            @endif
+                        <p class="fi-fo-field-wrp-label text-sm font-medium leading-6 text-gray-950 dark:text-white">Imported At</p>
+                        <div class="mt-1">
+                            <input type="text" readonly value="@if(!empty($onboardingSession->imported_data['imported_at'])){{ \Carbon\Carbon::parse($onboardingSession->imported_data['imported_at'])->format('M d, Y H:i') }}@else—@endif" class="fi-input block w-full rounded-lg border-none py-1.5 px-3 text-base text-gray-950 outline-none dark:text-white sm:text-sm sm:leading-6 bg-white dark:bg-white/5 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/20 cursor-default" />
                         </div>
                     </div>
 
                     {{-- Onboarding Completed --}}
                     <div>
-                        <p class="text-sm font-medium text-gray-950 dark:text-white mb-1.5">Onboarding Completed</p>
-                        <div style="border: 1px solid rgba(255,255,255,0.15);" class="rounded-lg px-3 py-2 text-sm text-gray-950 dark:text-white">
-                            {{ $onboardingSession->completed_at?->format('M d, Y H:i') ?? 'In progress' }}
+                        <p class="fi-fo-field-wrp-label text-sm font-medium leading-6 text-gray-950 dark:text-white">Onboarding Completed</p>
+                        <div class="mt-1">
+                            <input type="text" readonly value="{{ $onboardingSession->completed_at?->format('M d, Y H:i') ?? 'In progress' }}" class="fi-input block w-full rounded-lg border-none py-1.5 px-3 text-base text-gray-950 outline-none dark:text-white sm:text-sm sm:leading-6 bg-white dark:bg-white/5 shadow-sm ring-1 ring-gray-950/10 dark:ring-white/20 cursor-default" />
                         </div>
                     </div>
 
@@ -111,15 +109,15 @@
                     @endphp
                     @if ($categories->count() > 0)
                         <div>
-                            <p class="text-sm font-medium text-gray-950 dark:text-white mb-3">Categories ({{ $categories->count() }})</p>
-                            <div style="border: 1px solid rgba(255,255,255,0.15);" class="rounded-lg overflow-hidden divide-y divide-gray-100 dark:divide-gray-800">
+                            <p class="fi-fo-field-wrp-label text-sm font-medium leading-6 text-gray-950 dark:text-white">Categories ({{ $categories->count() }})</p>
+                            <div class="mt-1 rounded-lg shadow-sm ring-1 ring-gray-950/10 dark:ring-white/20 overflow-hidden divide-y divide-gray-950/5 dark:divide-white/10 bg-white dark:bg-white/5">
                                 @foreach ($categories as $category)
-                                    <div class="flex items-center gap-3 px-4 py-2.5">
+                                    <div class="flex items-center gap-3 px-3 py-2">
                                         @if ($category->image_url)
-                                            <img src="{{ $category->image_url }}" alt="" style="width: 32px; height: 32px; object-fit: cover;" class="rounded-md flex-shrink-0">
+                                            <img src="{{ $category->image_url }}" alt="" style="width: 28px; height: 28px; object-fit: cover;" class="rounded-md flex-shrink-0">
                                         @else
-                                            <div style="width: 32px; height: 32px;" class="rounded-md bg-gray-100 dark:bg-gray-800 flex-shrink-0 flex items-center justify-center">
-                                                <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                                            <div style="width: 28px; height: 28px;" class="rounded-md bg-gray-100 dark:bg-gray-800 flex-shrink-0 flex items-center justify-center">
+                                                <svg class="h-3.5 w-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/></svg>
                                             </div>
                                         @endif
                                         <span class="text-sm text-gray-950 dark:text-white">{{ $category->title }}</span>
@@ -129,8 +127,10 @@
                             </div>
                         </div>
                     @endif
-                </div>
+                @else
+                    <p class="text-sm text-gray-500 dark:text-gray-400">No imported data available for this tenant.</p>
+                @endif
             </div>
-        @endif
+        </div>
     </div>
 </x-filament-panels::page>
