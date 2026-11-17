@@ -20,13 +20,14 @@ class ShopifyAdminService
      * Create a Shopify order from a checkout session.
      *
      * @return array{order_id: string, order_name: string, order_data: array}
+     *
      * @throws \RuntimeException
      */
     public function createOrder(CheckoutSession $session): array
     {
         $tenant = $session->tenant;
 
-        $lineItems = collect($session->line_items)->map(fn(array $item) => [
+        $lineItems = collect($session->line_items)->map(fn (array $item) => [
             'variantId' => $item['variant_id'],
             'quantity' => $item['quantity'],
         ])->all();
@@ -243,10 +244,10 @@ class ShopifyAdminService
 
         $order = $data['order'] ?? null;
         if (! $order) {
-            throw new \RuntimeException('Order not found: ' . $shopifyOrderId);
+            throw new \RuntimeException('Order not found: '.$shopifyOrderId);
         }
 
-        $fulfillments = collect($order['fulfillments'] ?? [])->map(fn($f) => [
+        $fulfillments = collect($order['fulfillments'] ?? [])->map(fn ($f) => [
             'id' => $f['id'],
             'status' => strtolower($f['status']),
             'created_at' => $f['createdAt'],
@@ -254,14 +255,14 @@ class ShopifyAdminService
             'delivered_at' => $f['deliveredAt'],
             'estimated_delivery_at' => $f['estimatedDeliveryAt'],
             'tracking' => $f['trackingInfo'] ?? [],
-            'items' => collect($f['fulfillmentLineItems']['edges'] ?? [])->map(fn($edge) => [
+            'items' => collect($f['fulfillmentLineItems']['edges'] ?? [])->map(fn ($edge) => [
                 'title' => $edge['node']['lineItem']['title'],
                 'quantity' => $edge['node']['quantity'],
             ])->all(),
         ])->all();
 
         $trackingStatus = 'order_placed';
-        if (collect($fulfillments)->contains(fn($f) => !empty($f['delivered_at']))) {
+        if (collect($fulfillments)->contains(fn ($f) => ! empty($f['delivered_at']))) {
             $trackingStatus = 'delivered';
         } elseif (! empty($fulfillments)) {
             $trackingStatus = 'out_for_delivery';
@@ -285,7 +286,7 @@ class ShopifyAdminService
             ],
             'email' => $order['email'] ?? null,
             'shipping_address' => $order['shippingAddress'] ?? null,
-            'line_items' => collect($order['lineItems']['edges'] ?? [])->map(fn($edge) => [
+            'line_items' => collect($order['lineItems']['edges'] ?? [])->map(fn ($edge) => [
                 'title' => $edge['node']['title'],
                 'variant_title' => $edge['node']['variantTitle'] ?? null,
                 'sku' => $edge['node']['sku'] ?? null,
@@ -335,7 +336,7 @@ class ShopifyAdminService
         $domain = $tenant->shopify_shop_domain;
 
         if (! $domain) {
-            throw new \RuntimeException('Missing Shopify shop domain for tenant ' . $tenant->id);
+            throw new \RuntimeException('Missing Shopify shop domain for tenant '.$tenant->id);
         }
 
         // Get valid token (auto-refreshes if needed)
@@ -345,7 +346,7 @@ class ShopifyAdminService
             Log::error('Shopify Admin API: no valid token available', [
                 'tenant_id' => $tenant->id,
             ]);
-            throw new \RuntimeException('Unable to get valid Shopify Admin API token for tenant ' . $tenant->id);
+            throw new \RuntimeException('Unable to get valid Shopify Admin API token for tenant '.$tenant->id);
         }
 
         $endpoint = sprintf('https://%s/admin/api/%s/graphql.json', $domain, self::API_VERSION);
@@ -353,8 +354,8 @@ class ShopifyAdminService
         Log::info('Shopify Admin API request', [
             'tenant_id' => $tenant->id,
             'endpoint' => $endpoint,
-            'has_token' => !empty($token),
-            'token_preview' => substr($token, 0, 10) . '...',
+            'has_token' => ! empty($token),
+            'token_preview' => substr($token, 0, 10).'...',
         ]);
 
         try {
@@ -372,7 +373,7 @@ class ShopifyAdminService
                 'tenant_id' => $tenant->id,
                 'error' => $e->getMessage(),
             ]);
-            throw new \RuntimeException('Shopify Admin API connection error: ' . $e->getMessage(), 0, $e);
+            throw new \RuntimeException('Shopify Admin API connection error: '.$e->getMessage(), 0, $e);
         }
 
         if (! $response->ok()) {
@@ -381,7 +382,7 @@ class ShopifyAdminService
                 'status' => $response->status(),
                 'body' => $response->body(),
             ]);
-            throw new \RuntimeException('Shopify Admin API returned ' . $response->status());
+            throw new \RuntimeException('Shopify Admin API returned '.$response->status());
         }
 
         $json = $response->json();
@@ -391,7 +392,7 @@ class ShopifyAdminService
                 'tenant_id' => $tenant->id,
                 'errors' => $json['errors'],
             ]);
-            throw new \RuntimeException('Shopify Admin GraphQL errors: ' . json_encode($json['errors']));
+            throw new \RuntimeException('Shopify Admin GraphQL errors: '.json_encode($json['errors']));
         }
 
         return $json['data'] ?? [];
@@ -433,25 +434,163 @@ class ShopifyAdminService
         // If it's just digits, assume it needs a + prefix
         // For UAE numbers starting with 971, add +
         if (str_starts_with($cleaned, '971')) {
-            return '+' . $cleaned;
+            return '+'.$cleaned;
         }
 
         // For numbers starting with 0, assume local UAE number
         if (str_starts_with($cleaned, '0')) {
-            return '+971' . substr($cleaned, 1);
+            return '+971'.substr($cleaned, 1);
         }
 
         // For 9-digit numbers (UAE mobile without country code), add +971
         if (strlen($cleaned) === 9 && str_starts_with($cleaned, '5')) {
-            return '+971' . $cleaned;
+            return '+971'.$cleaned;
         }
 
         // If we have a reasonable length number, prefix with +
         if (strlen($cleaned) >= 10) {
-            return '+' . $cleaned;
+            return '+'.$cleaned;
         }
 
         // Invalid phone - return null to skip it
         return null;
+    }
+
+    /**
+     * List the store's collections (for the onboarding categories step).
+     *
+     * @return array<int, array{id:string, title:string, handle:?string, image_url:?string}>
+     */
+    public function getCollections(Tenant $tenant, int $limit = 100): array
+    {
+        $query = <<<'GRAPHQL'
+            query GetCollections($first: Int!) {
+                collections(first: $first, sortKey: TITLE) {
+                    edges {
+                        node {
+                            id
+                            title
+                            handle
+                            image { url }
+                        }
+                    }
+                }
+            }
+        GRAPHQL;
+
+        $data = $this->adminGraphql($tenant, $query, ['first' => $limit]);
+
+        return collect($data['collections']['edges'] ?? [])
+            ->map(fn (array $edge): array => [
+                'id' => $edge['node']['id'] ?? null,
+                'title' => $edge['node']['title'] ?? '',
+                'handle' => $edge['node']['handle'] ?? null,
+                'image_url' => $edge['node']['image']['url'] ?? null,
+            ])
+            ->filter(fn (array $c): bool => ! empty($c['id']))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Find the GID of a menu by handle, or null if it doesn't exist.
+     */
+    public function getMenuIdByHandle(Tenant $tenant, string $handle): ?string
+    {
+        $query = <<<'GRAPHQL'
+            query GetMenus($first: Int!) {
+                menus(first: $first) {
+                    edges { node { id handle } }
+                }
+            }
+        GRAPHQL;
+
+        $data = $this->adminGraphql($tenant, $query, ['first' => 50]);
+
+        foreach ($data['menus']['edges'] ?? [] as $edge) {
+            if (($edge['node']['handle'] ?? null) === $handle) {
+                return $edge['node']['id'] ?? null;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Create or update the `flutter-menu` from a list of collections (ordered).
+     *
+     * @param  array<int, array{id:string, title:string}>  $collections
+     * @return array{menu_id:string}
+     *
+     * @throws \RuntimeException on userErrors
+     */
+    public function upsertFlutterMenu(Tenant $tenant, array $collections, string $handle = 'flutter-menu', string $title = 'Flutter Menu'): array
+    {
+        $items = collect($collections)
+            ->filter(fn (array $c): bool => ! empty($c['id']))
+            ->map(fn (array $c): array => [
+                'title' => $c['title'] !== '' ? $c['title'] : 'Collection',
+                'type' => 'COLLECTION',
+                'resourceId' => $c['id'],
+            ])
+            ->values()
+            ->all();
+
+        $existingId = $this->getMenuIdByHandle($tenant, $handle);
+
+        if ($existingId) {
+            $mutation = <<<'GRAPHQL'
+                mutation menuUpdate($id: ID!, $title: String!, $handle: String!, $items: [MenuItemUpdateInput!]!) {
+                    menuUpdate(id: $id, title: $title, handle: $handle, items: $items) {
+                        menu { id handle }
+                        userErrors { field message }
+                    }
+                }
+            GRAPHQL;
+
+            $data = $this->adminGraphql($tenant, $mutation, [
+                'id' => $existingId,
+                'title' => $title,
+                'handle' => $handle,
+                'items' => $items,
+            ]);
+
+            $this->assertNoMenuErrors($data['menuUpdate'] ?? [], $tenant);
+
+            return ['menu_id' => $data['menuUpdate']['menu']['id'] ?? $existingId];
+        }
+
+        $mutation = <<<'GRAPHQL'
+            mutation menuCreate($title: String!, $handle: String!, $items: [MenuItemCreateInput!]!) {
+                menuCreate(title: $title, handle: $handle, items: $items) {
+                    menu { id handle }
+                    userErrors { field message }
+                }
+            }
+        GRAPHQL;
+
+        $data = $this->adminGraphql($tenant, $mutation, [
+            'title' => $title,
+            'handle' => $handle,
+            'items' => $items,
+        ]);
+
+        $this->assertNoMenuErrors($data['menuCreate'] ?? [], $tenant);
+
+        return ['menu_id' => $data['menuCreate']['menu']['id'] ?? ''];
+    }
+
+    private function assertNoMenuErrors(array $payload, Tenant $tenant): void
+    {
+        $errors = $payload['userErrors'] ?? [];
+
+        if (! empty($errors)) {
+            Log::error('Shopify flutter-menu upsert userErrors', [
+                'tenant_id' => $tenant->id,
+                'errors' => $errors,
+            ]);
+
+            throw new \RuntimeException('Shopify menu error: '.json_encode($errors));
+        }
     }
 }

@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Api;
 use OpenApi\Attributes as OA;
 
 #[OA\Info(
-    title: 'Oliv API',
+    title: 'YottoCode API',
     version: '1.0.0',
-    description: 'API for Oliv mobile app'
+    description: 'API for YottoCode mobile app'
 )]
 #[OA\Server(
     url: '/api',
@@ -20,6 +20,4 @@ use OpenApi\Attributes as OA;
     in: 'header',
     description: 'Tenant public key (generated during registration)'
 )]
-class OpenApiController
-{
-}
+class OpenApiController {}

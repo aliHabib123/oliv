@@ -4,14 +4,16 @@ namespace App\Http\Controllers;
 
 /**
  * @OA\Info(
- *     title="Oliv API",
+ *     title="YottoCode API",
  *     version="1.0.0",
- *     description="API documentation for Oliv mobile app backend"
+ *     description="API documentation for YottoCode mobile app backend"
  * )
+ *
  * @OA\Server(
  *     url="/api",
  *     description="API Server"
  * )
+ *
  * @OA\SecurityScheme(
  *     securityScheme="AppKey",
  *     type="apiKey",
@@ -19,6 +21,4 @@ namespace App\Http\Controllers;
  *     name="X-App-Key"
  * )
  */
-abstract class Controller
-{
-}
+abstract class Controller {}

@@ -2,19 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Onboarding\ShopifyOnboardingController;
+use App\Models\Addon;
 use App\Models\Package;
-use App\Models\Tenant;
-use App\Models\User;
 use App\Models\Subscription;
+use App\Models\Tenant;
+use App\Models\TenantAddon;
+use App\Models\User;
 use App\Services\CountryPricingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
-use Stripe\Stripe;
 use Stripe\Checkout\Session as StripeSession;
+use Stripe\Product;
+use Stripe\Stripe;
+use Stripe\Webhook;
 
 class SubscriptionController extends Controller
 {
@@ -28,7 +32,7 @@ class SubscriptionController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        $addons = \App\Models\Addon::where('is_active', true)->get();
+        $addons = Addon::where('is_active', true)->get();
 
         // Get current country from session or default to US
         $currentCountry = $this->pricingService->getCurrentCountry();
@@ -65,7 +69,7 @@ class SubscriptionController extends Controller
             'country' => 'required|string|size:2',
         ]);
 
-        if (!$this->pricingService->isValidCountry($validated['country'])) {
+        if (! $this->pricingService->isValidCountry($validated['country'])) {
             return response()->json(['error' => 'Invalid country'], 400);
         }
 
@@ -94,7 +98,7 @@ class SubscriptionController extends Controller
         ]);
 
         // Validate pricing country exists
-        if (!$this->pricingService->isValidCountry($validated['pricing_country'])) {
+        if (! $this->pricingService->isValidCountry($validated['pricing_country'])) {
             return back()->withErrors(['pricing_country' => 'Invalid country selected']);
         }
 
@@ -105,7 +109,7 @@ class SubscriptionController extends Controller
             $tenant = Tenant::create([
                 'name' => $validated['company_name'],
                 'email' => $validated['email'],
-                'phone' => $validated['country_code'] . $validated['phone'],
+                'phone' => $validated['country_code'].$validated['phone'],
                 'website' => $validated['website'],
                 'status' => 'pending_payment',
             ]);
@@ -123,7 +127,7 @@ class SubscriptionController extends Controller
 
             // Parse selected addons
             $selectedAddons = [];
-            if (!empty($validated['selected_addons'])) {
+            if (! empty($validated['selected_addons'])) {
                 $selectedAddons = array_map('intval', explode(',', $validated['selected_addons']));
             }
 
@@ -148,7 +152,8 @@ class SubscriptionController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => 'Failed to create subscription: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Failed to create subscription: '.$e->getMessage()]);
         }
     }
 
@@ -169,12 +174,12 @@ class SubscriptionController extends Controller
             $countryCode = $subscription->country_code ?? 'US';
             $packagePricing = $this->pricingService->getPackagePricing($countryCode, $subscription->billing_period);
 
-            if (!$packagePricing) {
+            if (! $packagePricing) {
                 return back()->withErrors(['error' => 'Pricing not available for selected country']);
             }
 
             $interval = $subscription->billing_period === 'yearly' ? 'year' : 'month';
-            $unitAmount = (int)($packagePricing['price'] * 100); // Convert to cents
+            $unitAmount = (int) ($packagePricing['price'] * 100); // Convert to cents
             $currency = strtolower($packagePricing['currency']);
 
             // Build line items array starting with the subscription package
@@ -183,7 +188,7 @@ class SubscriptionController extends Controller
 
             if ($subscription->billing_period === 'yearly') {
                 $packageName .= ' (Annual Subscription)';
-                $packageDescription = 'Billed once per year. ' . $packageDescription;
+                $packageDescription = 'Billed once per year. '.$packageDescription;
             }
 
             $lineItems = [[
@@ -203,21 +208,21 @@ class SubscriptionController extends Controller
 
             // Add selected addons to line items
             $selectedAddons = json_decode($subscription->selected_addons, true) ?? [];
-            if (!empty($selectedAddons)) {
+            if (! empty($selectedAddons)) {
                 foreach ($selectedAddons as $addonId) {
                     $addonPricing = $this->pricingService->getAddonPricing($addonId, $countryCode, $subscription->billing_period);
 
-                    if (!$addonPricing) {
+                    if (! $addonPricing) {
                         continue; // Skip if pricing not available
                     }
 
-                    $addonAmount = (int)($addonPricing['price'] * 100); // Convert to cents
+                    $addonAmount = (int) ($addonPricing['price'] * 100); // Convert to cents
                     $addonName = $addonPricing['addon']->name;
                     $addonDescription = $addonPricing['addon']->description;
 
                     if ($subscription->billing_period === 'yearly') {
                         $addonName .= ' (Annual)';
-                        $addonDescription = 'Billed annually. ' . $addonDescription;
+                        $addonDescription = 'Billed annually. '.$addonDescription;
                     }
 
                     $lineItems[] = [
@@ -242,7 +247,7 @@ class SubscriptionController extends Controller
                 'payment_method_types' => ['card'],
                 'line_items' => $lineItems,
                 'mode' => 'subscription',
-                'success_url' => route('subscriptions.success') . '?session_id={CHECKOUT_SESSION_ID}',
+                'success_url' => route('subscriptions.success').'?session_id={CHECKOUT_SESSION_ID}',
                 'cancel_url' => route('subscriptions.payment', ['tenant' => $tenant->id, 'subscription' => $subscription->id]),
                 'client_reference_id' => $subscription->id,
                 'customer_email' => $tenant->email,
@@ -256,7 +261,7 @@ class SubscriptionController extends Controller
             // Get country and addon pricing for display
             $country = $this->pricingService->getCountry($countryCode);
             $addonPricingData = [];
-            if (!empty($selectedAddons)) {
+            if (! empty($selectedAddons)) {
                 foreach ($selectedAddons as $addonId) {
                     $addonPricingData[$addonId] = $this->pricingService->getAddonPricing($addonId, $countryCode, $subscription->billing_period);
                 }
@@ -273,7 +278,7 @@ class SubscriptionController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Failed to create payment session: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Failed to create payment session: '.$e->getMessage()]);
         }
     }
 
@@ -281,12 +286,30 @@ class SubscriptionController extends Controller
     {
         $sessionId = $request->query('session_id');
 
-        if (!$sessionId) {
+        if (! $sessionId) {
             return redirect()->route('subscriptions.index');
+        }
+
+        // Resolve the tenant from the Stripe session so we can hand off to onboarding.
+        $onboardingUrl = null;
+        try {
+            Stripe::setApiKey(config('services.stripe.secret'));
+            $session = StripeSession::retrieve($sessionId);
+            $tenantId = $session->metadata->tenant_id ?? null;
+
+            if ($tenantId && $tenant = Tenant::find($tenantId)) {
+                $onboardingUrl = ShopifyOnboardingController::signedShowUrl($tenant);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Could not resolve tenant for onboarding handoff', [
+                'session_id' => $sessionId,
+                'error' => $e->getMessage(),
+            ]);
         }
 
         return view('subscriptions.success', [
             'sessionId' => $sessionId,
+            'onboardingUrl' => $onboardingUrl,
         ]);
     }
 
@@ -299,7 +322,7 @@ class SubscriptionController extends Controller
         $sigHeader = $request->header('Stripe-Signature');
 
         try {
-            $event = \Stripe\Webhook::constructEvent(
+            $event = Webhook::constructEvent(
                 $payload, $sigHeader, $endpointSecret
             );
         } catch (\Exception $e) {
@@ -347,8 +370,9 @@ class SubscriptionController extends Controller
             'stripe_subscription_id' => $session->subscription ?? 'NULL',
         ]);
 
-        if (!$subscriptionId || !$tenantId) {
+        if (! $subscriptionId || ! $tenantId) {
             Log::error('Missing metadata in checkout webhook', ['metadata' => $session->metadata]);
+
             return;
         }
 
@@ -370,20 +394,22 @@ class SubscriptionController extends Controller
 
             // Create tenant_addon records for selected addons
             $selectedAddons = json_decode($subscription->selected_addons, true) ?? [];
-            if (!empty($selectedAddons)) {
+            if (! empty($selectedAddons)) {
                 // Get addon details to match with Stripe items
-                $addons = \App\Models\Addon::whereIn('id', $selectedAddons)->get()->keyBy('id');
+                $addons = Addon::whereIn('id', $selectedAddons)->get()->keyBy('id');
 
                 foreach ($selectedAddons as $addonId) {
                     $addon = $addons[$addonId] ?? null;
-                    if (!$addon) continue;
+                    if (! $addon) {
+                        continue;
+                    }
 
                     // Find matching Stripe subscription item by product name
                     $stripeItemId = null;
                     foreach ($stripeSubscription->items->data as $item) {
                         // Stripe item name should match addon name
                         if (isset($item->price->product) && is_string($item->price->product)) {
-                            $product = \Stripe\Product::retrieve($item->price->product);
+                            $product = Product::retrieve($item->price->product);
                             if ($product->name === $addon->name) {
                                 $stripeItemId = $item->id;
                                 break;
@@ -391,7 +417,7 @@ class SubscriptionController extends Controller
                         }
                     }
 
-                    \App\Models\TenantAddon::create([
+                    TenantAddon::create([
                         'tenant_id' => $tenantId,
                         'addon_id' => $addonId,
                         'stripe_subscription_item_id' => $stripeItemId,
@@ -439,8 +465,9 @@ class SubscriptionController extends Controller
         try {
             $subscription = Subscription::where('stripe_subscription_id', $stripeSubscriptionId)->first();
 
-            if (!$subscription) {
+            if (! $subscription) {
                 Log::warning('Subscription not found for payment success', ['stripe_subscription_id' => $stripeSubscriptionId]);
+
                 return;
             }
 
@@ -472,8 +499,9 @@ class SubscriptionController extends Controller
         try {
             $subscription = Subscription::where('stripe_subscription_id', $stripeSubscriptionId)->first();
 
-            if (!$subscription) {
+            if (! $subscription) {
                 Log::warning('Subscription not found for payment failure', ['stripe_subscription_id' => $stripeSubscriptionId]);
+
                 return;
             }
 
@@ -519,13 +547,14 @@ class SubscriptionController extends Controller
         try {
             $subscription = Subscription::where('stripe_subscription_id', $stripeSubscriptionId)->first();
 
-            if (!$subscription) {
+            if (! $subscription) {
                 Log::warning('Subscription not found for update', ['stripe_subscription_id' => $stripeSubscriptionId]);
+
                 return;
             }
 
             // Map Stripe status to our status
-            $ourStatus = match($status) {
+            $ourStatus = match ($status) {
                 'active' => 'active',
                 'past_due' => 'past_due',
                 'canceled' => 'cancelled',
@@ -556,8 +585,9 @@ class SubscriptionController extends Controller
         try {
             $subscription = Subscription::where('stripe_subscription_id', $stripeSubscriptionId)->first();
 
-            if (!$subscription) {
+            if (! $subscription) {
                 Log::warning('Subscription not found for deletion', ['stripe_subscription_id' => $stripeSubscriptionId]);
+
                 return;
             }
 

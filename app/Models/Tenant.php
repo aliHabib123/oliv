@@ -24,6 +24,7 @@ class Tenant extends Model
         'shopify_client_id',
         'shopify_client_secret',
         'shopify_admin_token_expires_at',
+        'shopify_admin_refresh_token',
         'status',
         'home_layout',
     ];
