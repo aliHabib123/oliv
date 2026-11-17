@@ -15,6 +15,7 @@ class AmazonPaymentService
      * Initialize an Amazon Payment Services (PayFort) payment.
      *
      * @return array{fort_id: string, payment_url: string, psp_session_data: array}
+     *
      * @throws PspApiException
      */
     public function initializePayment(CheckoutSession $session, PaymentGateway $gateway): array
@@ -34,8 +35,8 @@ class AmazonPaymentService
         return [
             'merchant_identifier' => $merchantIdentifier,
             'access_code' => $accessCode,
-            'payment_url' => $baseUrl . '/FortAPI/paymentPage',
-            'tokenization_url' => $baseUrl . '/FortAPI/paymentApi',
+            'payment_url' => $baseUrl.'/FortAPI/paymentPage',
+            'tokenization_url' => $baseUrl.'/FortAPI/paymentApi',
             'request_params' => $payload,
             'psp_session_data' => [
                 'merchant_reference' => $payload['merchant_reference'],
@@ -49,6 +50,7 @@ class AmazonPaymentService
      * Create a charge/purchase request to APS.
      *
      * @return array{fort_id: string, status: string, response_code: string, psp_session_data: array}
+     *
      * @throws PspApiException
      */
     public function createCharge(CheckoutSession $session, PaymentGateway $gateway, string $tokenName): array
@@ -69,7 +71,7 @@ class AmazonPaymentService
                 'session_uuid' => $session->session_uuid,
                 'error' => $e->getMessage(),
             ]);
-            throw new PspApiException('amazon_payment_services', 'Connection error: ' . $e->getMessage(), null, 0, $e);
+            throw new PspApiException('amazon_payment_services', 'Connection error: '.$e->getMessage(), null, 0, $e);
         }
 
         $data = $response->json();
@@ -157,6 +159,7 @@ class AmazonPaymentService
      * Generate an SDK token for mobile SDK integration.
      *
      * @return array{sdk_token: string, merchant_identifier: string, access_code: string}
+     *
      * @throws PspApiException
      */
     public function generateSdkToken(CheckoutSession $session, PaymentGateway $gateway, string $deviceId): array
@@ -193,7 +196,7 @@ class AmazonPaymentService
                 'session_uuid' => $session->session_uuid,
                 'error' => $e->getMessage(),
             ]);
-            throw new PspApiException('amazon_payment_services', 'Connection error: ' . $e->getMessage(), null, 0, $e);
+            throw new PspApiException('amazon_payment_services', 'Connection error: '.$e->getMessage(), null, 0, $e);
         }
 
         $data = $response->json();
@@ -235,7 +238,7 @@ class AmazonPaymentService
 
     private function buildTokenizationPayload(CheckoutSession $session, array $config, bool $isTestMode): array
     {
-        $merchantReference = 'ORD-' . $session->session_uuid;
+        $merchantReference = 'ORD-'.$session->session_uuid;
         $amount = (int) ($session->amount * 100); // APS expects amount in minor units
 
         $payload = [
@@ -244,7 +247,7 @@ class AmazonPaymentService
             'access_code' => $config['access_code'],
             'merchant_reference' => $merchantReference,
             'language' => 'en',
-            'return_url' => config('app.url') . '/api/v1/payments/aps/callback?session=' . $session->session_uuid,
+            'return_url' => config('app.url').'/api/v1/payments/aps/callback?session='.$session->session_uuid,
         ];
 
         $payload['signature'] = $this->generateSignature($payload, $config['sha_request_phrase'], $config['sha_type'] ?? 'SHA-256');
@@ -254,7 +257,7 @@ class AmazonPaymentService
 
     private function buildPurchasePayload(CheckoutSession $session, array $config, string $tokenName): array
     {
-        $merchantReference = 'ORD-' . $session->session_uuid;
+        $merchantReference = 'ORD-'.$session->session_uuid;
         $amount = (int) ($session->amount * 100);
 
         $payload = [
@@ -267,7 +270,7 @@ class AmazonPaymentService
             'language' => 'en',
             'customer_email' => $session->customer_email,
             'token_name' => $tokenName,
-            'return_url' => config('app.url') . '/api/v1/payments/aps/callback?session=' . $session->session_uuid,
+            'return_url' => config('app.url').'/api/v1/payments/aps/callback?session='.$session->session_uuid,
         ];
 
         if (! empty($session->customer_phone)) {
@@ -291,7 +294,7 @@ class AmazonPaymentService
             if ($key === 'signature' || $value === '' || $value === null) {
                 continue;
             }
-            $signatureString .= $key . '=' . $value;
+            $signatureString .= $key.'='.$value;
         }
         $signatureString .= $shaPhrase;
 
@@ -307,6 +310,7 @@ class AmazonPaymentService
      * Initialize an Apple Pay payment with APS.
      *
      * @return array{fort_id: string, status: string, psp_session_data: array}
+     *
      * @throws PspApiException
      */
     public function initializeApplePayPayment(CheckoutSession $session, PaymentGateway $gateway, array $applePayData): array
@@ -335,7 +339,7 @@ class AmazonPaymentService
                 'session_uuid' => $session->session_uuid,
                 'error' => $e->getMessage(),
             ]);
-            throw new PspApiException('amazon_payment_services', 'Connection error: ' . $e->getMessage(), null, 0, $e);
+            throw new PspApiException('amazon_payment_services', 'Connection error: '.$e->getMessage(), null, 0, $e);
         }
 
         $data = $response->json();
@@ -391,7 +395,7 @@ class AmazonPaymentService
                 ->timeout(30)
                 ->post($validationUrl, [
                     'merchantIdentifier' => $merchantId,
-                    'displayName' => 'Oliv',
+                    'displayName' => 'YottoCode',
                     'initiative' => 'web',
                     'initiativeContext' => $domain,
                 ]);
@@ -399,7 +403,7 @@ class AmazonPaymentService
             return $response->json();
         } catch (\Throwable $e) {
             Log::error('Apple Pay session creation failed', ['error' => $e->getMessage()]);
-            throw new PspApiException('amazon_payment_services', 'Apple Pay session creation failed: ' . $e->getMessage());
+            throw new PspApiException('amazon_payment_services', 'Apple Pay session creation failed: '.$e->getMessage());
         } finally {
             @unlink($certFile);
             @unlink($keyFile);
@@ -408,7 +412,7 @@ class AmazonPaymentService
 
     private function buildApplePayPayload(CheckoutSession $session, array $config, array $walletConfig, array $applePayData): array
     {
-        $merchantReference = 'ORD-' . $session->session_uuid;
+        $merchantReference = 'ORD-'.$session->session_uuid;
         $amount = (int) ($session->amount * 100);
 
         $payload = [
@@ -425,7 +429,7 @@ class AmazonPaymentService
             'apple_signature' => $applePayData['paymentData']['signature'] ?? '',
             'apple_header' => json_encode($applePayData['paymentData']['header'] ?? []),
             'apple_paymentMethod' => json_encode($applePayData['paymentMethod'] ?? []),
-            'return_url' => config('app.url') . '/api/v1/payments/aps/apple-pay/callback?session=' . $session->session_uuid,
+            'return_url' => config('app.url').'/api/v1/payments/aps/apple-pay/callback?session='.$session->session_uuid,
         ];
 
         $payload['signature'] = $this->generateSignature($payload, $config['sha_request_phrase'], $config['sha_type'] ?? 'SHA-256');

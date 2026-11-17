@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Successful - Oliv</title>
-    <link rel="icon" type="image/png" href="{{ asset('img/favicon.png') }}">
+    <title>Payment Successful - YottoCode</title>
+    <link rel="icon" type="image/png" href="{{ asset('img/yottocode-favicon.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 flex flex-col" style="min-height: 100vh; margin: 0;">
     <header class="bg-white shadow-sm py-4" style="position: fixed; top: 0; left: 0; right: 0; z-index: 20; width: 100vw;">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <img src="{{ asset('img/IMG_5398.png') }}" alt="Oliv Logo" class="h-12 mx-auto">
+            <img src="{{ asset('img/yottocode-logo.svg') }}" alt="YottoCode" class="h-8 mx-auto">
         </div>
     </header>
 
@@ -18,8 +18,8 @@
         <div class="max-w-2xl mx-auto pt-8 flex-grow w-full">
             <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
                 <div class="text-center mb-8">
-                    <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full mb-6" style="background-color: rgba(185, 139, 105, 0.1);">
-                        <svg class="h-12 w-12" style="color: #B98B69;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full mb-6" style="background-color: rgba(42, 171, 238, 0.1);">
+                        <svg class="h-12 w-12" style="color: #2aabee;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
                     </div>
@@ -28,40 +28,40 @@
                     <p class="text-sm text-gray-500">A confirmation email has been sent to your email address</p>
                 </div>
 
-                <div class="rounded-lg p-6 mb-6" style="background-color: rgba(185, 139, 105, 0.05); border: 1px solid rgba(185, 139, 105, 0.2);">
+                <div class="rounded-lg p-6 mb-6" style="background-color: rgba(42, 171, 238, 0.05); border: 1px solid rgba(42, 171, 238, 0.2);">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Next Steps:</h3>
                     <ol class="space-y-3 text-gray-700">
                         <li class="flex items-start">
-                            <span class="font-bold mr-3" style="color: #B98B69;">1.</span>
-                            <span>Access your admin dashboard using your email and password</span>
+                            <span class="font-bold mr-3" style="color: #2aabee;">1.</span>
+                            <span>Connect your Shopify store so we can build your app</span>
                         </li>
                         <li class="flex items-start">
-                            <span class="font-bold mr-3" style="color: #B98B69;">2.</span>
-                            <span>Complete your profile setup</span>
+                            <span class="font-bold mr-3" style="color: #2aabee;">2.</span>
+                            <span>Confirm your branding and main categories</span>
                         </li>
                         <li class="flex items-start">
-                            <span class="font-bold mr-3" style="color: #B98B69;">3.</span>
-                            <span>Configure your store settings</span>
+                            <span class="font-bold mr-3" style="color: #2aabee;">3.</span>
+                            <span>Add your store info and finish setup</span>
                         </li>
                         <li class="flex items-start">
-                            <span class="font-bold mr-3" style="color: #B98B69;">4.</span>
-                            <span>Explore available add-ons to enhance your plan</span>
+                            <span class="font-bold mr-3" style="color: #2aabee;">4.</span>
+                            <span>Access your admin dashboard any time using your email and password</span>
                         </li>
                     </ol>
                 </div>
 
                 <div class="text-center">
-                    <a href="/admin/login"
+                    <a href="{{ $onboardingUrl ?? '/admin/login' }}"
                         class="inline-block w-full text-white text-center py-4 px-6 rounded-lg transition font-semibold text-lg shadow-lg"
-                        style="background-color: #252621;"
-                        onmouseover="this.style.backgroundColor='#3a3a35'"
-                        onmouseout="this.style.backgroundColor='#252621'">
-                        Login to Dashboard
+                        style="background-color: #0f1626;"
+                        onmouseover="this.style.backgroundColor='#1e2a44'"
+                        onmouseout="this.style.backgroundColor='#0f1626'">
+                        {{ isset($onboardingUrl) && $onboardingUrl ? 'Start setting up your app' : 'Login to Dashboard' }}
                     </a>
                 </div>
 
                 <div class="mt-8 text-center text-sm text-gray-600">
-                    <p>Need help? Contact our support team at <a href="mailto:support@oliv.tech" class="transition" style="color: #B98B69;" onmouseover="this.style.color='#D3D2BC'" onmouseout="this.style.color='#B98B69'">support@oliv.tech</a></p>
+                    <p>Need help? Contact our support team at <a href="mailto:support@yottocode.com" class="transition" style="color: #2aabee;" onmouseover="this.style.color='#b3e6ff'" onmouseout="this.style.color='#2aabee'">support@yottocode.com</a></p>
                 </div>
             </div>
         </div>
@@ -71,7 +71,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col md:flex-row justify-between items-center space-y-2 md:space-y-0 text-sm">
                 <div class="text-center md:text-left">
-                    <p class="text-gray-300">&copy; {{ date('Y') }} Powered by <a href="https://oliv.tech" target="_blank" class="transition" style="color: #B98B69;" onmouseover="this.style.color='#D3D2BC'" onmouseout="this.style.color='#B98B69'">Oliv.tech</a></p>
+                    <p class="text-gray-300">&copy; {{ date('Y') }} Powered by <a href="https://yottocode.com" target="_blank" class="transition" style="color: #2aabee;" onmouseover="this.style.color='#b3e6ff'" onmouseout="this.style.color='#2aabee'">YottoCode</a></p>
                 </div>
                 <div class="flex items-center space-x-2 text-gray-300">
                     <svg class="h-4 w-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

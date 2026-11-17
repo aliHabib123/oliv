@@ -44,7 +44,7 @@
                                 <div style="margin-bottom: 1rem; text-align: left;">
                                     <button
                                         onclick="openAddonModal({{ $addon->id }})"
-                                        style="color: #615d40; font-size: 0.75rem; font-weight: 500; cursor: pointer; background: none; border: none; padding: 0;"
+                                        style="color: #186288; font-size: 0.75rem; font-weight: 500; cursor: pointer; background: none; border: none; padding: 0;"
                                     >
                                         More →
                                     </button>

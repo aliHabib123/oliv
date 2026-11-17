@@ -15,6 +15,7 @@ class TapService
      * Initialize a Tap payment session.
      *
      * @return array{charge_id: string, payment_url: string, psp_session_data: array}
+     *
      * @throws PspApiException
      */
     public function initializePayment(CheckoutSession $session, PaymentGateway $gateway): array
@@ -41,7 +42,7 @@ class TapService
                 'session_uuid' => $session->session_uuid,
                 'error' => $e->getMessage(),
             ]);
-            throw new PspApiException('tap', 'Connection error: ' . $e->getMessage(), null, 0, $e);
+            throw new PspApiException('tap', 'Connection error: '.$e->getMessage(), null, 0, $e);
         }
 
         if (! $response->successful()) {
@@ -50,7 +51,7 @@ class TapService
                 'status' => $response->status(),
                 'body' => $response->json(),
             ]);
-            throw new PspApiException('tap', 'API returned ' . $response->status(), $response->json());
+            throw new PspApiException('tap', 'API returned '.$response->status(), $response->json());
         }
 
         $data = $response->json();
@@ -103,7 +104,7 @@ class TapService
         ]);
 
         if (! $response->successful()) {
-            throw new PspApiException('tap', 'Verification failed with status ' . $response->status(), $response->json());
+            throw new PspApiException('tap', 'Verification failed with status '.$response->status(), $response->json());
         }
 
         $data = $response->json();
@@ -122,6 +123,7 @@ class TapService
      * Create a refund for a Tap charge.
      *
      * @return array{refund_id: string, status: string}
+     *
      * @throws PspApiException
      */
     public function createRefund(string $chargeId, float $amount, PaymentGateway $gateway): array
@@ -159,7 +161,7 @@ class TapService
                 'status' => $response->status(),
                 'body' => $response->json(),
             ]);
-            throw new PspApiException('tap', 'Refund API returned ' . $response->status(), $response->json());
+            throw new PspApiException('tap', 'Refund API returned '.$response->status(), $response->json());
         }
 
         $data = $response->json();
@@ -175,7 +177,7 @@ class TapService
 
     private function buildChargePayload(CheckoutSession $session, array $config): array
     {
-        $lineItems = collect($session->line_items)->map(fn(array $item) => [
+        $lineItems = collect($session->line_items)->map(fn (array $item) => [
             'name' => $item['title'] ?? $item['variant_id'] ?? 'Item',
             'description' => $item['description'] ?? '',
             'amount' => (int) (($item['price'] ?? 0) * 100), // Tap expects amount in cents/fils
@@ -189,16 +191,16 @@ class TapService
             'currency' => $session->currency,
             'threeDSecure' => true,
             'save_card' => false,
-            'description' => 'Order ' . $session->session_uuid,
-            'statement_descriptor' => 'OLIV',
+            'description' => 'Order '.$session->session_uuid,
+            'statement_descriptor' => 'YOTTOCODE',
             'metadata' => [
                 'session_uuid' => $session->session_uuid,
                 'customer_email' => $session->customer_email,
                 'platform' => 'oliv',
             ],
             'reference' => [
-                'transaction' => 'txn_' . $session->session_uuid,
-                'order' => 'ORD_' . $session->session_uuid,
+                'transaction' => 'txn_'.$session->session_uuid,
+                'order' => 'ORD_'.$session->session_uuid,
             ],
             'receipt' => [
                 'email' => true,
@@ -217,10 +219,10 @@ class TapService
                 'id' => 'src_all',
             ],
             'post' => [
-                'url' => config('app.url') . '/api/v1/payments/tap/callback?session=' . $session->session_uuid,
+                'url' => config('app.url').'/api/v1/payments/tap/callback?session='.$session->session_uuid,
             ],
             'redirect' => [
-                'url' => config('app.url') . '/api/v1/payments/tap/callback?session=' . $session->session_uuid,
+                'url' => config('app.url').'/api/v1/payments/tap/callback?session='.$session->session_uuid,
             ],
             'merchant' => [
                 'id' => $config['merchant_id'] ?? null,
@@ -246,6 +248,7 @@ class TapService
      * Initialize an Apple Pay payment with Tap.
      *
      * @return array{charge_id: string, payment_url: string, psp_session_data: array}
+     *
      * @throws PspApiException
      */
     public function initializeApplePayPayment(CheckoutSession $session, PaymentGateway $gateway, array $applePayToken): array
@@ -272,7 +275,7 @@ class TapService
                 'session_uuid' => $session->session_uuid,
                 'error' => $e->getMessage(),
             ]);
-            throw new PspApiException('tap', 'Connection error: ' . $e->getMessage(), null, 0, $e);
+            throw new PspApiException('tap', 'Connection error: '.$e->getMessage(), null, 0, $e);
         }
 
         if (! $response->successful()) {
@@ -281,7 +284,7 @@ class TapService
                 'status' => $response->status(),
                 'body' => $response->json(),
             ]);
-            throw new PspApiException('tap', 'API returned ' . $response->status(), $response->json());
+            throw new PspApiException('tap', 'API returned '.$response->status(), $response->json());
         }
 
         $data = $response->json();
@@ -302,10 +305,10 @@ class TapService
     /**
      * Generate HMAC-SHA256 hash for Tap SDK authentication.
      *
-     * @param string $amount Formatted to 2 decimal places (e.g. "118.00")
-     * @param string $currency ISO currency code uppercase (e.g. "AED")
-     * @param string $transactionReference Unique ref from the app (e.g. "oliv_1776077904637")
-     * @param string $postUrl Webhook URL or empty string
+     * @param  string  $amount  Formatted to 2 decimal places (e.g. "118.00")
+     * @param  string  $currency  ISO currency code uppercase (e.g. "AED")
+     * @param  string  $transactionReference  Unique ref from the app (e.g. "oliv_1776077904637")
+     * @param  string  $postUrl  Webhook URL or empty string
      * @return string HMAC-SHA256 hex digest
      */
     public function generateHash(
@@ -326,11 +329,11 @@ class TapService
 
         // Build the hash string in the format Tap expects
         // Format: x_publickey<public_key>x_amount<amount>x_currency<currency>x_transaction<transaction_ref>x_post<post_url>
-        $hashString = 'x_publickey' . $publicKey
-            . 'x_amount' . number_format((float) $amount, 2, '.', '')
-            . 'x_currency' . strtoupper($currency)
-            . 'x_transaction' . $transactionReference
-            . 'x_post' . $postUrl;
+        $hashString = 'x_publickey'.$publicKey
+            .'x_amount'.number_format((float) $amount, 2, '.', '')
+            .'x_currency'.strtoupper($currency)
+            .'x_transaction'.$transactionReference
+            .'x_post'.$postUrl;
 
         Log::info('Tap hash generation', [
             'transaction_reference' => $transactionReference,
@@ -347,15 +350,15 @@ class TapService
             'currency' => $session->currency,
             'threeDSecure' => false, // Apple Pay handles authentication
             'save_card' => false,
-            'description' => 'Order ' . $session->session_uuid,
-            'statement_descriptor' => 'OLIV',
+            'description' => 'Order '.$session->session_uuid,
+            'statement_descriptor' => 'YOTTOCODE',
             'metadata' => [
                 'session_uuid' => $session->session_uuid,
                 'payment_method' => 'apple_pay',
             ],
             'reference' => [
-                'transaction' => 'txn_' . $session->session_uuid,
-                'order' => 'ORD_' . $session->session_uuid,
+                'transaction' => 'txn_'.$session->session_uuid,
+                'order' => 'ORD_'.$session->session_uuid,
             ],
             'receipt' => [
                 'email' => true,
@@ -371,10 +374,10 @@ class TapService
                 'token' => $applePayToken,
             ],
             'post' => [
-                'url' => config('app.url') . '/api/v1/payments/tap/apple-pay/callback?session=' . $session->session_uuid,
+                'url' => config('app.url').'/api/v1/payments/tap/apple-pay/callback?session='.$session->session_uuid,
             ],
             'redirect' => [
-                'url' => config('app.url') . '/api/v1/payments/tap/apple-pay/callback?session=' . $session->session_uuid,
+                'url' => config('app.url').'/api/v1/payments/tap/apple-pay/callback?session='.$session->session_uuid,
             ],
             'merchant' => [
                 'id' => $config['merchant_id'] ?? null,

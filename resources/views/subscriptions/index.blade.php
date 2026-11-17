@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Choose Your Package - Oliv</title>
-    <link rel="icon" type="image/png" href="{{ asset('img/favicon.png') }}">
+    <title>Choose Your Package - YottoCode</title>
+    <link rel="icon" type="image/png" href="{{ asset('img/yottocode-favicon.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 flex flex-col" style="min-height: 100vh; margin: 0;">
     <header class="bg-white shadow-sm py-4" style="position: fixed; top: 0; left: 0; right: 0; z-index: 20; width: 100vw;">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <img src="{{ asset('img/IMG_5398.png') }}" alt="Oliv Logo" class="h-12 mx-auto">
+            <img src="{{ asset('img/yottocode-logo.svg') }}" alt="YottoCode" class="h-8 mx-auto">
         </div>
     </header>
 
@@ -42,7 +42,7 @@
                         <p class="text-sm text-gray-600">Pricing will be shown in your local currency</p>
                     </div>
                     <div class="w-64">
-                        <select id="country-selector" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B98B69] focus:border-transparent">
+                        <select id="country-selector" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2aabee] focus:border-transparent">
                             @foreach($countries as $c)
                                 <option value="{{ $c->code }}" {{ $c->code === $currentCountry ? 'selected' : '' }}>
                                     {{ $c->name }} ({{ $c->symbol }})
@@ -131,7 +131,7 @@
                                             </div>
                                             @if($addon->description || $addon->image || $addon->video)
                                                 <div class="text-right">
-                                                    <button type="button" onclick="openAddonModal({{ $addon->id }})" class="text-xs font-medium" style="color: #615d40;">
+                                                    <button type="button" onclick="openAddonModal({{ $addon->id }})" class="text-xs font-medium" style="color: #186288;">
                                                         More →
                                                     </button>
                                                 </div>
@@ -192,7 +192,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
                             <input type="text" name="full_name" required
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                                style="focus:ring-color: #B98B69;"
+                                style="focus:ring-color: #2aabee;"
                                 value="{{ old('full_name') }}">
                         </div>
 
@@ -200,7 +200,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
                             <input type="email" name="email" required
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                                style="focus:ring-color: #B98B69;"
+                                style="focus:ring-color: #2aabee;"
                                 value="{{ old('email') }}">
                         </div>
 
@@ -209,7 +209,7 @@
                             <div class="flex gap-2">
                                 <select name="country_code" required
                                     class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                                    style="focus:ring-color: #B98B69; width: 120px;">
+                                    style="focus:ring-color: #2aabee; width: 120px;">
                                     <option value="+1" {{ old('country_code') == '+1' ? 'selected' : '' }}>🇺🇸 +1</option>
                                     <option value="+44" {{ old('country_code') == '+44' ? 'selected' : '' }}>🇬🇧 +44</option>
                                     <option value="+961" {{ old('country_code') == '+961' ? 'selected' : '' }}>🇱🇧 +961</option>
@@ -221,7 +221,7 @@
                                 </select>
                                 <input type="tel" name="phone" required
                                     class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                                    style="focus:ring-color: #B98B69;"
+                                    style="focus:ring-color: #2aabee;"
                                     placeholder="12345678"
                                     value="{{ old('phone') }}">
                             </div>
@@ -231,7 +231,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Company Name *</label>
                             <input type="text" name="company_name" required
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                                style="focus:ring-color: #B98B69;"
+                                style="focus:ring-color: #2aabee;"
                                 value="{{ old('company_name') }}">
                         </div>
 
@@ -239,7 +239,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Website (Optional)</label>
                             <input type="text" name="website"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                                style="focus:ring-color: #B98B69;"
+                                style="focus:ring-color: #2aabee;"
                                 placeholder="example.com or https://example.com"
                                 value="{{ old('website') }}">
                             <p class="text-xs text-gray-500 mt-1">You can enter with or without https://</p>
@@ -249,7 +249,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Password *</label>
                             <input type="password" name="password" required
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                                style="focus:ring-color: #B98B69;"
+                                style="focus:ring-color: #2aabee;"
                                 minlength="8">
                             <p class="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
                         </div>
@@ -257,9 +257,9 @@
                         <div class="pt-4">
                             <button type="submit"
                                 class="w-full text-white py-3 px-4 rounded-lg transition font-semibold text-lg"
-                                style="background-color: #615D40;"
+                                style="background-color: #186288;"
                                 onmouseover="this.style.backgroundColor='#7a7558'"
-                                onmouseout="this.style.backgroundColor='#615D40'">
+                                onmouseout="this.style.backgroundColor='#186288'">
                                 Complete Registration
                             </button>
                         </div>
@@ -273,7 +273,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col md:flex-row justify-between items-center space-y-2 md:space-y-0 text-sm">
                 <div class="text-center md:text-left">
-                    <p class="text-gray-600">&copy; {{ date('Y') }} Powered by <a href="https://oliv.tech" target="_blank" class="transition" style="color: #B98B69;" onmouseover="this.style.color='#D3D2BC'" onmouseout="this.style.color='#B98B69'">Oliv.tech</a></p>
+                    <p class="text-gray-600">&copy; {{ date('Y') }} Powered by <a href="https://yottocode.com" target="_blank" class="transition" style="color: #2aabee;" onmouseover="this.style.color='#b3e6ff'" onmouseout="this.style.color='#2aabee'">YottoCode</a></p>
                 </div>
                 <div class="flex items-center space-x-2 text-gray-600">
                     <svg class="h-4 w-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -343,7 +343,7 @@
             const billingInput = document.getElementById('billing_period_input');
 
             if (isYearly) {
-                toggle.style.backgroundColor = '#615D40';
+                toggle.style.backgroundColor = '#186288';
                 circle.style.transform = 'translateX(1.25rem)';
                 periodLabel.textContent = 'Yearly';
                 periodText.textContent = '/year';
@@ -375,7 +375,7 @@
                 circle.style.transform = 'translateX(0.25rem)';
             } else {
                 selectedAddons.add(addonId);
-                toggle.style.backgroundColor = '#615D40';
+                toggle.style.backgroundColor = '#186288';
                 circle.style.transform = 'translateX(1.25rem)';
             }
 
