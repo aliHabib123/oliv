@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Livewire\HomeLayoutPreview;
 use App\Models\Tenant;
 use App\Services\Shopify\ShopifyStorefrontService;
 use BackedEnum;
@@ -19,15 +20,17 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Livewire as LivewireComponent;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\HtmlString;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use UnitEnum;
 
 class HomeLayout extends Page
 {
     use CanUseDatabaseTransactions;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Content';
+    protected static string|UnitEnum|null $navigationGroup = 'Content';
 
     protected static ?string $navigationLabel = 'Home layout';
 
@@ -44,7 +47,6 @@ class HomeLayout extends Page
 
     /**
      * Live state for home layout blocks with converted temp file URLs
-     * @var array
      */
     public array $liveHomeLayout = [];
 
@@ -126,7 +128,7 @@ class HomeLayout extends Page
         }
 
         // If no specific layout selected, load default or first available
-        if (!$homeLayout) {
+        if (! $homeLayout) {
             $homeLayout = \App\Models\HomeLayout::where('tenant_id', $tenant->id)
                 ->where('is_default', true)
                 ->first();
@@ -145,7 +147,9 @@ class HomeLayout extends Page
         // Initialize live state with existing layout data, converting storage paths to full URLs
         $blocks = is_array($data['home_layout']) ? array_values($data['home_layout']) : [];
         foreach ($blocks as &$block) {
-            if (!isset($block['data']) || !is_array($block['data'])) continue;
+            if (! isset($block['data']) || ! is_array($block['data'])) {
+                continue;
+            }
 
             // Process main image
             if (isset($block['data']['image_url']) && is_string($block['data']['image_url'])) {
@@ -206,16 +210,15 @@ class HomeLayout extends Page
             ->send();
     }
 
-
     protected function getSelectedLayoutLabel(): string
     {
-        if (!$this->selectedLayoutId) {
+        if (! $this->selectedLayoutId) {
             return 'Select Layout';
         }
 
         $layout = \App\Models\HomeLayout::find($this->selectedLayoutId);
 
-        if (!$layout) {
+        if (! $layout) {
             return 'Select Layout';
         }
 
@@ -223,7 +226,7 @@ class HomeLayout extends Page
 
         if ($layout->is_default) {
             $label .= ' (Default)';
-        } else if ($layout->category_title) {
+        } elseif ($layout->category_title) {
             $label = $layout->category_title;
         }
 
@@ -258,7 +261,7 @@ class HomeLayout extends Page
                     $blocks = is_array($state) ? array_values($state) : [];
 
                     foreach ($blocks as &$block) {
-                        if (!isset($block['data']) || !is_array($block['data'])) {
+                        if (! isset($block['data']) || ! is_array($block['data'])) {
                             continue;
                         }
 
@@ -267,11 +270,11 @@ class HomeLayout extends Page
                             $img = $block['data']['image_url'];
 
                             // Unwrap UUID-keyed array if needed
-                            if (is_array($img) && !empty($img)) {
+                            if (is_array($img) && ! empty($img)) {
                                 $img = reset($img);
                             }
 
-                            if ($img instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
+                            if ($img instanceof TemporaryUploadedFile) {
                                 try {
                                     $block['data']['image_url'] = $img->temporaryUrl();
                                 } catch (\Exception $e) {
@@ -291,11 +294,11 @@ class HomeLayout extends Page
                                 if (isset($category['image_url'])) {
                                     $catImg = $category['image_url'];
 
-                                    if (is_array($catImg) && !empty($catImg)) {
+                                    if (is_array($catImg) && ! empty($catImg)) {
                                         $catImg = reset($catImg);
                                     }
 
-                                    if ($catImg instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
+                                    if ($catImg instanceof TemporaryUploadedFile) {
                                         try {
                                             $category['image_url'] = $catImg->temporaryUrl();
                                         } catch (\Exception $e) {
@@ -419,7 +422,7 @@ class HomeLayout extends Page
                                         $label = $product['title'] ?? '';
 
                                         if (! empty($product['vendor'])) {
-                                            $label .= ' - ' . $product['vendor'];
+                                            $label .= ' - '.$product['vendor'];
                                         }
 
                                         $options[$id] = $label;
@@ -453,7 +456,7 @@ class HomeLayout extends Page
                                             $label = $product['title'] ?? '';
 
                                             if (! empty($product['vendor'])) {
-                                                $label .= ' - ' . $product['vendor'];
+                                                $label .= ' - '.$product['vendor'];
                                             }
 
                                             return $label;
@@ -992,7 +995,7 @@ class HomeLayout extends Page
                                                 $label = $product['title'] ?? '';
 
                                                 if (! empty($product['vendor'])) {
-                                                    $label .= ' - ' . $product['vendor'];
+                                                    $label .= ' - '.$product['vendor'];
                                                 }
 
                                                 $options[$id] = $label;
@@ -1022,7 +1025,7 @@ class HomeLayout extends Page
                                                     $label = $product['title'] ?? '';
 
                                                     if (! empty($product['vendor'])) {
-                                                        $label .= ' - ' . $product['vendor'];
+                                                        $label .= ' - '.$product['vendor'];
                                                     }
 
                                                     return $label;
@@ -1072,8 +1075,8 @@ class HomeLayout extends Page
 
             if ($layout->is_default) {
                 $label .= ' (Default)';
-            } else if ($layout->category_title) {
-                $label .= ' - ' . $layout->category_title;
+            } elseif ($layout->category_title) {
+                $label .= ' - '.$layout->category_title;
             }
 
             $options[$layout->id] = $label;
@@ -1091,7 +1094,7 @@ class HomeLayout extends Page
                 // Full-width row for layout selector in white panel
                 Forms\Components\Placeholder::make('layout_selector_panel')
                     ->hiddenLabel()
-                    ->content(fn() => new \Illuminate\Support\HtmlString(
+                    ->content(fn () => new HtmlString(
                         '<div style="background: white; border: 1px solid rgb(229, 231, 235); border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);">
                             <div style="display: flex; align-items: flex-start; gap: 2rem;">
                                 <div style="flex: 0 0 400px;">
@@ -1101,18 +1104,19 @@ class HomeLayout extends Page
                                             wire:model="selectedLayoutId"
                                             style="flex: 1; border: 1px solid rgb(209, 213, 219); border-radius: 0.5rem; padding: 0.5rem 0.75rem; font-size: 0.875rem; background: white; color: rgb(17, 24, 39);"
                                         >
-                                            ' . collect($layoutOptions)->map(function($label, $id) {
-                                                $selected = $this->selectedLayoutId == $id ? 'selected' : '';
-                                                return '<option value="' . $id . '" ' . $selected . '>' . htmlspecialchars($label) . '</option>';
-                                            })->join('') . '
+                                            '.collect($layoutOptions)->map(function ($label, $id) {
+                            $selected = $this->selectedLayoutId == $id ? 'selected' : '';
+
+                            return '<option value="'.$id.'" '.$selected.'>'.htmlspecialchars($label).'</option>';
+                        })->join('').'
                                         </select>
                                         <button
                                             type="button"
                                             wire:click="handleLayoutChange"
                                             wire:loading.attr="disabled"
-                                            style="background-color: #252621; color: white; border: 1px solid #252621; border-radius: 0.5rem; padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 500; white-space: nowrap; cursor: pointer; transition: background-color 0.2s; display: flex; align-items: center; gap: 0.5rem;"
-                                            onmouseover="this.style.backgroundColor=\'#3a3a35\'"
-                                            onmouseout="this.style.backgroundColor=\'#252621\'"
+                                            style="background-color: #0f1626; color: white; border: 1px solid #0f1626; border-radius: 0.5rem; padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 500; white-space: nowrap; cursor: pointer; transition: background-color 0.2s; display: flex; align-items: center; gap: 0.5rem;"
+                                            onmouseover="this.style.backgroundColor=\'#1e2a44\'"
+                                            onmouseout="this.style.backgroundColor=\'#0f1626\'"
                                         >
                                             <svg wire:loading wire:target="handleLayoutChange" style="animation: spin 1s linear infinite; width: 1rem; height: 1rem;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                 <circle style="opacity: 0.25;" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -1134,7 +1138,7 @@ class HomeLayout extends Page
                                 <div style="flex: 1; display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgb(249, 250, 251); border-radius: 0.5rem;margin-top:1rem;">
                                     <input
                                         type="checkbox"
-                                        ' . (($this->data['is_default'] ?? false) ? 'checked' : '') . '
+                                        '.(($this->data['is_default'] ?? false) ? 'checked' : '').'
                                         disabled
                                         style="width: 1rem; height: 1rem; border: 1px solid rgb(209, 213, 219); border-radius: 0.25rem; flex-shrink: 0;"
                                     >
@@ -1154,7 +1158,7 @@ class HomeLayout extends Page
                         $this->getFormContentComponent(),
 
                         // Right column: Live preview with sticky positioning to stay on screen during scroll
-                        LivewireComponent::make(\App\Livewire\HomeLayoutPreview::class)
+                        LivewireComponent::make(HomeLayoutPreview::class)
                             ->key('home-layout-preview')
                             ->data([
                                 'layoutData' => $this->liveHomeLayout ?? [],

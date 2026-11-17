@@ -15,6 +15,40 @@ class ShopifyStorefrontService
     private const API_VERSION = '2025-10';
 
     /**
+     * Fetch the store's brand assets (name, logo, brand colors) to pre-fill onboarding.
+     * Brand assets are only populated if the merchant filled in Shopify > Settings > Brand,
+     * so any field may be null.
+     *
+     * @return array{name: ?string, logo_url: ?string, primary_color: ?string, secondary_color: ?string}
+     */
+    public function getBrandAssets(Tenant $tenant): array
+    {
+        $query = <<<'GRAPHQL'
+            query GetBrandAssets {
+                shop {
+                    name
+                    brand {
+                        logo { image { url } }
+                        colors {
+                            primary { background }
+                            secondary { background }
+                        }
+                    }
+                }
+            }
+        GRAPHQL;
+
+        $data = $this->graphql($tenant, $query);
+
+        return [
+            'name' => Arr::get($data, 'shop.name'),
+            'logo_url' => Arr::get($data, 'shop.brand.logo.image.url'),
+            'primary_color' => Arr::get($data, 'shop.brand.colors.primary.0.background'),
+            'secondary_color' => Arr::get($data, 'shop.brand.colors.secondary.0.background'),
+        ];
+    }
+
+    /**
      * Execute a GraphQL query against the tenant's Storefront API.
      *
      * @return array<string, mixed>
@@ -369,7 +403,7 @@ class ShopifyStorefrontService
                     'priceRange' => $node['priceRange'] ?? null,
                 ];
             })
-            ->filter(fn (array $product): bool => !empty($product['id']))
+            ->filter(fn (array $product): bool => ! empty($product['id']))
             ->values()
             ->all();
     }
@@ -809,6 +843,7 @@ class ShopifyStorefrontService
 
         if (empty($lineIds)) {
             Log::info('clearCart: no lines to remove', ['cart_id' => $cartId]);
+
             return true;
         }
 
@@ -913,7 +948,7 @@ class ShopifyStorefrontService
      * Create a checkout from line items using Cart API.
      * Note: checkoutCreate was deprecated in API 2023-04+, replaced by Cart API.
      *
-     * @param array<int, array{variant_id: string, quantity: int}> $lineItems
+     * @param  array<int, array{variant_id: string, quantity: int}>  $lineItems
      * @return array<string, mixed>
      */
     public function createCheckout(Tenant $tenant, array $lineItems, ?string $customerToken = null): array
@@ -970,14 +1005,14 @@ class ShopifyStorefrontService
 
         // Check for user errors
         $userErrors = Arr::get($data, 'cartCreate.userErrors', []);
-        if (!empty($userErrors)) {
+        if (! empty($userErrors)) {
             $errorMessages = array_column($userErrors, 'message');
-            throw new \Exception('Checkout creation failed: ' . implode(', ', $errorMessages));
+            throw new \Exception('Checkout creation failed: '.implode(', ', $errorMessages));
         }
 
         $cart = Arr::get($data, 'cartCreate.cart', []);
 
-        if (empty($cart) || !isset($cart['id'])) {
+        if (empty($cart) || ! isset($cart['id'])) {
             throw new \Exception('Checkout creation failed: No cart returned from Shopify');
         }
 
@@ -1027,7 +1062,7 @@ class ShopifyStorefrontService
 
         $product = Arr::get($data, 'product');
 
-        if (!$product) {
+        if (! $product) {
             return null;
         }
 
@@ -1038,7 +1073,7 @@ class ShopifyStorefrontService
             $variant = $edge['node'];
             $variants[] = $variant;
 
-            if (!$defaultVariant) {
+            if (! $defaultVariant) {
                 $defaultVariant = $variant;
             }
         }
@@ -1122,7 +1157,7 @@ class ShopifyStorefrontService
     {
         $menu = $this->getMenuByHandle($tenant, 'flutter-menu');
 
-        if (!$menu || empty($menu['items'])) {
+        if (! $menu || empty($menu['items'])) {
             return [];
         }
 
@@ -1148,7 +1183,7 @@ class ShopifyStorefrontService
                     'title' => $item['title'] ?? '',
                 ];
             })
-            ->filter(fn($item) => !empty($item['gid']) && !empty($item['handle']))
+            ->filter(fn ($item) => ! empty($item['gid']) && ! empty($item['handle']))
             ->values()
             ->all();
 
@@ -1185,9 +1220,6 @@ class ShopifyStorefrontService
 
     /**
      * Extract collection handle from Shopify URL.
-     *
-     * @param string $url
-     * @return string|null
      */
     private function extractHandleFromUrl(string $url): ?string
     {

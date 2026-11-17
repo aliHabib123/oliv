@@ -40,6 +40,15 @@ return [
         'api_key' => env('ONESIGNAL_API_KEY'),
     ],
 
+    'shopify' => [
+        // One platform-level Shopify app shared by all tenants (Partner Dashboard).
+        // Per-tenant values (shop domain, admin token, storefront token) live on the Tenant.
+        'client_id' => env('SHOPIFY_APP_CLIENT_ID'),
+        'client_secret' => env('SHOPIFY_APP_CLIENT_SECRET'),
+        'api_version' => env('SHOPIFY_API_VERSION', '2025-10'),
+        'scopes' => env('SHOPIFY_APP_SCOPES', 'read_products,read_orders,write_orders,write_online_store_navigation,unauthenticated_read_product_listings,unauthenticated_read_product_inventory,unauthenticated_read_content,unauthenticated_write_checkouts'),
+    ],
+
     'stripe' => [
         'key' => env('STRIPE_KEY'),
         'secret' => env('STRIPE_SECRET'),

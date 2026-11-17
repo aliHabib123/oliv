@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment - Oliv</title>
-    <link rel="icon" type="image/png" href="{{ asset('img/favicon.png') }}">
+    <title>Payment - YottoCode</title>
+    <link rel="icon" type="image/png" href="{{ asset('img/yottocode-favicon.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://js.stripe.com/v3/"></script>
 </head>
 <body class="bg-gray-50 flex flex-col" style="min-height: 100vh; margin: 0;">
     <header class="bg-white shadow-sm py-4" style="position: fixed; top: 0; left: 0; right: 0; z-index: 20; width: 100vw;">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <img src="{{ asset('img/IMG_5398.png') }}" alt="Oliv Logo" class="h-12 mx-auto">
+            <img src="{{ asset('img/yottocode-logo.svg') }}" alt="YottoCode" class="h-8 mx-auto">
         </div>
     </header>
 
@@ -88,7 +88,7 @@
 
                     <div class="flex justify-between items-center border-t border-gray-200 pt-4 mt-4">
                         <span class="text-lg font-bold text-gray-900">Total:</span>
-                        <span class="text-2xl font-bold" style="color: #B98B69;">{{ $currencySymbol }} {{ number_format($total, 0) }}/{{ $periodLabel }}</span>
+                        <span class="text-2xl font-bold" style="color: #2aabee;">{{ $currencySymbol }} {{ number_format($total, 0) }}/{{ $periodLabel }}</span>
                     </div>
                 </div>
 
@@ -96,9 +96,9 @@
                     <p class="text-gray-600 mb-4">Click below to proceed to secure payment with Stripe</p>
                     <button id="checkout-button"
                         class="w-full text-white py-4 px-6 rounded-lg transition font-semibold text-lg shadow-lg"
-                        style="background-color: #252621;"
-                        onmouseover="this.style.backgroundColor='#3a3a35'"
-                        onmouseout="this.style.backgroundColor='#252621'">
+                        style="background-color: #0f1626;"
+                        onmouseover="this.style.backgroundColor='#1e2a44'"
+                        onmouseout="this.style.backgroundColor='#0f1626'">
                         Proceed to Payment
                     </button>
                 </div>
@@ -117,7 +117,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col md:flex-row justify-between items-center space-y-2 md:space-y-0 text-sm">
                 <div class="text-center md:text-left">
-                    <p class="text-gray-300">&copy; {{ date('Y') }} Powered by <a href="https://oliv.tech" target="_blank" class="transition" style="color: #B98B69;" onmouseover="this.style.color='#D3D2BC'" onmouseout="this.style.color='#B98B69'">Oliv.tech</a></p>
+                    <p class="text-gray-300">&copy; {{ date('Y') }} Powered by <a href="https://yottocode.com" target="_blank" class="transition" style="color: #2aabee;" onmouseover="this.style.color='#b3e6ff'" onmouseout="this.style.color='#2aabee'">YottoCode</a></p>
                 </div>
                 <div class="flex items-center space-x-2 text-gray-300">
                     <svg class="h-4 w-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
