@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment - YottoCode</title>
-    <link rel="icon" type="image/png" href="{{ asset('img/yottocode-favicon.png') }}">
+    @include('partials.yottocode-head')
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://js.stripe.com/v3/"></script>
 </head>
@@ -95,10 +95,7 @@
                 <div class="text-center mb-6">
                     <p class="text-gray-600 mb-4">Click below to proceed to secure payment with Stripe</p>
                     <button id="checkout-button"
-                        class="w-full text-white py-4 px-6 rounded-lg transition font-semibold text-lg shadow-lg"
-                        style="background-color: #0f1626;"
-                        onmouseover="this.style.backgroundColor='#1e2a44'"
-                        onmouseout="this.style.backgroundColor='#0f1626'">
+                        class="yc-btn w-full py-4 px-6 transition font-semibold text-lg shadow-lg">
                         Proceed to Payment
                     </button>
                 </div>

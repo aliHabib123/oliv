@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Choose Your Package - YottoCode</title>
-    <link rel="icon" type="image/png" href="{{ asset('img/yottocode-favicon.png') }}">
+    @include('partials.yottocode-head')
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 flex flex-col" style="min-height: 100vh; margin: 0;">
@@ -256,10 +256,7 @@
 
                         <div class="pt-4">
                             <button type="submit"
-                                class="w-full text-white py-3 px-4 rounded-lg transition font-semibold text-lg"
-                                style="background-color: #186288;"
-                                onmouseover="this.style.backgroundColor='#7a7558'"
-                                onmouseout="this.style.backgroundColor='#186288'">
+                                class="yc-btn w-full py-3 px-4 transition font-semibold text-lg">
                                 Complete Registration
                             </button>
                         </div>
@@ -343,7 +340,7 @@
             const billingInput = document.getElementById('billing_period_input');
 
             if (isYearly) {
-                toggle.style.backgroundColor = '#186288';
+                toggle.style.backgroundColor = '#2aabee';
                 circle.style.transform = 'translateX(1.25rem)';
                 periodLabel.textContent = 'Yearly';
                 periodText.textContent = '/year';
@@ -375,7 +372,7 @@
                 circle.style.transform = 'translateX(0.25rem)';
             } else {
                 selectedAddons.add(addonId);
-                toggle.style.backgroundColor = '#186288';
+                toggle.style.backgroundColor = '#2aabee';
                 circle.style.transform = 'translateX(1.25rem)';
             }
 

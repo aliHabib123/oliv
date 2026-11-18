@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Successful - YottoCode</title>
-    <link rel="icon" type="image/png" href="{{ asset('img/yottocode-favicon.png') }}">
+    @include('partials.yottocode-head')
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 flex flex-col" style="min-height: 100vh; margin: 0;">
@@ -52,10 +52,7 @@
 
                 <div class="text-center">
                     <a href="{{ $onboardingUrl ?? '/admin/login' }}"
-                        class="inline-block w-full text-white text-center py-4 px-6 rounded-lg transition font-semibold text-lg shadow-lg"
-                        style="background-color: #0f1626;"
-                        onmouseover="this.style.backgroundColor='#1e2a44'"
-                        onmouseout="this.style.backgroundColor='#0f1626'">
+                        class="yc-btn inline-block w-full text-center py-4 px-6 transition font-semibold text-lg shadow-lg">
                         {{ isset($onboardingUrl) && $onboardingUrl ? 'Start setting up your app' : 'Login to Dashboard' }}
                     </a>
                 </div>

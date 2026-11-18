@@ -34,6 +34,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogo(asset('img/yottocode-logo.svg'))
             ->favicon(asset('img/yottocode-favicon.png'))
             ->brandLogoHeight('2rem')
+            ->font('Inter')
             ->colors([
                 'primary' => '#0f1626',
                 'secondary' => '#b3e6ff',
