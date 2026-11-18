@@ -43,7 +43,7 @@ class CountryPricingService
             ->with('country')
             ->first();
 
-        if (!$pricing) {
+        if (! $pricing) {
             return null;
         }
 
@@ -53,10 +53,35 @@ class CountryPricingService
         return [
             'price' => $price,
             'formatted_price' => $pricing->country->formatPrice($price),
+            'setup_fee' => (float) $pricing->setup_fee,
             'currency' => $pricing->country->currency,
             'symbol' => $pricing->country->symbol,
             'stripe_price_id' => $stripePriceId,
             'billing_period' => $billingPeriod,
+        ];
+    }
+
+    /**
+     * Stripe Checkout line item for the one-time setup fee, or null when there is none.
+     * In subscription mode a line item without `recurring` is charged on the first invoice only.
+     */
+    public function getSetupFeeLineItem(array $packagePricing): ?array
+    {
+        $setupFee = (float) ($packagePricing['setup_fee'] ?? 0);
+
+        if ($setupFee <= 0) {
+            return null;
+        }
+
+        return [
+            'price_data' => [
+                'currency' => strtolower($packagePricing['currency']),
+                'product_data' => [
+                    'name' => 'One-time set-up fee',
+                ],
+                'unit_amount' => (int) round($setupFee * 100),
+            ],
+            'quantity' => 1,
         ];
     }
 
@@ -71,7 +96,7 @@ class CountryPricingService
             ->with('country', 'addon')
             ->first();
 
-        if (!$pricing) {
+        if (! $pricing) {
             return null;
         }
 

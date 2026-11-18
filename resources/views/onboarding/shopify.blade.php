@@ -4,13 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connect your store — YottoCode</title>
-    <link rel="icon" type="image/png" href="{{ asset('img/yottocode-favicon.png') }}">
+    @include('partials.yottocode-head')
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        :root { --yc-navy: #0f1626; --yc-navy-hover: #1e2a44; --yc-blue: #2aabee; --yc-sky: #b3e6ff; }
-        body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-    </style>
-</head>
+    </head>
 <body class="bg-gray-50 flex flex-col" style="min-height: 100vh; margin: 0;">
     <header class="bg-white shadow-sm py-4">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -28,7 +24,7 @@
                     <div class="flex items-center gap-2">
                         <span class="flex items-center justify-center h-6 w-6 rounded-full text-[11px] font-semibold
                             {{ $i === 0 ? 'text-white' : 'bg-gray-200 text-gray-500' }}"
-                            @if($i === 0) style="background-color: var(--yc-blue);" @endif>
+                            @if($i === 0) style="background-color: var(--yc-blue-strong);" @endif>
                             {{ $i + 1 }}
                         </span>
                         <span class="{{ $i === 0 ? 'text-gray-900' : '' }} hidden sm:inline">{{ $label }}</span>
@@ -77,10 +73,7 @@
                         </div>
 
                         <a href="{{ \App\Http\Controllers\Onboarding\BrandingController::signedShowUrl($tenant) }}"
-                            class="inline-flex w-full items-center justify-center gap-2 text-white py-3.5 px-6 rounded-xl transition font-semibold shadow-sm"
-                            style="background-color: var(--yc-navy);"
-                            onmouseover="this.style.backgroundColor='var(--yc-navy-hover)'"
-                            onmouseout="this.style.backgroundColor='var(--yc-navy)'">
+                            class="yc-btn inline-flex w-full items-center justify-center gap-2 py-3.5 px-6 transition font-semibold">
                             Continue to branding
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
                         </a>
@@ -96,8 +89,8 @@
                             <div id="reconnect" class="hidden mt-4 flex gap-2">
                                 <input type="text" name="shop_domain" placeholder="your-store.myshopify.com"
                                     class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2"
-                                    style="--tw-ring-color: var(--yc-blue);">
-                                <button type="submit" class="rounded-lg px-4 py-2 text-sm font-semibold text-white" style="background-color: var(--yc-navy);">Reconnect</button>
+                                    style="--tw-ring-color: var(--yc-blue-strong);">
+                                <button type="submit" class="yc-btn px-4 py-2 text-sm font-semibold">Reconnect</button>
                             </div>
                         </form>
                     </div>
@@ -123,7 +116,7 @@
                                     'You sign in on Shopify; we never see your password',
                                 ] as $point)
                                     <li class="flex items-start gap-3">
-                                        <span class="mt-0.5 flex items-center justify-center h-5 w-5 rounded-full shrink-0" style="background-color: var(--yc-blue);">
+                                        <span class="mt-0.5 flex items-center justify-center h-5 w-5 rounded-full shrink-0" style="background-color: var(--yc-blue-strong);">
                                             <svg class="h-3 w-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                                         </span>
                                         <span class="opacity-90">{{ $point }}</span>
@@ -146,7 +139,7 @@
                                         placeholder="your-store"
                                         autofocus
                                         class="flex-1 min-w-0 rounded-l-lg border border-gray-300 border-r-0 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:z-10"
-                                        style="--tw-ring-color: var(--yc-blue);">
+                                        style="--tw-ring-color: var(--yc-blue-strong);">
                                     <span class="inline-flex items-center rounded-r-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-500">
                                         .myshopify.com
                                     </span>
@@ -157,10 +150,7 @@
                                 <p class="mt-2 text-xs text-gray-400">You can also paste the full URL — we'll figure it out.</p>
 
                                 <button type="submit"
-                                    class="mt-6 inline-flex w-full items-center justify-center gap-2 text-white py-3.5 px-6 rounded-xl transition font-semibold shadow-sm"
-                                    style="background-color: var(--yc-navy);"
-                                    onmouseover="this.style.backgroundColor='var(--yc-navy-hover)'"
-                                    onmouseout="this.style.backgroundColor='var(--yc-navy)'">
+                                    class="yc-btn mt-6 inline-flex w-full items-center justify-center gap-2 py-3.5 px-6 transition font-semibold">
                                     Connect with Shopify
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
                                 </button>
@@ -176,14 +166,14 @@
             </div>
 
             <p class="text-center text-sm text-gray-500 mt-6">
-                Need help? <a href="mailto:support@yottocode.com" class="font-medium" style="color: var(--yc-blue);">Contact support</a>
+                Need help? <a href="mailto:support@yottocode.com" class="font-medium" style="color: var(--yc-blue-strong);">Contact support</a>
             </p>
         </div>
     </main>
 
     <footer class="bg-gray-900 text-white py-4">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-300">
-            &copy; {{ date('Y') }} Powered by <a href="https://yottocode.com" target="_blank" class="font-medium" style="color: var(--yc-blue);">YottoCode</a>
+            &copy; {{ date('Y') }} Powered by <a href="https://yottocode.com" target="_blank" class="font-medium" style="color: var(--yc-blue-strong);">YottoCode</a>
         </div>
     </footer>
 </body>

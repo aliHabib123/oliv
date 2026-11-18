@@ -1,0 +1,93 @@
+/*
+ * YottoCode brand layer for the public pages (onboarding, subscriptions).
+ * Mirrors the landing site (yottocode.com, salient-child/assets/css/yottocode.css):
+ * Manrope headings, Inter body, light-blue page, blue pill buttons, soft cards.
+ *
+ * Tailwind's CDN script injects its styles after this file, so overrides of
+ * Tailwind utilities need !important.
+ */
+
+:root {
+    --yc-black: #1c1710;
+    --yc-light-blue: #f6fcff;
+    --yc-blue: #5bc3f5;
+    --yc-blue-strong: #2aabee;
+    --yc-navy: #0f1626;
+    --yc-navy-hover: #1e2a44;
+    --yc-sky: #b3e6ff;
+    --yc-title-gradient: linear-gradient(110deg, #00334e 0%, #007ec1 100%);
+    --yc-card-shadow: 0 12px 40px rgba(0, 51, 78, 0.08);
+    --yc-font-heading: 'Manrope', sans-serif;
+    --yc-font-body: 'Inter', sans-serif;
+}
+
+/* ---------- Base ---------- */
+
+body {
+    font-family: var(--yc-font-body) !important;
+    color: var(--yc-black);
+}
+
+body.bg-gray-50 {
+    background-color: var(--yc-light-blue) !important;
+}
+
+h1, h2, h3, h4 {
+    font-family: var(--yc-font-heading);
+    letter-spacing: -0.02em;
+}
+
+/* Page titles use the landing site's title gradient */
+main h1 {
+    background-image: var(--yc-title-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800 !important;
+}
+
+/* ---------- Header / footer ---------- */
+
+body > header.bg-white {
+    box-shadow: 0 4px 30px rgba(0, 51, 78, 0.06) !important;
+}
+
+body > footer.bg-gray-900 {
+    background-color: var(--yc-navy) !important;
+}
+
+/* ---------- Cards ---------- */
+
+main .bg-white.shadow-lg {
+    border-radius: 20px !important;
+    box-shadow: var(--yc-card-shadow) !important;
+}
+
+/* ---------- Buttons ---------- */
+
+.yc-btn {
+    background-color: var(--yc-blue) !important;
+    color: var(--yc-black) !important;
+    border-radius: 200px !important;
+    font-weight: 500 !important;
+    transition: background-color 0.2s ease;
+}
+
+.yc-btn:hover {
+    background-color: var(--yc-blue-strong) !important;
+}
+
+.yc-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ---------- Form fields ---------- */
+
+main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):focus,
+main select:focus,
+main textarea:focus {
+    outline: none;
+    border-color: var(--yc-blue-strong) !important;
+    box-shadow: 0 0 0 3px rgba(91, 195, 245, 0.35) !important;
+}

@@ -37,6 +37,11 @@ class PackagePricingsTable
                     ->money(fn ($record) => $record->country->currency ?? 'USD')
                     ->sortable(),
 
+                TextColumn::make('setup_fee')
+                    ->label('Setup Fee')
+                    ->money(fn ($record) => $record->country->currency ?? 'USD')
+                    ->sortable(),
+
                 TextColumn::make('stripe_monthly_price_id')
                     ->label('Stripe Monthly ID')
                     ->limit(20)
