@@ -4,13 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your branding — YottoCode</title>
-    <link rel="icon" type="image/png" href="{{ asset('img/yottocode-favicon.png') }}">
+    @include('partials.yottocode-head')
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        :root { --yc-navy: #0f1626; --yc-navy-hover: #1e2a44; --yc-blue: #2aabee; --yc-sky: #b3e6ff; }
-        body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-    </style>
-</head>
+    </head>
 <body class="bg-gray-50 flex flex-col" style="min-height: 100vh; margin: 0;">
     <header class="bg-white shadow-sm py-4">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -28,7 +24,7 @@
                     <div class="flex items-center gap-2">
                         <span class="flex items-center justify-center h-6 w-6 rounded-full text-[11px] font-semibold
                             {{ $i < $current ? 'text-white' : ($i === $current ? 'text-white' : 'bg-gray-200 text-gray-500') }}"
-                            @if($i <= $current) style="background-color: {{ $i < $current ? '#10b981' : 'var(--yc-blue)' }};" @endif>
+                            @if($i <= $current) style="background-color: {{ $i < $current ? '#10b981' : 'var(--yc-blue-strong)' }};" @endif>
                             @if($i < $current)
                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                             @else
@@ -63,7 +59,7 @@
                             value="{{ old('app_name', $appName) }}"
                             oninput="document.getElementById('pv-name').textContent = this.value || 'Your App'"
                             class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 @error('app_name') ring-1 ring-red-400 @enderror"
-                            style="--tw-ring-color: var(--yc-blue);" required>
+                            style="--tw-ring-color: var(--yc-blue-strong);" required>
                         @error('app_name') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
 
                         {{-- Logo --}}
@@ -144,10 +140,7 @@
                     <a href="{{ \App\Http\Controllers\Onboarding\ShopifyOnboardingController::signedShowUrl($tenant) }}"
                         class="text-sm font-medium text-gray-500 hover:text-gray-700 transition">← Back</a>
                     <button type="submit"
-                        class="inline-flex items-center justify-center gap-2 text-white py-3 px-8 rounded-xl transition font-semibold shadow-sm"
-                        style="background-color: var(--yc-navy);"
-                        onmouseover="this.style.backgroundColor='var(--yc-navy-hover)'"
-                        onmouseout="this.style.backgroundColor='var(--yc-navy)'">
+                        class="yc-btn inline-flex items-center justify-center gap-2 py-3 px-8 transition font-semibold">
                         Save &amp; continue
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
                     </button>
@@ -158,7 +151,7 @@
 
     <footer class="bg-gray-900 text-white py-4">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-300">
-            &copy; {{ date('Y') }} Powered by <a href="https://yottocode.com" target="_blank" class="font-medium" style="color: var(--yc-blue);">YottoCode</a>
+            &copy; {{ date('Y') }} Powered by <a href="https://yottocode.com" target="_blank" class="font-medium" style="color: var(--yc-blue-strong);">YottoCode</a>
         </div>
     </footer>
 

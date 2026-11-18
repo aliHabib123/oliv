@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment - YottoCode</title>
-    <link rel="icon" type="image/png" href="{{ asset('img/yottocode-favicon.png') }}">
+    @include('partials.yottocode-head')
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://js.stripe.com/v3/"></script>
 </head>
@@ -54,6 +54,7 @@
                         }
 
                         $total = $packageTotal + $addonsTotal;
+                        $setupFee = $packagePricing['setup_fee'] ?? 0;
                         $periodLabel = $subscription->billing_period === 'yearly' ? 'year' : 'month';
                     @endphp
 
@@ -86,19 +87,30 @@
                         @endforeach
                     @endif
 
+                    @if($setupFee > 0)
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-gray-600 text-sm">One-time set-up fee:</span>
+                            <span class="text-gray-700">{{ $currencySymbol }} {{ number_format($setupFee, 2) }}</span>
+                        </div>
+                    @endif
+
                     <div class="flex justify-between items-center border-t border-gray-200 pt-4 mt-4">
                         <span class="text-lg font-bold text-gray-900">Total:</span>
                         <span class="text-2xl font-bold" style="color: #2aabee;">{{ $currencySymbol }} {{ number_format($total, 0) }}/{{ $periodLabel }}</span>
                     </div>
+                    @if($setupFee > 0)
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-gray-600 text-sm">Due today (incl. set-up fee):</span>
+                            <span class="font-semibold text-gray-900">{{ $currencySymbol }} {{ number_format($total + $setupFee, 0) }}</span>
+                        </div>
+                    @endif
+                    <p class="text-xs text-gray-500 mt-3">After your first 12 months, cancel with 30 days notice.</p>
                 </div>
 
                 <div class="text-center mb-6">
                     <p class="text-gray-600 mb-4">Click below to proceed to secure payment with Stripe</p>
                     <button id="checkout-button"
-                        class="w-full text-white py-4 px-6 rounded-lg transition font-semibold text-lg shadow-lg"
-                        style="background-color: #0f1626;"
-                        onmouseover="this.style.backgroundColor='#1e2a44'"
-                        onmouseout="this.style.backgroundColor='#0f1626'">
+                        class="yc-btn w-full py-4 px-6 transition font-semibold text-lg shadow-lg">
                         Proceed to Payment
                     </button>
                 </div>

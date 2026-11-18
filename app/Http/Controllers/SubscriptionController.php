@@ -242,6 +242,10 @@ class SubscriptionController extends Controller
                 }
             }
 
+            if ($setupFeeLineItem = $this->pricingService->getSetupFeeLineItem($packagePricing)) {
+                $lineItems[] = $setupFeeLineItem;
+            }
+
             // Create Stripe Checkout Session
             $checkoutSession = StripeSession::create([
                 'payment_method_types' => ['card'],

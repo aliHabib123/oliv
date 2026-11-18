@@ -30,8 +30,10 @@ class PackagePricingForm
                         $countryCode = $get('country_code');
                         if ($countryCode) {
                             $country = Country::where('code', $countryCode)->first();
+
                             return $country?->symbol ?? '$';
                         }
+
                         return '$';
                     })
                     ->helperText('Enter monthly price'),
@@ -45,11 +47,31 @@ class PackagePricingForm
                         $countryCode = $get('country_code');
                         if ($countryCode) {
                             $country = Country::where('code', $countryCode)->first();
+
                             return $country?->symbol ?? '$';
                         }
+
                         return '$';
                     })
                     ->helperText('Usually 30% off monthly price × 12'),
+
+                TextInput::make('setup_fee')
+                    ->label('One-time Setup Fee')
+                    ->numeric()
+                    ->required()
+                    ->default(0)
+                    ->step(0.01)
+                    ->prefix(function ($get) {
+                        $countryCode = $get('country_code');
+                        if ($countryCode) {
+                            $country = Country::where('code', $countryCode)->first();
+
+                            return $country?->symbol ?? '$';
+                        }
+
+                        return '$';
+                    })
+                    ->helperText('Charged once with the first payment. 0 for no setup fee'),
 
                 TextInput::make('stripe_monthly_price_id')
                     ->label('Stripe Monthly Price ID')
