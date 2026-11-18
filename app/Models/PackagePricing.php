@@ -13,6 +13,7 @@ class PackagePricing extends Model
         'country_code',
         'monthly_price',
         'yearly_price',
+        'setup_fee',
         'stripe_monthly_price_id',
         'stripe_yearly_price_id',
         'is_active',
@@ -21,6 +22,7 @@ class PackagePricing extends Model
     protected $casts = [
         'monthly_price' => 'decimal:2',
         'yearly_price' => 'decimal:2',
+        'setup_fee' => 'decimal:2',
         'is_active' => 'boolean',
     ];
 
@@ -50,7 +52,7 @@ class PackagePricing extends Model
      */
     public function getPriceForPeriod(string $billingPeriod): float
     {
-        return $billingPeriod === 'yearly' ? (float)$this->yearly_price : (float)$this->monthly_price;
+        return $billingPeriod === 'yearly' ? (float) $this->yearly_price : (float) $this->monthly_price;
     }
 
     /**

@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Addon;
+use App\Models\AddonPricing;
+use App\Models\PackagePricing;
 use Illuminate\Database\Seeder;
 
 class PricingSeeder extends Seeder
@@ -14,27 +16,28 @@ class PricingSeeder extends Seeder
     {
         // Package pricing for each country
         $packagePricing = [
-            'US' => ['monthly' => 12.99, 'yearly' => 109.99],
-            'AE' => ['monthly' => 47.65, 'yearly' => 479.99],
-            'SA' => ['monthly' => 48.70, 'yearly' => 487.00],
-            'QA' => ['monthly' => 47.30, 'yearly' => 473.00],
-            'GB' => ['monthly' => 10.25, 'yearly' => 102.50],
-            'EU' => ['monthly' => 11.95, 'yearly' => 119.50],
+            'US' => ['monthly' => 12.99, 'yearly' => 109.99, 'setup_fee' => 408],
+            'AE' => ['monthly' => 47.65, 'yearly' => 479.99, 'setup_fee' => 1500],
+            'SA' => ['monthly' => 48.70, 'yearly' => 487.00, 'setup_fee' => 1532],
+            'QA' => ['monthly' => 47.30, 'yearly' => 473.00, 'setup_fee' => 1487],
+            'GB' => ['monthly' => 10.25, 'yearly' => 102.50, 'setup_fee' => 304],
+            'EU' => ['monthly' => 11.95, 'yearly' => 119.50, 'setup_fee' => 349],
         ];
 
         foreach ($packagePricing as $countryCode => $prices) {
-            \App\Models\PackagePricing::updateOrCreate(
+            PackagePricing::updateOrCreate(
                 ['country_code' => $countryCode],
                 [
                     'monthly_price' => $prices['monthly'],
                     'yearly_price' => $prices['yearly'],
+                    'setup_fee' => $prices['setup_fee'],
                     'is_active' => true,
                 ]
             );
         }
 
         // Addon pricing - get all addons and create pricing for each country
-        $addons = \App\Models\Addon::where('is_active', true)->get();
+        $addons = Addon::where('is_active', true)->get();
 
         // Example addon pricing multipliers based on country
         $addonPricing = [
@@ -48,7 +51,7 @@ class PricingSeeder extends Seeder
 
         foreach ($addons as $addon) {
             foreach ($addonPricing as $countryCode => $multipliers) {
-                \App\Models\AddonPricing::updateOrCreate(
+                AddonPricing::updateOrCreate(
                     [
                         'addon_id' => $addon->id,
                         'country_code' => $countryCode,

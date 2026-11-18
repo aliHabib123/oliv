@@ -32,6 +32,7 @@
                 $monthlyPrice = $packagePricing ? $packagePricing['price'] : 12.99;
                 $yearlyPricing = $country ? app(\App\Services\CountryPricingService::class)->getPackagePricing($currentCountry, 'yearly') : null;
                 $yearlyPrice = $yearlyPricing ? $yearlyPricing['price'] : 109.99;
+                $setupFee = $packagePricing['setup_fee'] ?? 0;
             @endphp
 
             <!-- Country Selector -->
@@ -77,12 +78,15 @@
                                 </div>
                             </div>
 
-                            <p class="text-sm text-gray-600 mb-4">ONE PRICE. EVERYTHING INCLUDED.</p>
+                            <p class="text-sm text-gray-600 mb-4">No commissions on sales. No hidden fees. One simple 12 month term.</p>
                             <div class="mb-2">
                                 <span class="text-3xl font-bold text-gray-900" id="base-price">{{ $currencySymbol }} {{ number_format($monthlyPrice, 0) }}</span>
                                 <span class="text-lg text-gray-600" id="period-text">/month</span>
                             </div>
-                            <p class="text-sm text-gray-600 mb-4">{{ $package->description }}</p>
+                            <p class="text-sm text-gray-600 mb-2">{{ $package->description }}</p>
+                            @if($setupFee > 0)
+                                <p class="text-sm text-gray-700 mb-4">Plus one-time set-up fee: <span class="font-semibold">{{ $currencySymbol }} {{ number_format($setupFee, 0) }}</span></p>
+                            @endif
 
                             @if($package->features)
                                 <ul class="space-y-3">
@@ -167,6 +171,13 @@
                             </div>
                         </div>
 
+                        @if($setupFee > 0)
+                            <div class="flex justify-between text-sm mb-6">
+                                <span class="text-gray-600">One-time set-up fee</span>
+                                <span class="font-medium text-gray-900">{{ $currencySymbol }} {{ number_format($setupFee, 0) }}</span>
+                            </div>
+                        @endif
+
                         <div class="border-t border-gray-200 pt-4 mb-4">
                             <div class="flex justify-between items-center">
                                 <span class="text-lg font-bold text-gray-900">Total</span>
@@ -176,6 +187,13 @@
                                     </div>
                                 </div>
                             </div>
+                            @if($setupFee > 0)
+                                <div class="flex justify-between items-center mt-2 text-sm">
+                                    <span class="text-gray-600">Due today (incl. set-up fee)</span>
+                                    <span class="font-semibold text-gray-900" id="due-today">{{ $currencySymbol }} {{ number_format($monthlyPrice + $setupFee, 0) }}</span>
+                                </div>
+                            @endif
+                            <p class="text-xs text-gray-500 mt-3">After your first 12 months, cancel with 30 days notice.</p>
                         </div>
 
                         <h2 class="text-lg font-bold text-gray-900 mb-4 border-t pt-6">Your Details</h2>
@@ -307,6 +325,7 @@
         const basePrice = {{ $monthlyPrice }};
         const yearlyPrice = {{ $yearlyPrice }};
         const currencySymbol = '{{ $currencySymbol }}';
+        const setupFee = {{ (float) $setupFee }};
         const selectedAddons = new Set();
         const addonPrices = {};
         const addonNames = {};
@@ -428,6 +447,11 @@
             // Update total
             document.getElementById('total-amount').textContent = currencySymbol + ' ' + Math.round(total);
             document.getElementById('billing-period').textContent = isYearly ? '/year' : '/month';
+
+            const dueToday = document.getElementById('due-today');
+            if (dueToday) {
+                dueToday.textContent = currencySymbol + ' ' + Math.round(total + setupFee);
+            }
         }
 
         function updateSelectedAddonsInput() {

@@ -54,6 +54,7 @@
                         }
 
                         $total = $packageTotal + $addonsTotal;
+                        $setupFee = $packagePricing['setup_fee'] ?? 0;
                         $periodLabel = $subscription->billing_period === 'yearly' ? 'year' : 'month';
                     @endphp
 
@@ -86,10 +87,24 @@
                         @endforeach
                     @endif
 
+                    @if($setupFee > 0)
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-gray-600 text-sm">One-time set-up fee:</span>
+                            <span class="text-gray-700">{{ $currencySymbol }} {{ number_format($setupFee, 2) }}</span>
+                        </div>
+                    @endif
+
                     <div class="flex justify-between items-center border-t border-gray-200 pt-4 mt-4">
                         <span class="text-lg font-bold text-gray-900">Total:</span>
                         <span class="text-2xl font-bold" style="color: #2aabee;">{{ $currencySymbol }} {{ number_format($total, 0) }}/{{ $periodLabel }}</span>
                     </div>
+                    @if($setupFee > 0)
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-gray-600 text-sm">Due today (incl. set-up fee):</span>
+                            <span class="font-semibold text-gray-900">{{ $currencySymbol }} {{ number_format($total + $setupFee, 0) }}</span>
+                        </div>
+                    @endif
+                    <p class="text-xs text-gray-500 mt-3">After your first 12 months, cancel with 30 days notice.</p>
                 </div>
 
                 <div class="text-center mb-6">
